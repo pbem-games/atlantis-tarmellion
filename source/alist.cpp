@@ -23,10 +23,11 @@
 //
 // END A3HEADER
 #include "alist.h"
+#include <string>
 
 AListElem::AListElem()
 {
-	sortString = NULL;
+	sortString = 0;
 }
 
 AListElem::~AListElem()
