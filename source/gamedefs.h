@@ -597,6 +597,7 @@ public:
 	int FP_DISTRIBUTION;
 	int FP_FACTOR;
 	int ACN_IS_STARTING_CITY;
+	int TARMELLION_SUMMONING;	// Use tarmellion summoning rules
 
 };
 

@@ -1206,7 +1206,8 @@ int Army::DoAnAttack(int special, int numAttacks, int attackType,
 		if (tar->riding != -1) attackLevel += mountBonus;
 
 		/* 5. Attack soldier */
-		if (attackType != NUM_ATTACK_TYPES) {
+		if (attackType != NUM_ATTACK_TYPES &&
+			attackType != ATTACK_DISPEL ) {
 			if (!(flags & WeaponType::ALWAYSREADY)) {
 				if (getrandom(2)) {
 					continue;
@@ -1226,7 +1227,7 @@ int Army::DoAnAttack(int special, int numAttacks, int attackType,
 			}
 
 			/* 8. Seeya! */
-			Kill(tarnum);
+			Kill(tarnum, attackType == ATTACK_DISPEL);
 			ret++;
 		} else {
 			if (tar->HasEffect(effect)) {
@@ -1239,15 +1240,19 @@ int Army::DoAnAttack(int special, int numAttacks, int attackType,
 	return ret;
 }
 
-void Army::Kill(int killed) {
+void Army::Kill(int killed, int destroy) {
 	Soldier *temp = soldiers[killed];
 
 	if (temp->amuletofi) return;
 
+	int hitsTaken = 1;
+	if( destroy )
+		hitsTaken = temp->hits;
+
 	if (Globals->ARMY_ROUT == GameDefs::ARMY_ROUT_HITS_INDIVIDUAL)
-		hitsalive--;
-	temp->damage++;
-	temp->hits--;
+		hitsalive -= hitsTaken;
+	temp->damage += hitsTaken;
+	temp->hits -= hitsTaken;
 	if (temp->hits > 0) return;
 	temp->unit->losses++;
 	if (Globals->ARMY_ROUT == GameDefs::ARMY_ROUT_HITS_FIGURE) {

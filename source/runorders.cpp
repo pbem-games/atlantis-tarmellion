@@ -1540,10 +1540,19 @@ void Game::DoBuy(ARegion * r,Market * m) {
 						u->AdjustSkills();
 						delete sl;
 					}
-					if (o->item == I_BONDSMAN && u->faction->race) {
-						o->item = u->faction->race;
-					} else if (o->item == I_BONDSMAN) {
-						u->Error(AString("BUY: you don't have a race to recruit from."));
+					if (o->item == I_BONDSMAN) {
+						if( u->faction->race) {
+							o->item = u->faction->race;
+						} else {
+							u->Error("BUY: Faction has no race set.");
+						}
+					}
+					if (o->item == I_LBONDSMAN) {
+						if( u->faction->race) {
+							o->item = ManDefs[ItemDefs[u->faction->race].index].minority;
+						} else {
+							u->Error("BUY: Faction has no race set.");
+						}
 					}
 					if(o->item) {
 						u->items.SetNum(o->item,u->items.GetNum(o->item) + temp);

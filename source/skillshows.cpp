@@ -659,8 +659,20 @@ AString *ShowSkill::Report(Faction *f) {
 			if (ITEM_DISABLED(I_WOLF)) break;
 			*str += "A mage with Wolf Lore skill may summon wolves, who will "
 				"fight for him in combat. A mage may summon a number of "
-				"wolves equal to his skill level, and control a total number "
-				"of his skill level squared times 4 wolves; the wolves will "
+				"wolves equal to ";
+			if( Globals->TARMELLION_SUMMONING ) {
+				*str += "his skill level plus one, divided by two, ";
+			} else {
+				*str += "his skill level ";
+			}
+			*str += "per month. ";
+			*str += "The mage may control a total of ";
+			if( Globals->TARMELLION_SUMMONING ) {
+				*str += "his skill level squared ";
+			} else {
+				*str += "his skill level squared times 4 ";
+			}
+			*str += "wolves; the wolves will "
 				"be placed in the mages inventory. Note, however, that wolves "
 				"may only be summoned in hill, mountain and any kind of forest regions. To "
 				"summon wolves, the mage should issue the order CAST "
@@ -681,37 +693,63 @@ AString *ShowSkill::Report(Faction *f) {
 				if (ITEM_DISABLED(I_EAGLE)) break;
 				*str += "A mage with Bird Lore 3 can summon eagles to join "
 					"him, who will aid him in combat, and provide for flying "
-					"transportation. A mage may summon a number of eagles "
-					"equal to his skill level squared; the eagles "
+					"transportation. A mage may summon a number of "
+					"eagles equal to ";
+				if( Globals->TARMELLION_SUMMONING ) {
+					*str += "his skill level plus one, divided by two, ";
+				} else {
+					*str += "his skill level plus one, divided by two, ";
+				}
+				*str += "per month. ";
+				*str += "The mage may control a total of ";
+				if( Globals->TARMELLION_SUMMONING ) {
+					*str += "his skill level squared ";
+				} else {
+					*str += "his skill level squared ";
+				}
+				*str += "eagles; the eagles "
 					"will appear in his inventory. To summon an eagle, issue "
 					"the order CAST Bird_Lore EAGLE.";
 			}
+			
 			break;
 		case S_SUMMON_DRAGON:
 			/* XXX -- This should be cleaner somehow. */
 			if (level > 1) break;
-			if (ITEM_DISABLED(I_REDDRAGON)) break;
+//			if (ITEM_DISABLED(I_REDDRAGON)) break;
 			*str += "A mage with Summon Dragon skill can summon good dragons to "
 				"join him, to aid in battle, and provide flying "
-				"transportation. A mage at level 1 has a low chance of "
-				"successfully summoning a dragon, gradually increasing until "
-				"at level 5 he may summon one dragon per turn; the total "
-				"number of dragons that a mage may control at one time is "
-				"equal to his skill level. To attempt to summon a dragon, "
-				"CAST Summon_Dragon.";
+				"transportation. ";
+			if( !Globals->TARMELLION_SUMMONING ) {
+				*str += "A mage at level 1 has a low chance of "
+					"successfully summoning a dragon, gradually increasing until "
+					"at level 5 he may summon one dragon per turn; the total "
+					"number of dragons that a mage may control at one time is "
+					"equal to his skill level.  To attempt to summon a good dragon, ";
+			} else {
+				*str += "To summon a good dragon, ";
+			}
+			*str += "CAST Summon_Dragon <dragon> to cast this spell, where <dragon> "
+				"is the desired type of dragon.";
 			break;
 		case S_SUMMON_WYRM:
 			/* XXX -- This should be cleaner somehow. */
 			if (level > 1) break;
-			if (ITEM_DISABLED(I_REDDRAGON)) break;
+//			if (ITEM_DISABLED(I_REDDRAGON)) break;
 			*str += "A mage with Summon Wyrm skill can summon evil dragons to "
 				"join him, to aid in battle, and provide flying "
-				"transportation. A mage at level 1 has a low chance of "
-				"successfully summoning a dragon, gradually increasing until "
-				"at level 5 he may summon one dragon per turn; the total "
-				"number of dragons that a mage may control at one time is "
-				"equal to his skill level. To attempt to summon a dragon, "
-				"CAST Summon_Wyrm.";
+				"transportation. ";
+			if( !Globals->TARMELLION_SUMMONING ) {
+				*str += "A mage at level 1 has a low chance of "
+					"successfully summoning a dragon, gradually increasing until "
+					"at level 5 he may summon one dragon per turn; the total "
+					"number of dragons that a mage may control at one time is "
+					"equal to his skill level.  To attempt to summon an evil dragon, ";
+			} else {
+				*str += "To summon an evil dragon, ";
+			}
+			*str += "CAST Summon_Wyrm <dragon> to cast this spell, where <dragon> "
+				"is the desired type of dragon.";
 			break;
 		case S_NECROMANCY:
 			if (level > 1) break;
@@ -728,12 +766,23 @@ AString *ShowSkill::Report(Faction *f) {
 			if (level > 1) break;
 			if (ITEM_DISABLED(I_SKELETON)) break;
 			*str += "A mage with the Summon Skeletons skill may summon "
-				"skeletons into his inventory, to aid him in battle. "
-				"Skeletons may be given to other units, as they follow "
+				"skeletons into his inventory, to aid him in battle";
+			if( !Globals->TARMELLION_SUMMONING ) {
+				*str += ". Skeletons may be given to other units, as they follow "
 				"instructions mindlessly; however, they have a 10 percent "
-				"chance of decaying each turn. A mage can summon skeletons "
-				"at an average rate of 40 percent times his level squared. "
-				"To use the spell, use the order CAST Summon_Skeletons, "
+					"chance of decaying each turn";
+			}
+			if( Globals->TARMELLION_SUMMONING ) {
+				*str += ". A mage can summon two skeletons per month. ";
+			} else {
+				*str += ". A mage can summon skeletons "
+					"at an average rate of 40 percent times his level squared. ";
+			}
+			if( Globals->TARMELLION_SUMMONING ) {
+				*str += "The mage may control a total of his skill level "
+					"squared skeletons. ";
+			}
+			*str +=	"To use the spell, use the order CAST Summon_Skeletons, "
 				"and the mage will summon as many skeletons as he is able.";
 			break;
 		case S_RAISE_UNDEAD:
@@ -741,11 +790,23 @@ AString *ShowSkill::Report(Faction *f) {
 			if (level > 1) break;
 			if (ITEM_DISABLED(I_UNDEAD)) break;
 			*str += "A mage with the Raise Undead skill may summon undead "
-				"into his inventory, to aid him in battle. Undead may be "
-				"given to other units, as they follow instructions "
-				"mindlessly; however, they have a 10 percent chance of "
-				"decaying each turn. A mage can summon undead at an average "
-				"rate of 10 percent times his level squared. To use the "
+				"into his inventory, to aid him in battle";
+			if( !Globals->TARMELLION_SUMMONING ) {
+				*str += ". Undead may be given to other units, as they follow instructions "
+				"mindlessly; however, they have a 10 percent "
+					"chance of decaying each turn";
+			}
+			if( Globals->TARMELLION_SUMMONING ) {
+				*str += ". A mage can summon one undead per month. ";
+			} else {
+				*str += ". A mage can summon undead "
+					"at an average rate of 10 percent times his level squared. ";
+			}
+			if( Globals->TARMELLION_SUMMONING ) {
+				*str += "The mage may control a total of his skill level "
+					"undead. ";
+			}
+			*str += "To use the "
 				"spell, use the order CAST Raise_Undead and the mage will "
 				"summon as many undead as he is able.";
 			break;
@@ -754,12 +815,23 @@ AString *ShowSkill::Report(Faction *f) {
 			if (level > 1) break;
 			if (ITEM_DISABLED(I_LICH)) break;
 			*str += "A mage with the Summon Lich skill may summon a lich "
-				"into his inventory, to aid him in battle. Liches may be "
-				"given to other units, as they follow instructions "
-				"mindlessly; however, they have a 10 percent chance of "
-				"decaying each turn. A mage has a 2 percent times his level "
-				"squared chance of summoning a lich; to summon a lich, use "
-				"the order CAST Summon_Lich.";
+				"into his inventory, to aid him in battle";
+			if( !Globals->TARMELLION_SUMMONING ) {
+				*str += ". Liches may be given to other units, as they follow instructions "
+					"mindlessly; however, they have a 10 percent "
+					"chance of decaying each turn";
+			}
+			if( Globals->TARMELLION_SUMMONING ) {
+				*str += ". A mage can summon one lich per month. ";
+			} else {
+				*str += ". A mage has a 2 percent times his level "
+					"squared chance of summoning a lich";
+			}
+			if( Globals->TARMELLION_SUMMONING ) {
+				*str += "The mage may control a total of his skill level "
+					"liches. ";
+			}
+			*str += "To summon a lich, use the order CAST Summon_Lich.";
 			break;
 		case S_CREATE_AURA_OF_FEAR:
 			if (level > 1) break;
@@ -787,14 +859,26 @@ AString *ShowSkill::Report(Faction *f) {
 			if (level > 1) break;
 			if (ITEM_DISABLED(I_IMP)) break;
 			*str += "A mage with the Summon Imps skill may summon imps into "
-				"his inventory, to aid him in combat. A mage may summon one "
-				"imp per skill level; however, the imps have a chance of "
-				"breaking free of the mage's control at the end of each "
-				"turn. This chance is based on the number of imps in the "
-				"mage's control; if the mage has his skill level squared "
-				"times 4 imps, the chance is 5 percent; this chance goes "
-				"up or down quickly if the mage controls more or fewer imps. "
-				"To use this spell, the mage should issue the order CAST "
+				"his inventory, to aid him in combat. ";
+			*str += "A mage may summon a number of imps equal to ";
+			if( Globals->TARMELLION_SUMMONING ) {
+				*str += "his skill level plus 1, divided by 2 ";
+			} else {
+				*str += "his level ";
+			}
+			*str += "per month. ";
+			if( Globals->TARMELLION_SUMMONING ) {
+				*str += "The mage may control a total of "
+						"his skill level squared imps. ";
+			} else {
+				*str += "The imps have a chance of "
+					"breaking free of the mage's control at the end of each "
+					"turn. This chance is based on the number of imps in the "
+					"mage's control; if the mage has his skill level squared "
+					"times 4 imps, the chance is 5 percent; this chance goes "
+					"up or down quickly if the mage controls more or fewer imps. ";
+			}
+			*str +=	"To use this spell, the mage should issue the order CAST "
 				"Summon_Imps, and the mage will summon as many imps as he "
 				"is able.";
 			break;
@@ -803,14 +887,26 @@ AString *ShowSkill::Report(Faction *f) {
 			if (level > 1) break;
 			if (ITEM_DISABLED(I_DEMON)) break;
 			*str += "A mage with the Summon Demon skill may summon demons "
-				"into his inventory, to aid him in combat. A mage may summon "
-				"one demon each turn; however, the demons have a chance of "
+				"into his inventory, to aid him in combat. ";
+			if( Globals->TARMELLION_SUMMONING ) {
+				*str += "A mage may summon one demon ";
+			} else {
+				*str += "A mage may summon one demon ";
+			}
+			*str += "per month. ";
+			if( Globals->TARMELLION_SUMMONING ) {
+				*str += "The mage may control a total of "
+						"his skill level demons. ";
+			} else {
+				*str += "The demons have a chance of "
 				"breaking free of the mage's control at the end of each "
 				"turn. This chance is based on the number of demons in the "
 				"mage's control; if the mage has a number of demons equal "
 				"to his skill level squared, the chance is 5 percent; this "
 				"chance goes up or down quickly if the mage controls more or "
-				"fewer demons. To use this spell, the mage should issue the "
+				"fewer demons. ";
+			}
+			*str += "To use this spell, the mage should issue the "
 				"order CAST Summon_Demon.";
 			break;
 		case S_SUMMON_BALROG:
@@ -818,14 +914,25 @@ AString *ShowSkill::Report(Faction *f) {
 			if (level > 1) break;
 			if (ITEM_DISABLED(I_BALROG)) break;
 			*str += "A mage with the Summon Balrog skill may summon a balrog "
-				"into his inventory, to aid him in combat. A mage has a 20 "
+				"into his inventory, to aid him in combat. ";
+			if( Globals->TARMELLION_SUMMONING ) {
+				*str += "A mage may summon one balrog per month. ";
+			} else {
+				*str += "A mage has a 20 "
 				"percent times his skill level chance of summoning a balrog, "
 				"but may only summon a balrog if one is not already under "
-				"his control. As with other demons, the balrog has a chance "
+				"his control. ";
+			}
+			if( Globals->TARMELLION_SUMMONING ) {
+				*str += "The mage may only control one balrog at once. ";
+			} else {
+				*str += "As with other demons, the balrog has a chance "
 				"of breaking free of the mage's control at the end of each "
 				"turn. This chance is equal to 1 over 4 times the mage's "
 				"skill level to the fourth power (or, from 1 over 4 at "
-				"level 1, to 1 over 2500 at level 5). To use this spell, "
+				"level 1, to 1 over 2500 at level 5). ";
+			}
+			*str += "To use this spell, "
 				"the mage should issue the order CAST Summon_Balrog.";
 			break;
 		case S_BANISH_DEMONS:
@@ -837,7 +944,7 @@ AString *ShowSkill::Report(Faction *f) {
 			*str += "Illusion is the magic of creating images of things that "
 				"do not actually exist. The Illusion skill does not have any "
 				"direct applications, but is required for further study of "
-				"Illusionary magic. A mage with knowledge of the Illusion "
+				"illusory magic. A mage with knowledge of the Illusion "
 				"skill will detect the use of Illusion by any other mage in "
 				"the same region.";
 			break;
@@ -846,139 +953,219 @@ AString *ShowSkill::Report(Faction *f) {
 			if (level > 1) break;
 			*str += "A mage with the Phantasmal Entertainment skill may use "
 				"his powers of Illusion to earn money by creating "
-				"illusionary fireworks, puppet shows, etc. In effect, "
+				"illusory fireworks, puppet shows, etc. In effect, "
 				"Phantasmal Entertainment grants the mage Entertainment "
-				"skill equal to five times his Phantasmal Entertainment "
+				"skill equal to ten times his Phantasmal Entertainment "
 				"level. To use this skill, use the ENTERTAIN order.";
 			break;
 		case S_CREATE_PHANTASMAL_BEASTS:
 			/* XXX -- This should be cleaner somehow. */
 			if (level == 1) {
 				*str += "A mage with Create Phantasmal Beasts may summon "
-					"illusionary beasts that appear in the mage's inventory. "
+					"illusory beasts that appear in the mage's inventory. "
 					"These beasts will fight in combat, but do not attack, "
 					"and are killed whenever they are attacked.";
 				if (ITEM_ENABLED(I_IWOLF)) {
-					*str += " Create Phantasmal Beasts at level 1 allows the "
-						"mage to summon illusionary wolves; the number the "
-						"mage can summon, or have in his inventory at one "
-						"time is equal to the mage's skill squared times 4. "
-						"To use this spell, the mage should CAST "
-						"Create_Phantasmal_Beasts WOLF <number>, where "
+					if( Globals->TARMELLION_SUMMONING ) {
+						*str += " Create Phantasmal Beasts at level 1 allows the "
+							"mage to summon illusory wolves. A mage may summon "
+							"up to two illusory wolves per month, and may control "
+							"up to his skill level squared illusory wolves in total.";
+					} else {
+						*str += " Create Phantasmal Beasts at level 1 allows the "
+							"mage to summon illusory wolves; the number the "
+							"mage can summon, or have in his inventory at one "
+							"time is equal to the mage's skill squared times 4.";
+					}
+				}
+				*str +=	" To use this spell, the mage should CAST ";
+				if( Globals->TARMELLION_SUMMONING ) {
+					*str += "Create_Phantasmal_Beasts <beast>, where "
+						"<beast> is the type of illusion the mage wishes to "
+						"summon.";
+				} else {
+					*str += "Create_Phantasmal_Beasts WOLF <number>, where "
 						"<number> is the number of wolves that the mage "
 						"wishes to have appear in his inventory.";
 				}
-				*str += " Note: illusionary beasts will appear on reports as "
+				*str += " Note: illusory beasts will appear on reports as "
 					"if they were normal items, except on the owner's "
-					"report, where they are marked as illusionary. To "
+					"report, where they are marked as illusory. To "
 					"reference these items in orders, you must prepend an "
 					"'i' to the normal string. (For example: to reference "
-					"an illusionary wolf, you would use 'iwolf').";
+					"an illusory wolf, you would use 'iWOLF').";
 			} else if (level == 3) {
 				if (ITEM_DISABLED(I_IEAGLE)) break;
-				*str += "Create Phantasmal Beasts at level 3 allows the mage "
-					"to summon illusionary eagles into his inventory. To "
-					"summon illusionary eagles, the mage should CAST "
-					"Create_Phantasmal_Beasts EAGLE <number>, where <number> "
-					"is the number of eagles that the mage wishes to have "
-					"appear in his inventory. The number of eagles that a "
-					"mage may have in his inventory is equal to his skill "
-					"level, minus 2, squared.";
+				if( Globals->TARMELLION_SUMMONING ) {
+					*str += " Create Phantasmal Beasts at level 3 allows the "
+						"mage to summon illusory eagles. A mage may summon "
+						"up to one illusory eagle per month, and may control "
+						"up to his skill level illusory eagles in total.";
+				} else {
+					*str += " Create Phantasmal Beasts at level 3 allows the "
+						"mage to summon illusory eagles; the number the "
+						"mage can summon, or have in his inventory at one "
+						"time is equal to the mage's skill level minus 2, "
+						"squared. To summon illusory eagles, the mage should CAST "
+						"Create_Phantasmal_Beasts EAGLE <number>, where <number> "
+						"is the number of eagles that the mage wishes to have "
+						"appear in his inventory.";
+				}
 			} else if (level == 5) {
-				if (ITEM_DISABLED(I_IDRAGON)) break;
-				*str += "Create Phantasmal Beasts at level 5 allows the "
-					"mage to summon an illusionary dragon into his "
-					"inventory. To summon an illusionary dragon, the mage "
-					"should CAST Create_Phantasmal_Beasts DRAGON; the mage "
-					"can only have one illusionary dragon in his inventory "
-					"at one time.";
+//				if (ITEM_DISABLED(I_IRED_DRAGON)) break;
+				if( Globals->TARMELLION_SUMMONING ) {
+					*str += " Create Phantasmal Beasts at level 5 allows the "
+						"mage to summon illusory dragons. A mage may summon "
+						"up to one illusory dragon per month, and may control "
+						"up to his skill level illusory dragons in total.";
+				} else {
+					*str += " Create Phantasmal Beasts at level 5 allows the "
+						"mage to summon an illusory dragon; the mage "
+						"can only have one illusory dragon in his inventory "
+						"at one time. To summon an illusory dragon, the mage "
+						"should CAST Create_Phantasmal_Beasts DRAGON.";
+				}
 			}
 			break;
 		case S_CREATE_PHANTASMAL_UNDEAD:
 			/* XXX -- This should be cleaner somehow. */
 			if (level == 1) {
 				*str += "A mage with Create Phantasmal Undead may summon "
-					"illusionary undead that appear in the mage's inventory. "
+					"illusory undead that appear in the mage's inventory. "
 					"These undead will fight in combat, but do not attack, "
 					"and are killed whenever they are attacked.";
 				if (ITEM_ENABLED(I_ISKELETON)) {
-					*str += " Create Phantasmal Undead at level 1 allows the "
-						"mage to summon illusionary skeletons; the number "
-						"the mage can summon, or have in his inventory at "
-						"one time is equal to the mage's skill squared times "
-						"4. To use this spell, the mage should CAST "
-						"Create_Phantasmal_Undead SKELETON <number>, where "
+					if( Globals->TARMELLION_SUMMONING ) {
+						*str += " Create Phantasmal Undead at level 1 allows the "
+							"mage to summon illusory skeletons. A mage may summon "
+							"up to two illusory skeletons per month, and may control "
+							"up to his skill level squared illusory skeletons in total.";
+					} else {
+						*str += " Create Phantasmal Undead at level 1 allows the "
+							"mage to summon illusory skeletons; the number the "
+							"mage can summon, or have in his inventory at one "
+							"time is equal to the mage's skill squared times 4.";
+					}
+				}
+				*str +=	" To use this spell, the mage should CAST ";
+				if( Globals->TARMELLION_SUMMONING ) {
+					*str += "Create_Phantasmal_Undead <undead>, where "
+						"<undead> is the type of illusion the mage wishes to "
+						"summon.";
+				} else {
+					*str += "Create_Phantasmal_Beasts SKELETON <number>, where "
 						"<number> is the number of skeletons that the mage "
 						"wishes to have appear in his inventory.";
 				}
-				*str += " Note: illusionary undead will appear on reports as "
+				*str += " Note: illusory undead will appear on reports as "
 					"if they were normal items, except on the owner's "
-					"report, where they are marked as illusionary. To "
+					"report, where they are marked as illusory. To "
 					"reference these items in orders, you must prepend an "
-					"'i' to the normal string. (Example: to reference an "
-					"illusionary skeleton, you would use 'iskeleton').";
+					"'i' to the normal string. (For example: to reference "
+					"an illusory skeleton, you would use 'iSKELETON').";
 			} else if (level == 3) {
 				if (ITEM_DISABLED(I_IUNDEAD)) break;
-				*str += "Create Phantasmal Undead at level 3 allows the mage "
-					"to summon illusionary undead into his inventory. To "
-					"summon illusionary undead, the mage should CAST "
-					"Create_Phantasmal_Undead UNDEAD <number>, where <number> "
-					"is the number of undead that the mage wishes to have "
-					"appear in his inventory. The number of undead that a "
-					"mage may have in his inventory is equal to his skill "
-					"level, minus 2, squared.";
+				if( Globals->TARMELLION_SUMMONING ) {
+					*str += " Create Phantasmal Undead at level 3 allows the "
+						"mage to summon illusory undead. A mage may summon "
+						"up to one illusory undead per month, and may control "
+						"up to his skill level illusory undead in total.";
+				} else {
+					*str += " Create Phantasmal Undead at level 3 allows the "
+						"mage to summon illusory undead; the number the "
+						"mage can summon, or have in his inventory at one "
+						"time is equal to the mage's skill level minus 2, "
+						"squared. To summon illusory undead, the mage should CAST "
+						"Create_Phantasmal_Undead UNDEAD <number>, where <number> "
+						"is the number of undead that the mage wishes to have "
+						"appear in his inventory.";
+				}
 			} else if (level == 5) {
 				if (ITEM_DISABLED(I_ILICH)) break;
-				*str += "Create Phantasmal Undead at level 5 allows the mage "
-					"to summon an illusionary lich into his inventory. To "
-					"summon an illusionary lich, the mage should CAST "
-					"Create_Phantasmal_Undead LICH; the mage can only have "
-					"one illusionary lich in his inventory at one time.";
+				if( Globals->TARMELLION_SUMMONING ) {
+					*str += " Create Phantasmal Undead at level 5 allows the "
+						"mage to summon illusory liches. A mage may summon "
+						"up to one illusory lich per month, and may control "
+						"up to his skill level times two illusory liches in total.";
+				} else {
+					*str += " Create Phantasmal Undead at level 5 allows the "
+						"mage to summon an illusory lich; the mage "
+						"can only have one illusory lich in his inventory "
+						"at one time. To summon an illusory lich, the mage "
+						"should CAST Create_Phantasmal_Undead LICH.";
+				}
 			}
 			break;
 		case S_CREATE_PHANTASMAL_DEMONS:
 			/* XXX -- This should be cleaner somehow. */
 			if (level == 1) {
 				*str += "A mage with Create Phantasmal Demons may summon "
-					    "illusionary demons that appear in the mage's "
-						"inventory. These demons will fight in combat, but "
-						"do not attack, and are killed whenever they are "
-						"attacked.";
+					"illusory demons that appear in the mage's inventory. "
+					"These demons will fight in combat, but do not attack, "
+					"and are killed whenever they are attacked.";
 				if (ITEM_ENABLED(I_IIMP)) {
-					*str += " Create Phantasmal Demons at level 1 allows the "
-						"mage to summon illusionary imps; the number the "
-						"mage can summon, or have in his inventory at one "
-						"time is equal to the mage's skill squared times 4. "
-						"To use this spell, the mage should CAST "
-						"Create_Phantasmal_Demons IMP <number>, where "
-						"<number> is the number of imps that the mage wishes "
-						"to have appear in his inventory.";
+					if( Globals->TARMELLION_SUMMONING ) {
+						*str += " Create Phantasmal Demons at level 1 allows the "
+							"mage to summon illusory imps. A mage may summon "
+							"up to two illusory imps per month, and may control "
+							"up to his skill level squared illusory imps in total.";
+					} else {
+						*str += " Create Phantasmal Demons at level 1 allows the "
+							"mage to summon illusory imps; the number the "
+							"mage can summon, or have in his inventory at one "
+							"time is equal to the mage's skill squared times 4.";
+					}
 				}
-				*str += " Note: illusionary demons will appear on reports as "
+				*str +=	" To use this spell, the mage should CAST ";
+				if( Globals->TARMELLION_SUMMONING ) {
+					*str += "Create_Phantasmal_Beasts <demon>, where "
+						"<demon> is the type of illusion the mage wishes to "
+						"summon.";
+				} else {
+					*str += "Create_Phantasmal_Beasts IMP <number>, where "
+						"<number> is the number of imps that the mage "
+						"wishes to have appear in his inventory.";
+				}
+				*str += " Note: illusory demons will appear on reports as "
 					"if they were normal items, except on the owner's "
-					"report, where they are marked as illusionary. To "
+					"report, where they are marked as illusory. To "
 					"reference these items in orders, you must prepend an "
-					"'i' to the normal string. (Example: to reference an "
-					"illusionary imp, you would use 'iimp').";
+					"'i' to the normal string. (For example: to reference "
+					"an illusory imp, you would use 'iIMP').";
 			} else if (level == 3) {
 				if (ITEM_DISABLED(I_IDEMON)) break;
-				*str += "Create Phantasmal Demons at level 3 allows the mage "
-					"to summon illusionary demons into his inventory. To "
-					"summon illusionary demons, the mage should CAST "
-					"Create_Phantasmal_Demons DEMON <number>, where <number> "
-					"is the number of demons that the mage wishes to have "
-					"appear in his inventory. The number of demons that a "
-					"mage may have in his inventory is equal to his skill "
-					"level, minus 2, squared.";
+				if( Globals->TARMELLION_SUMMONING ) {
+					*str += " Create Phantasmal Demons at level 3 allows the "
+						"mage to summon illusory demons. A mage may summon "
+						"up to one illusory demon per month, and may control "
+						"up to his skill level squared illusory demons in total.";
+				} else {
+					*str += " Create Phantasmal Demons at level 3 allows the "
+						"mage to summon illusory demons; the number the "
+						"mage can summon, or have in his inventory at one "
+						"time is equal to the mage's skill level minus 2, "
+						"squared. To summon illusory demons, the mage should CAST "
+						"Create_Phantasmal_Beasts DEMON <number>, where <number> "
+						"is the number of demons that the mage wishes to have "
+						"appear in his inventory.";
+				}
 			} else if (level == 5) {
 				if (ITEM_DISABLED(I_IBALROG)) break;
-				*str += "Create Phantasmal Demons at level 5 allows the mage "
-					"to summon an illusionary balrog into his inventory. To "
-					"summon an illusionary balrog, the mage should CAST "
-					"Create_Phantasmal_Demons BALROG; the mage can only have "
-					"one illusionary balrog in his inventory at one time.";
+				if( Globals->TARMELLION_SUMMONING ) {
+					*str += " Create Phantasmal Demons at level 5 allows the "
+						"mage to summon illusory balrogs. A mage may summon "
+						"up to one illusory balrog per month, and may control "
+						"only one balrog at one time.";
+				} else {
+					*str += " Create Phantasmal Demons at level 5 allows the "
+						"mage to summon an illusory balrog; the mage "
+						"can only have one illusory balrog in his inventory "
+						"at one time. To summon an illusory balrog, the mage "
+						"should CAST Create_Phantasmal_Beasts BALROG.";
+				}
 			}
 			break;
+
 		case S_INVISIBILITY:
 			/* XXX -- This should be cleaner somehow. */
 			if (level > 1) break;
@@ -1248,9 +1435,11 @@ AString *ShowSkill::Report(Faction *f) {
 			if (level > 1) break;
 			if (ITEM_DISABLED(I_FOOD)) break;
 			*str += "A mage with the Create Food skill may magically "
-				"create food. A mage may create 5 times his skill level "
-				"provisions per turn. The mage should issue the order "
-				"CAST Create_Food to cast this spell.";
+				"create food. A mage may create ";
+			*str += ItemDefs[I_FOOD].mOut;
+			*str += " times his skill level provisions per turn. The "
+				"mage should issue the order CAST Create_Food to cast "
+				"this spell.";
 			break;
 	}
 

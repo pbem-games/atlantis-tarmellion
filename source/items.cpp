@@ -37,6 +37,7 @@ AString AttType(int atype) {
 		case ATTACK_WEATHER: return AString("weather");
 		case ATTACK_RIDING: return AString("riding");
 		case ATTACK_RANGED: return AString("ranged");
+		case ATTACK_DISPEL: return AString("dispelling");
 		case NUM_ATTACK_TYPES: return AString("non-resistable");
 		default: return AString("unknown");
 	}
@@ -552,7 +553,8 @@ AString *ItemDescription(int item, int full) {
 		*temp += AString(" This monster attacks with a combat skill of ") +
 			MonDefs[mon].attackLevel + ".";
 		for(int c = 0; c < NUM_ATTACK_TYPES; c++) {
-			*temp += AString(" ") + MonResist(c,MonDefs[mon].defense[c], full);
+			if( !full || MonDefs[mon].defense[c] > 0 )
+				*temp += AString(" ") + MonResist(c,MonDefs[mon].defense[c], full);
 		}
 		if (MonDefs[mon].special && MonDefs[mon].special != -1) {
 			*temp += AString(" ") +
@@ -977,8 +979,10 @@ AString *ItemDescription(int item, int full) {
 		unsigned int c;
 		unsigned int len;
 		*temp += AString(" Units with ") + SkillStrs(ItemDefs[item].mSkill) +
-			" of at least level " + ItemDefs[item].mLevel +
-			" may attempt to create this item via magic";
+			" of at least level " + ItemDefs[item].mLevel + " may ";
+		if( ItemDefs[item].flags & ItemType::CHANCEOUT )
+			*temp += "attempt to ";
+		*temp += "create this item via magic";
 		len = sizeof(ItemDefs[item].mInput)/sizeof(Materials);
 		int count = 0;
 		int tot = len;
@@ -1001,6 +1005,24 @@ AString *ItemDescription(int item, int full) {
 			*temp += AString(amt) + " " + ItemDefs[itm].names;
 		}
 		*temp += ".";
+
+		// Hack - don't want to show this for summoned creatures
+		if( !(ItemDefs[item].type & IT_MONSTER) ) {
+			*temp += " Up to ";
+			if( ItemDefs[item].flags & ItemType::CHANCEOUT )
+				*temp += AString( "1 " ) + ItemString( item, 1 );
+			else {
+				int num = ItemDefs[item].mOut;
+				if( num == 1 ) *temp += "1 ";
+				*temp += ItemString( item, num ) + " per skill level";
+			}
+			*temp += " may be created via magic per month";
+			if( ItemDefs[item].flags & ItemType::CHANCEOUT ) {
+				*temp += AString( " at a chance of " ) + ItemDefs[item].mOut +
+					"% per skill level";
+			}
+			*temp += ".";
+		}
 	}
 
 	if ((ItemDefs[item].type & IT_BATTLE) && full) {

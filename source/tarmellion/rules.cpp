@@ -212,6 +212,7 @@ static GameDefs g = {
 	GameDefs::FP_OLD,       // FP_DISTRIBUTION
 	1,      // FP_FACTOR
 	0,	// ACN_IS_STARTING_CITY
+	1,	// TARMELLION_SUMMONING
 
 };
 

@@ -61,6 +61,9 @@ void Game::ProcessCastOrder(Unit * u,AString * o, OrdersCheck *pCheck) {
 			case S_ENCHANT_ARMOR:
 			case S_SUMMON_DRAGON:
 			case S_SUMMON_WYRM:
+			case S_CREATE_PHANTASMAL_BEASTS:
+			case S_CREATE_PHANTASMAL_UNDEAD:
+			case S_CREATE_PHANTASMAL_DEMONS:
 			  ProcessItemSpell(u,o,sk,pCheck);
 			  break;
 			case S_CONSTRUCT_PORTAL:
@@ -76,13 +79,19 @@ void Game::ProcessCastOrder(Unit * u,AString * o, OrdersCheck *pCheck) {
 			case S_EARTH_LORE:
 			case S_CREATE_RING_OF_INVISIBILITY:
 			case S_CREATE_CLOAK_OF_INVULNERABILITY:
+			case S_CREATE_STAFF_OF_MIND:
+			case S_CREATE_STAFF_OF_ICE:
 			case S_CREATE_STAFF_OF_FIRE:
 			case S_CREATE_STAFF_OF_LIGHTNING:
 			case S_CREATE_AMULET_OF_TRUE_SEEING:
 			case S_CREATE_AMULET_OF_PROTECTION:
+			case S_CREATE_CORONET_OF_PROTECTION:
 			case S_CREATE_RUNESWORD:
 			case S_CREATE_SHIELDSTONE:
 			case S_CREATE_MAGIC_CARPET:
+			case S_CREATE_FLAMING_SWORD:
+			case S_CREATE_ICE_SWORD:
+			case S_CREATE_SOUL_EATER:
 			case S_CREATE_FOOD:
 				ProcessGenericSpell(u,sk, pCheck);
 				break;
@@ -110,15 +119,15 @@ void Game::ProcessCastOrder(Unit * u,AString * o, OrdersCheck *pCheck) {
 			case S_PORTAL_LORE:
 				ProcessCastPortalLore(u,o, pCheck);
 				break;
-			case S_CREATE_PHANTASMAL_BEASTS:
-				ProcessPhanBeasts(u,o, pCheck);
-				break;
-			case S_CREATE_PHANTASMAL_UNDEAD:
-				ProcessPhanUndead(u,o, pCheck);
-				break;
-			case S_CREATE_PHANTASMAL_DEMONS:
-				ProcessPhanDemons(u,o, pCheck);
-				break;
+//			case S_CREATE_PHANTASMAL_BEASTS:
+//				ProcessPhanBeasts(u,o, pCheck);
+//				break;
+//			case S_CREATE_PHANTASMAL_UNDEAD:
+//				ProcessPhanUndead(u,o, pCheck);
+//				break;
+//			case S_CREATE_PHANTASMAL_DEMONS:
+//				ProcessPhanDemons(u,o, pCheck);
+//				break;
 		}
 	}
 }
@@ -132,15 +141,44 @@ void Game::ProcessItemSpell(Unit *u, AString *o, int skill, OrdersCheck *pCheck)
 	int item = ParseEnabledItem(token);
 	delete token;
 
+	// handle phantasmal creatures
+	if( skill == S_CREATE_PHANTASMAL_BEASTS ||
+		skill == S_CREATE_PHANTASMAL_UNDEAD ||
+		skill == S_CREATE_PHANTASMAL_DEMONS )
+	{
+		if( ItemDefs[item].type & IT_MONSTER ) {
+			if( ItemDefs[item].index != MONSTER_ILLUSION ) {
+				token = new AString( "i" );
+				*token += ItemDefs[item].abr;
+				item = ParseEnabledItem(token);
+				delete token;
+			}
+		}
+	}
+
 	if (item == -1) {
 		u->Error("CAST: Invalid item specified.");
 		return;
 	}
-  
+
+	// This should never happen
+	if (ItemDefs[item].mSkill != skill) {
+		u->Error("CAST: Does not posses required skill.");
+	}
+
+	int num = 1;
+	token = o->gettoken();
+
+	if (token) {
+		num = token->value();
+		delete token;
+	}
+	
 	CastItemOrder *order = new CastItemOrder;
 	order->item = item;
 	order->spell = skill;
-	order->level = 1;
+	order->level = ItemDefs[item].mLevel;
+	order->num = num;
 
 	u->ClearCastOrders();
 	u->castorders = order;
@@ -631,6 +669,12 @@ void Game::RunACastOrder(ARegion * r,Object *o,Unit * u) {
 		case S_CREATE_CLOAK_OF_INVULNERABILITY:
 			RunCreateArtifact(r,u,sk,I_CLOAKOFINVULNERABILITY);
 			break;
+		case S_CREATE_STAFF_OF_ICE:
+			RunCreateArtifact(r,u,sk,I_STAFFOFICE);
+			break;
+		case S_CREATE_STAFF_OF_MIND:
+			RunCreateArtifact(r,u,sk,I_STAFFOFMIND);
+			break;
 		case S_CREATE_STAFF_OF_FIRE:
 			RunCreateArtifact(r,u,sk,I_STAFFOFF);
 			break;
@@ -639,6 +683,9 @@ void Game::RunACastOrder(ARegion * r,Object *o,Unit * u) {
 			break;
 		case S_CREATE_AMULET_OF_TRUE_SEEING:
 			RunCreateArtifact(r,u,sk,I_AMULETOFTS);
+			break;
+		case S_CREATE_CORONET_OF_PROTECTION:
+			RunCreateArtifact(r,u,sk,I_CORONETOFPROTECTION);
 			break;
 		case S_CREATE_AMULET_OF_PROTECTION:
 			RunCreateArtifact(r,u,sk,I_AMULETOFP);
@@ -651,6 +698,12 @@ void Game::RunACastOrder(ARegion * r,Object *o,Unit * u) {
 			break;
 		case S_CREATE_MAGIC_CARPET:
 			RunCreateArtifact(r,u,sk,I_MCARPET);
+			break;
+		case S_CREATE_ICE_SWORD:
+			RunCreateArtifact(r,u,sk,I_ICESWORD);
+			break;
+		case S_CREATE_SOUL_EATER:
+			RunCreateArtifact(r,u,sk,I_SOULEATER);
 			break;
 		case S_CREATE_FLAMING_SWORD:
 			RunCreateArtifact(r,u,sk,I_FLAMINGSWORD);
@@ -873,7 +926,7 @@ void Game::RunEnchantArmor(ARegion *r,Unit *u) {
 		return;
 	}
 
-	int max = ItemDefs[item].mOut * level;
+	int max = ItemDefs[item].mOut * level * level;
 	int num = 0;
 	int count = 0;
 	unsigned int c;
@@ -932,7 +985,7 @@ void Game::RunEnchantSwords(ARegion *r,Unit *u) {
 		return;
 	}
 
-	int max = ItemDefs[item].mOut * level;
+	int max = ItemDefs[item].mOut * level * level;
 	int num = 0;
 	int count = 0;
 	unsigned int c;
@@ -978,48 +1031,61 @@ void Game::RunEnchantSwords(ARegion *r,Unit *u) {
 
 void Game::RunCreateFood(ARegion *r,Unit *u) {
 	int level = u->GetSkill(S_CREATE_FOOD);
-	int max = ItemDefs[I_FOOD].mOut * level;
-	int num = 0;
-	int count = 0;
-	unsigned int c;
-	int found;
 
-	// Figure out how many components there are
-	for (c=0; c<sizeof(ItemDefs[I_FOOD].mInput)/sizeof(Materials); c++) {
-		if (ItemDefs[I_FOOD].mInput[c].item != -1) count++;
-	}
+	if( Globals->TARMELLION_SUMMONING ) {
+		// Don't need inputs for this spell for tarmellion
+		int num = level * 10;
 
-	while (max) {
-		int i, a;
-		found = 0;
-		// See if we have enough of all items
-		for(c=0; c<sizeof(ItemDefs[I_FOOD].mInput)/sizeof(Materials); c++) {
-			i = ItemDefs[I_FOOD].mInput[c].item;
-			a = ItemDefs[I_FOOD].mInput[c].amt;
-			if (i != -1) {
-				if (u->items.GetNum(i) >= a) found++;
-			}
+		u->items.SetNum(I_FOOD,u->items.GetNum(I_FOOD) + num);
+		u->Event(AString("Creates ") + num + " food.");
+		u->Practise(S_CREATE_FOOD);
+		r->NotifySpell(u,S_EARTH_LORE, &regions);
+
+	} else {
+
+		int max = ItemDefs[I_FOOD].mOut * level;
+		int num = 0;
+		int count = 0;
+		unsigned int c;
+		int found;
+
+		// Figure out how many components there are
+		for (c=0; c<sizeof(ItemDefs[I_FOOD].mInput)/sizeof(Materials); c++) {
+			if (ItemDefs[I_FOOD].mInput[c].item != -1) count++;
 		}
-		// We do not, break.
-		if (found != count) break;
 
-		// Decrement our inputs
-		for(c=0; c<sizeof(ItemDefs[I_FOOD].mInput)/sizeof(Materials); c++) {
-			i = ItemDefs[I_FOOD].mInput[c].item;
-			a = ItemDefs[I_FOOD].mInput[c].amt;
-			if (i != -1) {
-				u->items.SetNum(i, u->items.GetNum(i) - a);
+		while (max) {
+			int i, a;
+			found = 0;
+			// See if we have enough of all items
+			for(c=0; c<sizeof(ItemDefs[I_FOOD].mInput)/sizeof(Materials); c++) {
+				i = ItemDefs[I_FOOD].mInput[c].item;
+				a = ItemDefs[I_FOOD].mInput[c].amt;
+				if (i != -1) {
+					if (u->items.GetNum(i) >= a) found++;
+				}
 			}
-		}
-		// We've made one.
-		num++;
-		max--;
-	}
+			// We do not, break.
+			if (found != count) break;
 
-	u->items.SetNum(I_FOOD,u->items.GetNum(I_FOOD) + num);
-	u->Event(AString("Creates ") + num + " food.");
-	u->Practise(S_CREATE_FOOD);
-	r->NotifySpell(u,S_EARTH_LORE, &regions);
+			// Decrement our inputs
+			for(c=0; c<sizeof(ItemDefs[I_FOOD].mInput)/sizeof(Materials); c++) {
+				i = ItemDefs[I_FOOD].mInput[c].item;
+				a = ItemDefs[I_FOOD].mInput[c].amt;
+				if (i != -1) {
+					u->items.SetNum(i, u->items.GetNum(i) - a);
+				}
+			}
+			// We've made one.
+			num++;
+			max--;
+		}
+
+		u->items.SetNum(I_FOOD,u->items.GetNum(I_FOOD) + num);
+		u->Event(AString("Creates ") + num + " food.");
+		u->Practise(S_CREATE_FOOD);
+		r->NotifySpell(u,S_EARTH_LORE, &regions);
+	}
 }
 
 void Game::RunConstructGate(ARegion *r,Unit *u, int spell) {
@@ -1104,35 +1170,50 @@ void Game::RunEngraveRunes(ARegion *r,Object *o,Unit *u) {
 }
 
 void Game::RunSummonBalrog(ARegion *r,Unit *u) {
-	if (u->items.GetNum(I_BALROG)) {
-		u->Error("Can't control more than one balrog.");
-		return;
+	if( Globals->TARMELLION_SUMMONING ) {
+		int success = RunSummonCreature( u, I_BALROG, S_SUMMON_BALROG );
+		if( success ) r->NotifySpell( u, S_DEMON_LORE, &regions );
+	} else {
+		if (u->items.GetNum(I_BALROG)) {
+			u->Error("Can't control more than one balrog.");
+			return;
+		}
+
+		int level = u->GetSkill(S_SUMMON_BALROG);
+
+		int num = (level * 20 + getrandom(100)) / 100;
+
+		u->items.SetNum(I_BALROG,u->items.GetNum(I_BALROG) + num);
+		u->Event(AString("Summons ") + ItemString(I_BALROG,num) + ".");
+		u->Practise(S_SUMMON_BALROG);
+		r->NotifySpell(u,S_DEMON_LORE, &regions);
 	}
-
-	int level = u->GetSkill(S_SUMMON_BALROG);
-
-	int num = (level * 20 + getrandom(100)) / 100;
-
-	u->items.SetNum(I_BALROG,u->items.GetNum(I_BALROG) + num);
-	u->Event(AString("Summons ") + ItemString(I_BALROG,num) + ".");
-	u->Practise(S_SUMMON_BALROG);
-	r->NotifySpell(u,S_DEMON_LORE, &regions);
 }
 
 void Game::RunSummonDemon(ARegion *r,Unit *u) {
-	u->items.SetNum(I_DEMON,u->items.GetNum(I_DEMON) + 1);
-	u->Event(AString("Summons ") + ItemString(I_DEMON,1) + ".");
-	u->Practise(S_SUMMON_DEMON);
-	r->NotifySpell(u,S_DEMON_LORE, &regions);
+	if( Globals->TARMELLION_SUMMONING ) {
+		int success = RunSummonCreature( u, I_DEMON, S_SUMMON_DEMON );
+		if( success ) r->NotifySpell( u, S_DEMON_LORE, &regions );
+	} else {
+		u->items.SetNum(I_DEMON,u->items.GetNum(I_DEMON) + 1);
+		u->Event(AString("Summons ") + ItemString(I_DEMON,1) + ".");
+		u->Practise(S_SUMMON_DEMON);
+		r->NotifySpell(u,S_DEMON_LORE, &regions);
+	}
 }
 
 void Game::RunSummonImps(ARegion *r,Unit *u) {
 	int level = u->GetSkill(S_SUMMON_IMPS);
 
-	u->items.SetNum(I_IMP,u->items.GetNum(I_IMP) + level);
-	u->Event(AString("Summons ") + ItemString(I_IMP,level) + ".");
-	u->Practise(S_SUMMON_IMPS);
-	r->NotifySpell(u,S_DEMON_LORE, &regions);
+	if( Globals->TARMELLION_SUMMONING ) {
+		int success = RunSummonCreature( u, I_IMP, S_SUMMON_IMPS );
+		if( success ) r->NotifySpell( u, S_DEMON_LORE, &regions );
+	} else {
+		u->items.SetNum(I_IMP,u->items.GetNum(I_IMP) + level);
+		u->Event(AString("Summons ") + ItemString(I_IMP,level) + ".");
+		u->Practise(S_SUMMON_IMPS);
+		r->NotifySpell(u,S_DEMON_LORE, &regions);
+	}
 }
 
 void Game::RunCreateArtifact(ARegion *r,Unit *u,int skill,int item) {
@@ -1158,7 +1239,11 @@ void Game::RunCreateArtifact(ARegion *r,Unit *u,int skill,int item) {
 		u->items.SetNum(ItemDefs[item].mInput[c].item, amt-cost);
 	}
 
-	int num = (level * ItemDefs[item].mOut + getrandom(100))/100;
+	int num;
+	if( ItemDefs[item].flags & ItemType::CHANCEOUT )
+		num = (level * ItemDefs[item].mOut + getrandom(100)) / 100;
+	else
+		num = ItemDefs[item].mOut * level;
 
 	u->items.SetNum(item,u->items.GetNum(item) + num);
 	u->Event(AString("Creates ") + ItemString(item,num) + ".");
@@ -1167,38 +1252,54 @@ void Game::RunCreateArtifact(ARegion *r,Unit *u,int skill,int item) {
 }
 
 void Game::RunSummonLich(ARegion *r,Unit *u) {
-	int level = u->GetSkill(S_SUMMON_LICH);
+	if( Globals->TARMELLION_SUMMONING ) {
+		int success = RunSummonCreature( u, I_LICH, S_SUMMON_LICH );
+		if( success ) r->NotifySpell( u, S_NECROMANCY, &regions );
+	} else {
+		int level = u->GetSkill(S_SUMMON_LICH);
 
-	int num = ((2 * level * level) + getrandom(100))/100;
+		int num = ((2 * level * level) + getrandom(100))/100;
 
-	u->items.SetNum(I_LICH,u->items.GetNum(I_LICH) + num);
-	u->Event(AString("Summons ") + ItemString(I_LICH,num) + ".");
-	u->Practise(S_SUMMON_LICH);
-	r->NotifySpell(u,S_NECROMANCY, &regions);
+		u->items.SetNum(I_LICH,u->items.GetNum(I_LICH) + num);
+		u->Event(AString("Summons ") + ItemString(I_LICH,num) + ".");
+		u->Practise(S_SUMMON_LICH);
+		r->NotifySpell(u,S_NECROMANCY, &regions);
+	}
 }
 
 void Game::RunRaiseUndead(ARegion *r,Unit *u) {
-	int level = u->GetSkill(S_RAISE_UNDEAD);
+	if( Globals->TARMELLION_SUMMONING ) {
+		int success = RunSummonCreature( u, I_UNDEAD, S_RAISE_UNDEAD );
+		if( success ) r->NotifySpell( u, S_NECROMANCY, &regions );
+	} else {
+		int level = u->GetSkill(S_RAISE_UNDEAD);
 
-	int num = ((10 * level * level) + getrandom(100))/100;
+		int num = ((10 * level * level) + getrandom(100))/100;
 
-	u->items.SetNum(I_UNDEAD,u->items.GetNum(I_UNDEAD) + num);
-	u->Event(AString("Raises ") + ItemString(I_UNDEAD,num) + ".");
-	u->Practise(S_RAISE_UNDEAD);
-	r->NotifySpell(u,S_NECROMANCY, &regions);
+		u->items.SetNum(I_UNDEAD,u->items.GetNum(I_UNDEAD) + num);
+		u->Event(AString("Raises ") + ItemString(I_UNDEAD,num) + ".");
+		u->Practise(S_RAISE_UNDEAD);
+		r->NotifySpell(u,S_NECROMANCY, &regions);
+	}
 }
 
 void Game::RunSummonSkeletons(ARegion *r,Unit *u) {
-	int level = u->GetSkill(S_SUMMON_SKELETONS);
+	if( Globals->TARMELLION_SUMMONING ) {
+		int success = RunSummonCreature( u, I_SKELETON, S_SUMMON_SKELETONS );
+		if( success ) r->NotifySpell( u, S_NECROMANCY, &regions );
+	} else {
+		int level = u->GetSkill(S_SUMMON_SKELETONS);
 
-	int num = ((40 * level * level) + getrandom(100))/100;
+		int num = ((40 * level * level) + getrandom(100))/100;
 
-	u->items.SetNum(I_SKELETON,u->items.GetNum(I_SKELETON) + num);
-	u->Event(AString("Summons ") + ItemString(I_SKELETON,num) + ".");
-	u->Practise(S_SUMMON_SKELETONS);
-	r->NotifySpell(u,S_NECROMANCY, &regions);
+		u->items.SetNum(I_SKELETON,u->items.GetNum(I_SKELETON) + num);
+		u->Event(AString("Summons ") + ItemString(I_SKELETON,num) + ".");
+		u->Practise(S_SUMMON_SKELETONS);
+		r->NotifySpell(u,S_NECROMANCY, &regions);
+	}
 }
 
+/*
 void Game::RunDragonLore(ARegion *r, Unit *u) {
 	CastItemOrder *order = (CastItemOrder *) u->castorders;
 	int item = order->item;
@@ -1214,8 +1315,98 @@ void Game::RunDragonLore(ARegion *r, Unit *u) {
 		u->Error("CAST: insufficent level to summon.");
 		return;
 	}
+
+	// Handle all dragon summoning stuff here rather than adding more
+	// variables in the item definition
 	int num = u->items.GetNum(item);
-	if (num >= level) {
+	int controlLevel = 0;
+	if( skill == S_SUMMON_DRAGON )
+		controlLevel = u->GetSkill(S_DRAGON_LORE);
+	if( skill == S_SUMMON_WYRM )
+		controlLevel = u->GetSkill(S_DRAGON_WYRM);
+
+	int numAllowed = 0;
+	switch( item ) {
+		case I_STEELDRAGON:
+			num += u->items.GetNum(I_STEELDRAGON_S);
+			num += u->items.GetNum(I_STEELDRAGON_O);
+			num += u->items.GetNum(I_STEELDRAGON_A);
+			num += u->items.GetNum(I_STEELDRAGON_B);
+			numAllowed = controlLevel;
+			break;
+		case I_COPPERDRAGON:
+			num += u->items.GetNum(I_COPPERDRAGON_S);
+			num += u->items.GetNum(I_COPPERDRAGON_O);
+			num += u->items.GetNum(I_COPPERDRAGON_A);
+			num += u->items.GetNum(I_COPPERDRAGON_B);
+			numAllowed = (controlLevel + 1) / 2;
+			break;
+		case I_BRONZEDRAGON:
+			num += u->items.GetNum(I_BRONZEDRAGON_S);
+			num += u->items.GetNum(I_BRONZEDRAGON_O);
+			num += u->items.GetNum(I_BRONZEDRAGON_A);
+			num += u->items.GetNum(I_BRONZEDRAGON_B);
+			numAllowed = controlLevel / 2;
+			break;
+		case I_SILVERDRAGON:
+			num += u->items.GetNum(I_SILVERDRAGON_S);
+			num += u->items.GetNum(I_SILVERDRAGON_O);
+			num += u->items.GetNum(I_SILVERDRAGON_A);
+			num += u->items.GetNum(I_SILVERDRAGON_B);
+			numAllowed = (controlLevel - 1) / 2;
+			break;
+		case I_GOLDENDRAGON:
+			num += u->items.GetNum(I_GOLDENDRAGON_S);
+			num += u->items.GetNum(I_GOLDENDRAGON_O);
+			num += u->items.GetNum(I_GOLDENDRAGON_A);
+			num += u->items.GetNum(I_GOLDENDRAGON_B);
+			numAllowed = 1;
+			break;
+		case I_GREENDRAGON:
+			num += u->items.GetNum(I_GREENDRAGON_S);
+			num += u->items.GetNum(I_GREENDRAGON_O);
+			num += u->items.GetNum(I_GREENDRAGON_A);
+			num += u->items.GetNum(I_GREENDRAGON_B);
+			numAllowed = controlLevel;
+			break;
+		case I_BROWNDRAGON:
+			num += u->items.GetNum(I_BROWNDRAGON_S);
+			num += u->items.GetNum(I_BROWNDRAGON_O);
+			num += u->items.GetNum(I_BROWNDRAGON_A);
+			num += u->items.GetNum(I_BROWNDRAGON_B);
+			numAllowed = (controlLevel + 1) / 2;
+			break;
+		case I_BLUEDRAGON:
+			num += u->items.GetNum(I_BLUEDRAGON_S);
+			num += u->items.GetNum(I_BLUEDRAGON_O);
+			num += u->items.GetNum(I_BLUEDRAGON_A);
+			num += u->items.GetNum(I_BLUEDRAGON_B);
+			numAllowed = (controlLevel - 1) / 2;
+			break;
+		case I_REDDRAGON:
+			num += u->items.GetNum(I_REDDRAGON_S);
+			num += u->items.GetNum(I_REDDRAGON_O);
+			num += u->items.GetNum(I_REDDRAGON_A);
+			num += u->items.GetNum(I_REDDRAGON_B);
+			numAllowed = 1;
+			break;
+		case I_WHITEDRAGON:
+			num += u->items.GetNum(I_WHITEDRAGON_S);
+			num += u->items.GetNum(I_WHITEDRAGON_O);
+			num += u->items.GetNum(I_WHITEDRAGON_A);
+			num += u->items.GetNum(I_WHITEDRAGON_B);
+			numAllowed = 1;
+			break;
+		case I_BLACKDRAGON:
+			num += u->items.GetNum(I_BLACKDRAGON_S);
+			num += u->items.GetNum(I_BLACKDRAGON_O);
+			num += u->items.GetNum(I_BLACKDRAGON_A);
+			num += u->items.GetNum(I_BLACKDRAGON_B);
+			numAllowed = 1;
+			break;
+	}
+
+	if (num >= numAllowed) {
 		u->Error(AString("Mage may not summon more ")+ItemDefs[item].names+".");
 		return;
 	}
@@ -1229,6 +1420,46 @@ void Game::RunDragonLore(ARegion *r, Unit *u) {
 	}
 	u->Practise(skill);
 	r->NotifySpell(u,S_EARTH_LORE, &regions);
+}
+*/
+
+void Game::RunDragonLore(ARegion *r, Unit *u) {
+	CastItemOrder *order = (CastItemOrder *) u->castorders;
+	int item = order->item;
+	int skill = order->spell;
+
+	if( Globals->TARMELLION_SUMMONING ) {
+		int success = RunSummonCreature( u, item, skill );
+		if( success ) r->NotifySpell( u, S_EARTH_LORE, &regions );
+	} else {
+
+		int level = u->GetSkill(skill);
+
+		// First check skill and level
+		if (ItemDefs[item].mSkill != skill) {
+			u->Error("CAST: item can not be summoned.");
+			return;
+		}
+		if (ItemDefs[item].mLevel > level) {
+			u->Error("CAST: insufficent level to summon.");
+			return;
+		}
+		int num = u->items.GetNum(item);
+		if (num >= level) {
+			u->Error(AString("Mage may not summon more ")+ItemDefs[item].names+".");
+			return;
+		}
+
+		int chance = level * level * 4;
+		if (getrandom(100) < chance) {
+			u->items.SetNum(item,num + 1);
+			u->Event(AString("Summons a ")+ItemDefs[item].name+".");
+		} else {
+			u->Event("Attempts to summon a dragon, but fails.");
+		}
+		u->Practise(skill);
+		r->NotifySpell(u,S_EARTH_LORE, &regions);
+	}
 }
 
 void Game::RunBirdLore(ARegion *r,Unit *u) {
@@ -1244,6 +1475,7 @@ void Game::RunBirdLore(ARegion *r,Unit *u) {
 	}
 
 	if (order->level < 3) {
+		// Send Bird Spy
 		int dir = order->target;
 		ARegion *tar = r->neighbors[dir];
 		if (!tar) {
@@ -1260,20 +1492,32 @@ void Game::RunBirdLore(ARegion *r,Unit *u) {
 		u->Practise(S_BIRD_LORE);
 		r->NotifySpell(u,S_EARTH_LORE, &regions);
 		return;
+	} else {
+		// Summon eagle
+		if( Globals->TARMELLION_SUMMONING ) {
+			int success = RunSummonCreature( u, I_EAGLE, S_BIRD_LORE );
+			if( success ) r->NotifySpell( u, S_EARTH_LORE, &regions );
+		} else {
+
+			int level = u->GetSkill(S_BIRD_LORE);
+			int num = u->items.GetNum(I_EAGLE);
+			int max = level * level - num;
+
+			if (max <= 0) {
+				u->Error("Mage may not summon more eagles.");
+				return;
+			}
+
+			int summon = (level + 1) / 2;
+			if (summon > max) summon = max;
+
+			u->Event(AString("Casts Bird Lore, summoning ") +
+					ItemString(I_EAGLE,summon) + ".");
+			u->items.SetNum(I_EAGLE,num + summon);
+			u->Practise(S_BIRD_LORE);
+			r->NotifySpell(u,S_EARTH_LORE, &regions);
+		}
 	}
-
-	int level = u->GetSkill(S_BIRD_LORE);
-	int max = (level) * (level);
-
-	if (u->items.GetNum(I_EAGLE) >= max) {
-		u->Error("CAST: Mage can't summon more eagles.");
-		return;
-	}
-
-	u->items.SetNum(I_EAGLE,u->items.GetNum(I_EAGLE) + 1);
-	u->Event("Summons an eagle.");
-	u->Practise(S_BIRD_LORE);
-	r->NotifySpell(u,S_EARTH_LORE, &regions);
 }
 
 void Game::RunWolfLore(ARegion *r,Unit *u) {
@@ -1284,20 +1528,28 @@ void Game::RunWolfLore(ARegion *r,Unit *u) {
 								 "tundra and forest regions.");
 		return;
 	}
+	if( Globals->TARMELLION_SUMMONING ) {
+		int success = RunSummonCreature( u, I_WOLF, S_WOLF_LORE );
+		if( success ) r->NotifySpell( u, S_EARTH_LORE, &regions );
+	} else {
+		int level = u->GetSkill(S_WOLF_LORE);
+		int num = u->items.GetNum(I_WOLF);
+		int max = level * level - num;
 
-	int level = u->GetSkill(S_WOLF_LORE);
-	int max = level * level * 4;
+		if (max <= 0) {
+			u->Error("Mage may not summon more wolves.");
+			return;
+		}
 
-	int num = u->items.GetNum(I_WOLF);
-	int summon = max - num;
-	if (summon > level) summon = level;
-	if (summon < 0) summon = 0;
+		int summon = (level + 1) / 2;
+		if (summon > max) summon = max;
 
-	u->Event(AString("Casts Wolf Lore, summoning ") +
-			ItemString(I_WOLF,summon) + ".");
-	u->items.SetNum(I_WOLF,num + summon);
-	u->Practise(S_WOLF_LORE);
-	r->NotifySpell(u,S_EARTH_LORE, &regions);
+		u->Event(AString("Casts Wolf Lore, summoning ") +
+				ItemString(I_WOLF,summon) + ".");
+		u->items.SetNum(I_WOLF,num + summon);
+		u->Practise(S_WOLF_LORE);
+		r->NotifySpell(u,S_EARTH_LORE, &regions);
+	}
 }
 
 void Game::RunInvisibility(ARegion *r,Unit *u) {
@@ -1339,90 +1591,111 @@ void Game::RunInvisibility(ARegion *r,Unit *u) {
 }
 
 void Game::RunPhanDemons(ARegion *r,Unit *u) {
-	CastIntOrder *order = (CastIntOrder *) u->castorders;
-	int level = u->GetSkill(S_CREATE_PHANTASMAL_DEMONS);
-	int create,max;
-
-	if (order->level < 3) {
-		create = I_IIMP;
-		max = level * level * 4;
+	CastItemOrder *order = (CastItemOrder *) u->castorders;
+	if( Globals->TARMELLION_SUMMONING ) {
+		int success = RunSummonCreature( u, order->item, S_CREATE_PHANTASMAL_DEMONS );
+		if( success ) r->NotifySpell( u, S_ILLUSION, &regions );
 	} else {
-		if (order->level < 5) {
-			create = I_IDEMON;
-			max = (level - 2) * (level - 2);
+		int level = u->GetSkill(S_CREATE_PHANTASMAL_DEMONS);
+		int create = order->num;
+		if( create <= 0 ) create = 1;
+		int max;
+
+		if (order->item == I_IIMP) {
+			max = level * level * 4;
 		} else {
-			create = I_IBALROG;
-			max = 1;
+			if (order->item == I_IDEMON) {
+				max = (level - 2) * (level - 2);
+			} else {
+				max = 1;
+			}
 		}
-	}
 
-	if (order->target > max || order->target < 0) {
-		u->Error("CAST: Can't create that many Phantasmal Demons.");
-		return;
-	}
+		max -= u->items.GetNum(order->item);
+		if( max <= 0 || create > max ) {
+			u->Error("CAST: Can't create that many Phantasmal Demons.");
+			return;
+		}
 
-	u->items.SetNum(create,order->target);
-	u->Event("Casts Create Phantasmal Demons.");
-	u->Practise(S_CREATE_PHANTASMAL_DEMONS);
-	r->NotifySpell(u,S_ILLUSION, &regions);
+		if( create > max ) create = max;
+		
+		u->items.SetNum(order->item, create);
+		u->Event("Casts Create Phantasmal Demons.");
+		u->Practise(S_CREATE_PHANTASMAL_DEMONS);
+		r->NotifySpell(u,S_ILLUSION, &regions);
+	}
 }
 
 void Game::RunPhanUndead(ARegion *r,Unit *u) {
-	CastIntOrder *order = (CastIntOrder *) u->castorders;
-	int level = u->GetSkill(S_CREATE_PHANTASMAL_UNDEAD);
-	int create,max;
-
-	if (order->level < 3) {
-		create = I_ISKELETON;
-		max = level * level * 4;
+	CastItemOrder *order = (CastItemOrder *) u->castorders;
+	if( Globals->TARMELLION_SUMMONING ) {
+		int success = RunSummonCreature( u, order->item, S_CREATE_PHANTASMAL_UNDEAD );
+		if( success ) r->NotifySpell( u, S_ILLUSION, &regions );
 	} else {
-		if (order->level < 5) {
-			create = I_IUNDEAD;
-			max = (level - 2) * (level - 2);
+		int level = u->GetSkill(S_CREATE_PHANTASMAL_UNDEAD);
+		int create = order->num;
+		if( create <= 0 ) create = 1;
+		int max;
+
+		if (order->item == I_ISKELETON) {
+			max = level * level * 4;
 		} else {
-			create = I_ILICH;
-			max = 1;
+			if (order->item == I_IUNDEAD) {
+				max = (level - 2) * (level - 2);
+			} else {
+				max = 1;
+			}
 		}
-	}
 
-	if (order->target > max || order->target < 0) {
-		u->Error("CAST: Can't create that many Phantasmal Undead.");
-		return;
-	}
+		max -= u->items.GetNum(order->item);
+		if( max <= 0 || create > max ) {
+			u->Error("CAST: Can't create that many Phantasmal Undead.");
+			return;
+		}
 
-	u->items.SetNum(create,order->target);
-	u->Event("Casts Create Phantasmal Undead.");
-	u->Practise(S_CREATE_PHANTASMAL_UNDEAD);
-	r->NotifySpell(u,S_ILLUSION, &regions);
+		if( create > max ) create = max;
+		
+		u->items.SetNum(order->item, create);
+		u->Event("Casts Create Phantasmal Undead.");
+		u->Practise(S_CREATE_PHANTASMAL_UNDEAD);
+		r->NotifySpell(u,S_ILLUSION, &regions);
+	}
 }
 
 void Game::RunPhanBeasts(ARegion *r,Unit *u) {
-	CastIntOrder *order = (CastIntOrder *) u->castorders;
-	int level = u->GetSkill(S_CREATE_PHANTASMAL_BEASTS);
-	int create,max;
-
-	if (order->level < 3) {
-		create = I_IWOLF;
-		max = level * level * 4;
+	CastItemOrder *order = (CastItemOrder *) u->castorders;
+	if( Globals->TARMELLION_SUMMONING ) {
+		int success = RunSummonCreature( u, order->item, S_CREATE_PHANTASMAL_BEASTS );
+		if( success ) r->NotifySpell( u, S_ILLUSION, &regions );
 	} else {
-		if (order->level < 5) {
-			create = I_IEAGLE;
-			max = (level - 2) * (level - 2);
+		int level = u->GetSkill(S_CREATE_PHANTASMAL_BEASTS);
+		int create = order->num;
+		if( create <= 0 ) create = 1;
+		int max;
+
+		if (order->item == I_IWOLF) {
+			max = level * level * 4;
 		} else {
-			create = I_IDRAGON;
-			max = 1;
+			if (order->item == I_IEAGLE) {
+				max = (level - 2) * (level - 2);
+			} else {
+				max = 1;
+			}
 		}
-	}
 
-	if (order->target > max || order->target < 0) {
-		u->Error("CAST: Can't create that many Phantasmal Beasts.");
-		return;
-	}
+		max -= u->items.GetNum(order->item);
+		if( max <= 0 || create > max ) {
+			u->Error("CAST: Can't create that many Phantasmal Beasts.");
+			return;
+		}
 
-	u->items.SetNum(create,order->target);
-	u->Event("Casts Create Phantasmal Beasts.");
-	u->Practise(S_CREATE_PHANTASMAL_BEASTS);
-	r->NotifySpell(u,S_ILLUSION, &regions);
+		if( create > max ) create = max;
+		
+		u->items.SetNum(order->item, create);
+		u->Event("Casts Create Phantasmal Beasts.");
+		u->Practise(S_CREATE_PHANTASMAL_BEASTS);
+		r->NotifySpell(u,S_ILLUSION, &regions);
+	}
 }
 
 void Game::RunEarthLore(ARegion *r,Unit *u) {
@@ -1821,3 +2094,322 @@ void Game::RunTeleportOrders() {
 	}
 }
 
+/// Summon a creature
+/// Put all tarmellion summoning stuff here rather than add more stuff to the item defs
+int Game::RunSummonCreature(Unit *u, int creature, int skill)
+{
+
+//	// First check skill and level
+//	if (ItemDefs[creature].mSkill != skill) {
+//		u->Error("CAST: Cannot summon this creature.");
+//		return 0;
+//	}
+//	if (ItemDefs[creature].mLevel > level) {
+//		u->Error("CAST: Not skilled enough to summon this creature.");
+//		return 0;
+//	}
+
+
+	// How many more can this unit summon?
+	int max = GetAllowedMonsters( u, creature );
+	if (max <= 0 ) {
+		u->Error(AString("Mage may not summon more ")+ItemDefs[creature].names+".");
+		return 0;
+	}
+
+
+	// Check how many of this creature we can summon at once
+	int level = u->GetSkill( skill );
+	int summoned;
+	switch( creature ) {
+		case I_WOLF:
+		case I_EAGLE:
+		case I_IMP:
+			summoned = (level + 1) / 2;
+			break;
+		case I_SKELETON:
+		case I_ISKELETON:
+		case I_IIMP:
+		case I_IWOLF:
+			summoned = 2;
+			break;
+		default:
+			summoned = 1;
+	}
+
+	if( summoned > max ) summoned = max;
+
+	u->items.SetNum(creature, u->items.GetNum(creature) + summoned);
+	u->Event(AString("Summons ") + ItemString( creature, summoned ) );
+
+	u->Practise(skill);
+	return 1;
+//	r->NotifySpell(u,S_EARTH_LORE, &regions);
+}
+
+/// Returns the skill that is checked when determining how many monsters
+/// of this type can be controlled
+int Game::GetMonsterControlSkill( int monster )
+{
+	switch( monster ) {
+		case I_IWOLF:
+		case I_IEAGLE:
+		case I_ISTEELDRAGON:
+		case I_ICOPPERDRAGON:
+		case I_IBRONZEDRAGON:
+		case I_ISILVERDRAGON:
+		case I_IGOLDENDRAGON:
+		case I_IGREENDRAGON:
+		case I_IBROWNDRAGON:
+		case I_IBLUEDRAGON:
+		case I_IREDDRAGON:
+		case I_IWHITEDRAGON:
+		case I_IBLACKDRAGON:
+			return S_CREATE_PHANTASMAL_BEASTS;
+		case I_IIMP:
+		case I_IDEMON:
+		case I_IBALROG:
+			return S_CREATE_PHANTASMAL_DEMONS;
+		case I_ISKELETON:
+		case I_IUNDEAD:
+		case I_ILICH:
+			return S_CREATE_PHANTASMAL_UNDEAD;
+		case I_STEELDRAGON:
+		case I_COPPERDRAGON:
+		case I_BRONZEDRAGON:
+		case I_SILVERDRAGON:
+		case I_GOLDENDRAGON:
+			return S_DRAGON_LORE;
+		case I_GREENDRAGON:
+		case I_BROWNDRAGON:
+		case I_BLUEDRAGON:
+		case I_REDDRAGON:
+		case I_WHITEDRAGON:
+		case I_BLACKDRAGON:
+			return S_WYRM_LORE;
+		case I_WOLF:
+			return S_WOLF_LORE;
+		case I_EAGLE:
+		case I_GIANTEAGLE:
+			return S_BIRD_LORE;
+		case I_IMP:
+			return S_SUMMON_IMPS;
+		case I_DEMON:
+			return S_SUMMON_DEMON;
+		case I_BALROG:
+			return S_SUMMON_BALROG;
+		case I_SKELETON:
+			return S_SUMMON_SKELETONS;
+		case I_UNDEAD:
+			return S_RAISE_UNDEAD;
+		case I_LICH:
+			return S_SUMMON_LICH;
+		default:
+			return -1;
+	}
+}
+
+
+/// Check how many monsters this unit is controlling.
+/// Returns how many more monsters the unit is allowed of this type
+int Game::GetAllowedMonsters(Unit *u, int creature )
+{
+	int skill = GetMonsterControlSkill( creature );
+	int controlLevel = u->GetSkill(skill);
+
+	// Check how many of this creature we're allowed, and how many we can summon.
+	// Very creature dependant
+	int num = 0;
+	int numAllowed = 0;
+	switch( creature ) {
+		case I_STEELDRAGON:
+		case I_STEELDRAGON_S:
+		case I_STEELDRAGON_O:
+		case I_STEELDRAGON_A:
+		case I_STEELDRAGON_B:
+			num += u->items.GetNum(I_STEELDRAGON);
+			num += u->items.GetNum(I_STEELDRAGON_S);
+			num += u->items.GetNum(I_STEELDRAGON_O);
+			num += u->items.GetNum(I_STEELDRAGON_A);
+			num += u->items.GetNum(I_STEELDRAGON_B);
+			numAllowed = controlLevel;
+			break;
+		case I_COPPERDRAGON:
+		case I_COPPERDRAGON_S:
+		case I_COPPERDRAGON_O:
+		case I_COPPERDRAGON_A:
+		case I_COPPERDRAGON_B:
+			num += u->items.GetNum(I_COPPERDRAGON);
+			num += u->items.GetNum(I_COPPERDRAGON_S);
+			num += u->items.GetNum(I_COPPERDRAGON_O);
+			num += u->items.GetNum(I_COPPERDRAGON_A);
+			num += u->items.GetNum(I_COPPERDRAGON_B);
+			numAllowed = (controlLevel + 1) / 2;
+			break;
+		case I_BRONZEDRAGON:
+		case I_BRONZEDRAGON_S:
+		case I_BRONZEDRAGON_O:
+		case I_BRONZEDRAGON_A:
+		case I_BRONZEDRAGON_B:
+			num += u->items.GetNum(I_BRONZEDRAGON);
+			num += u->items.GetNum(I_BRONZEDRAGON_S);
+			num += u->items.GetNum(I_BRONZEDRAGON_O);
+			num += u->items.GetNum(I_BRONZEDRAGON_A);
+			num += u->items.GetNum(I_BRONZEDRAGON_B);
+			numAllowed = controlLevel / 2;
+			break;
+		case I_SILVERDRAGON:
+		case I_SILVERDRAGON_S:
+		case I_SILVERDRAGON_O:
+		case I_SILVERDRAGON_A:
+		case I_SILVERDRAGON_B:
+			num += u->items.GetNum(I_SILVERDRAGON);
+			num += u->items.GetNum(I_SILVERDRAGON_S);
+			num += u->items.GetNum(I_SILVERDRAGON_O);
+			num += u->items.GetNum(I_SILVERDRAGON_A);
+			num += u->items.GetNum(I_SILVERDRAGON_B);
+			numAllowed = (controlLevel - 1) / 2;
+			break;
+		case I_GOLDENDRAGON:
+		case I_GOLDENDRAGON_S:
+		case I_GOLDENDRAGON_O:
+		case I_GOLDENDRAGON_A:
+		case I_GOLDENDRAGON_B:
+			num += u->items.GetNum(I_GOLDENDRAGON);
+			num += u->items.GetNum(I_GOLDENDRAGON_S);
+			num += u->items.GetNum(I_GOLDENDRAGON_O);
+			num += u->items.GetNum(I_GOLDENDRAGON_A);
+			num += u->items.GetNum(I_GOLDENDRAGON_B);
+			numAllowed = 1;
+			break;
+		case I_GREENDRAGON:
+		case I_GREENDRAGON_S:
+		case I_GREENDRAGON_O:
+		case I_GREENDRAGON_A:
+		case I_GREENDRAGON_B:
+			num += u->items.GetNum(I_GREENDRAGON);
+			num += u->items.GetNum(I_GREENDRAGON_S);
+			num += u->items.GetNum(I_GREENDRAGON_O);
+			num += u->items.GetNum(I_GREENDRAGON_A);
+			num += u->items.GetNum(I_GREENDRAGON_B);
+			numAllowed = controlLevel;
+			break;
+		case I_BROWNDRAGON:
+		case I_BROWNDRAGON_S:
+		case I_BROWNDRAGON_O:
+		case I_BROWNDRAGON_A:
+		case I_BROWNDRAGON_B:
+			num += u->items.GetNum(I_BROWNDRAGON);
+			num += u->items.GetNum(I_BROWNDRAGON_S);
+			num += u->items.GetNum(I_BROWNDRAGON_O);
+			num += u->items.GetNum(I_BROWNDRAGON_A);
+			num += u->items.GetNum(I_BROWNDRAGON_B);
+			numAllowed = (controlLevel + 1) / 2;
+			break;
+		case I_BLUEDRAGON:
+		case I_BLUEDRAGON_S:
+		case I_BLUEDRAGON_O:
+		case I_BLUEDRAGON_A:
+		case I_BLUEDRAGON_B:
+			num += u->items.GetNum(I_BLUEDRAGON);
+			num += u->items.GetNum(I_BLUEDRAGON_S);
+			num += u->items.GetNum(I_BLUEDRAGON_O);
+			num += u->items.GetNum(I_BLUEDRAGON_A);
+			num += u->items.GetNum(I_BLUEDRAGON_B);
+			numAllowed = (controlLevel - 1) / 2;
+			break;
+		case I_REDDRAGON:
+		case I_REDDRAGON_S:
+		case I_REDDRAGON_O:
+		case I_REDDRAGON_A:
+		case I_REDDRAGON_B:
+			num += u->items.GetNum(I_REDDRAGON);
+			num += u->items.GetNum(I_REDDRAGON_S);
+			num += u->items.GetNum(I_REDDRAGON_O);
+			num += u->items.GetNum(I_REDDRAGON_A);
+			num += u->items.GetNum(I_REDDRAGON_B);
+			numAllowed = 1;
+			break;
+		case I_WHITEDRAGON:
+		case I_WHITEDRAGON_S:
+		case I_WHITEDRAGON_O:
+		case I_WHITEDRAGON_A:
+		case I_WHITEDRAGON_B:
+			num += u->items.GetNum(I_WHITEDRAGON);
+			num += u->items.GetNum(I_WHITEDRAGON_S);
+			num += u->items.GetNum(I_WHITEDRAGON_O);
+			num += u->items.GetNum(I_WHITEDRAGON_A);
+			num += u->items.GetNum(I_WHITEDRAGON_B);
+			numAllowed = 1;
+			break;
+		case I_BLACKDRAGON:
+		case I_BLACKDRAGON_S:
+		case I_BLACKDRAGON_O:
+		case I_BLACKDRAGON_A:
+		case I_BLACKDRAGON_B:
+			num += u->items.GetNum(I_BLACKDRAGON);
+			num += u->items.GetNum(I_BLACKDRAGON_S);
+			num += u->items.GetNum(I_BLACKDRAGON_O);
+			num += u->items.GetNum(I_BLACKDRAGON_A);
+			num += u->items.GetNum(I_BLACKDRAGON_B);
+			numAllowed = 1;
+			break;
+		case I_WOLF:
+		case I_EAGLE:
+		case I_IMP:
+		case I_SKELETON:
+		case I_IWOLF:
+		case I_ISKELETON:
+		case I_IIMP:
+			num += u->items.GetNum(creature);
+			numAllowed = controlLevel * controlLevel;
+			break;
+		case I_DEMON:
+		case I_UNDEAD:
+		case I_LICH:
+		case I_IEAGLE:
+		case I_IDEMON:
+		case I_IUNDEAD:
+			num += u->items.GetNum(creature);
+			numAllowed = controlLevel;
+			break;
+		case I_BALROG:
+		case I_IBALROG:
+			num += u->items.GetNum(creature);
+			numAllowed = 1;
+			break;
+		case I_ILICH:
+			num += u->items.GetNum(creature);
+			numAllowed = controlLevel * 2;
+			break;
+		case I_ISTEELDRAGON:
+		case I_ICOPPERDRAGON:
+		case I_IBRONZEDRAGON:
+		case I_ISILVERDRAGON:
+		case I_IGOLDENDRAGON:
+		case I_IGREENDRAGON:
+		case I_IBROWNDRAGON:
+		case I_IBLUEDRAGON:
+		case I_IREDDRAGON:
+		case I_IWHITEDRAGON:
+		case I_IBLACKDRAGON:
+			num += u->items.GetNum( I_ISTEELDRAGON );
+			num += u->items.GetNum( I_ICOPPERDRAGON );
+			num += u->items.GetNum( I_IBRONZEDRAGON );
+			num += u->items.GetNum( I_ISILVERDRAGON );
+			num += u->items.GetNum( I_IGOLDENDRAGON );
+			num += u->items.GetNum( I_IGREENDRAGON );
+			num += u->items.GetNum( I_IBROWNDRAGON );
+			num += u->items.GetNum( I_IBLUEDRAGON );
+			num += u->items.GetNum( I_IREDDRAGON );
+			num += u->items.GetNum( I_IWHITEDRAGON );
+			num += u->items.GetNum( I_IBLACKDRAGON );
+			numAllowed = controlLevel;
+			break;
+
+
+	}
+
+	int max = numAllowed - num;
+	return max;
+}

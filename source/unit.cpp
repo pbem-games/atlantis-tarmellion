@@ -860,7 +860,7 @@ int Unit::GetStealth() {
 
 int Unit::GetEntertainment() {
 	int level = GetRealSkill(S_ENTERTAINMENT);
-	int level2 = 5 * GetRealSkill(S_PHANTASMAL_ENTERTAINMENT);
+	int level2 = 10 * GetRealSkill(S_PHANTASMAL_ENTERTAINMENT);
 	return (level > level2 ? level : level2);
 }
 
@@ -1453,17 +1453,11 @@ int Unit::Hostile() {
 }
 
 int Unit::Forbids(ARegion * r,Unit * u) {
-	Awrite( "Checking forbid" );
 	if (guard != GUARD_GUARD) return 0;
-	Awrite( "We're guarding" );
 	if (!IsAlive()) return 0;
-	Awrite( "We're alive" );
 	if (!CanSee(r,u, Globals->SKILL_PRACTISE_AMOUNT > 0, 1)) return 0;
-	Awrite( "We can see 'em" );
 	if (!CanCatch(r,u)) return 0;
-	Awrite( "We can cath 'em" );
 	if (GetAttitude(r,u) < A_NEUTRAL) return 1;
-	Awrite( "We wanna stop 'em" );
 	return 0;
 }
 

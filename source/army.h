@@ -133,7 +133,7 @@ class Army {
 		int DoAnAttack( int special, int numAttacks, int attackType,
 				int attackLevel, int flags, int weaponClass, int effect,
 				int mountBonus, int attackbehind);
-		void Kill(int);
+		void Kill(int, int destroy = 0);
 		void Reset();
 
 		//

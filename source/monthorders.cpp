@@ -1389,6 +1389,19 @@ void Game::Do1SettleOrder(ARegion * pRegion, Unit * pUnit)
 		return;
 	}
 
+	// Can only change population to one that the same alignment
+	// as that of the settling unit's faction
+	int newRace = ManDefs[ItemDefs[pRegion->race].index].alternaterace;
+
+	if( ( ItemDefs[newRace].flags & ItemType::EVIL &&
+		  !(ItemDefs[pUnit->faction->race].flags & ItemType::EVIL) ) ||
+		( ItemDefs[newRace].flags & ItemType::GOOD &&
+ 		  !(ItemDefs[pUnit->faction->race].flags & ItemType::GOOD) ) ) 
+	{
+		pUnit->Error("SETTLE: Can't change race to one that is of a different alignment to your race.");
+		return;
+	}
+
 	// Remove men markets
 	forlist( &pRegion->markets ) {
 		Market * m = ( Market * ) elem;
@@ -1397,9 +1410,6 @@ void Game::Do1SettleOrder(ARegion * pRegion, Unit * pUnit)
 			delete m;		
 		}
 	}
-
-
-	int newRace = ManDefs[ItemDefs[pRegion->race].index].alternaterace;
 
 	// Set up new men markets
 	Market * m;

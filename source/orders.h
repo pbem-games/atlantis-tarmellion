@@ -326,11 +326,12 @@ class CastMindOrder : public CastOrder {
 };
 
 class CastItemOrder : public CastOrder {
- public:
-  CastItemOrder();
-  ~CastItemOrder();
+	public:
+		CastItemOrder();
+		~CastItemOrder();
 
-  int item;
+		int item;
+		int num;
 };
 
 class CastRegionOrder : public CastOrder {

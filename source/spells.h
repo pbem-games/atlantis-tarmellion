@@ -88,4 +88,9 @@ void RunCreateFood(ARegion *,Unit *);
 
 // Spell failure
 int CheckSpellFailure( Unit * u, int sk );
+
+int RunSummonCreature(Unit *u, int creature, int skill);
+int GetMonsterControlSkill( int monster );
+int GetAllowedMonsters(Unit *u, int creature );
+
 #endif

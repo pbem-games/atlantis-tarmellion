@@ -41,6 +41,7 @@ enum {
 	ATTACK_WEATHER,
 	ATTACK_RIDING,
 	ATTACK_RANGED,
+	ATTACK_DISPEL,
 	NUM_ATTACK_TYPES
 };
 
@@ -89,6 +90,9 @@ class ItemType {
 			GOOD = 0x40,
 			// this item cannot be seen by oponents (used to be weight zero.)
 			HIDDEN = 0x80,
+			// Only one of these items may be produced per man, at a chance of mOut%
+			CHANCEOUT = 0x100,
+
 		};
 		int flags;
 		enum {

@@ -2051,6 +2051,25 @@ void Game::MonsterCheck(ARegion *r, Unit *u) {
 			/* XXX -- This should be genericized -- heavily! */
 			/* GGO: how about the new monsters? */
 			level = 1;
+
+			// Tarmellion summoning works a little differently...
+			if( Globals->TARMELLION_SUMMONING ) {
+				if( !( ItemDefs[i->type].type & IT_MONSTER ) ) continue;
+
+				int allowed = GetAllowedMonsters( u, i->type );
+				if( allowed < 0 ) {
+					// lose some monsters
+					int lose = -allowed;
+					if( lose > i->num ) lose = i->num;
+					u->items.SetNum(i->type, i->num - lose);
+					AString temp = AString( lose ) + " ";
+					temp += (lose == 1?ItemDefs[i->type].name:ItemDefs[i->type].names);
+					temp += " escape.";
+					u->Event( temp );
+				}
+				continue;
+			}
+
 			if (i->type == I_IMP || i->type == I_DEMON || i->type == I_BALROG) {
 				top = i->num * i->num;
 				if (i->type == I_IMP) skill = S_SUMMON_IMPS;
