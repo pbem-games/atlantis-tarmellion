@@ -274,8 +274,6 @@ class ARegion : public AListElem
 		MarketList markets;
 		int xloc,yloc,zloc;
 
-	private:
-		/* Private Setup Functions */
 		void SetupPop();
 		void SetupProds();
 		int GetNearestProd(int);

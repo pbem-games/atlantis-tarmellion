@@ -3205,7 +3205,7 @@ int Game::GenRules(const AString &rules, const AString &css,
 		"it up, and you want to move to another region later that month, it "
 		"may be worth issuing some orders to drop items (with the ";
 	temp += f.Link("#give", "GIVE") + " 0 order) or to prevent yourself "
-		"picking up certain types of spoils (with the ";
+		"picking up spoils beyond your capacity (with the ";
 	temp += f.Link("#spoils", "SPOILS") + " order) in case you win the "
 		"battle! Also, note that if the winning side took any losses in "
 		"the battle, any units on this side will not be allowed to move, "
@@ -4840,19 +4840,20 @@ int Game::GenRules(const AString &rules, const AString &css,
 	f.LinkRef("spoils");
 	f.TagText("H4", "SPOILS [type]");
 	f.TagText("H4", "SPOILS");
-	temp = "The SPOILS order determines which types of spoils the unit "
+	temp = "The SPOILS order allows you to limit the spoils you "
 		"should take after a battle.  The valid values for type are "
 		"'NONE', 'WALK', 'RIDE', 'FLY', or 'ALL'. The second form is "
 		"equivalent to 'SPOILS ALL'.";
 	f.Paragraph(temp);
-	temp = "When this command is issued, only spoils with 0 weight (at "
-		"level NONE) or spoils which weigh less than or equal to their "
-		"capacity in the specified movement mode (at any level other than "
-		"ALL) will be picked up.  SPOILS ALL will allow a unit to collect "
-		"any spoils which are dropped regardless of weight or capacity.";
+	temp = "When level NONE is specified, only spoils with 0 weight "
+	 "will be picked up. SPOILS ALL will allow a unit to collect "
+		"any spoils which are dropped regardless of weight or capacity. "
+		"SPOILS follwed by a movement mode will allow a unit to collect "
+		"any spoils while the spoils don't prevent the unit to move using "
+		"the specified movement mode.";
 	f.Paragraph(temp);
 	f.Paragraph("Example:");
-	temp = "Set a unit to only pick up items which have flying capacity";
+	temp = "Set a unit to only pick up items while still being able to fly";
 	temp2 = "SPOILS FLY";
 	f.CommandExample(temp, temp2);
 

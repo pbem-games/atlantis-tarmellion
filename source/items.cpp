@@ -29,8 +29,7 @@
 #include "object.h"
 #include "gamedata.h"
 
-AString AttType(int atype)
-{
+AString AttType(int atype) {
 	switch(atype) {
 		case ATTACK_COMBAT: return AString("melee");
 		case ATTACK_ENERGY: return AString("energy");
@@ -138,8 +137,7 @@ int ParseBattleItem(int item)
 	return -1;
 }
 
-AString ItemString(int type, int num)
-{
+AString ItemString(int type, int num) {
 	AString temp;
 	if (num == 1) {
 		temp += AString(ItemDefs[type].name) + " [" + ItemDefs[type].abr + "]";
@@ -197,8 +195,7 @@ static AString EffectStr(int effect)
 	return temp;
 }
 
-AString ShowSpecial(int special, int level, int expandLevel, int fromItem)
-{
+AString ShowSpecial(int special, int level, int expandLevel, int fromItem) {
 	AString temp;
 	int comma = 0;
 	int i;
@@ -445,8 +442,7 @@ static AString WeapType(int flags, int wclass)
 	return type;
 }
 
-AString *ItemDescription(int item, int full)
-{
+AString *ItemDescription(int item, int full) {
 	int i;
 
 	if(ItemDefs[item].flags & ItemType::DISABLED)
@@ -756,9 +752,8 @@ AString *ItemDescription(int item, int full)
 				   } else {
 					   *temp += ", ";
 				   }
-			   }
-			   else
-		     *temp += " This item increases the production of ";
+			   } else
+				*temp += " This item increases the production of ";
 			   comma++;
 			   if(i == I_SILVER) {
 				   *temp += "entertainment";
@@ -790,9 +785,9 @@ AString *ItemDescription(int item, int full)
 				   } else {
 					   *temp += ", ";
 				   }
-			   }
-			   else
-		     *temp += " This item increases the building of ";
+			   } else 
+				*temp += " This item increases the building of ";
+			                               comma++;
 			   comma++;
 				  *temp += ObjectDefs[i].name;
 			   *temp += AString(" by ") + ObjectDefs[i].mult_val;
@@ -1005,8 +1000,7 @@ Item::~Item()
 {
 }
 
-AString Item::Report(int seeillusions)
-{
+AString Item::Report(int seeillusions) {
 	AString ret = ItemString(type,num);
 	if (seeillusions && ItemDefs[type].type & IT_MONSTER &&
 			ItemDefs[type].index == MONSTER_ILLUSION) {
@@ -1015,27 +1009,23 @@ AString Item::Report(int seeillusions)
 	return ret;
 }
 
-void Item::Writeout(Aoutfile * f)
-{
+void Item::Writeout(Aoutfile * f) {
 	f->PutInt(type);
 	f->PutInt(num);
 }
 
-void Item::Readin(Ainfile * f)
-{
+void Item::Readin(Ainfile * f) {
 	type = f->GetInt();
 	num = f->GetInt();
 }
 
-void ItemList::Writeout(Aoutfile * f)
-{
+void ItemList::Writeout(Aoutfile * f) {
 	f->PutInt(Num());
 	forlist (this)
 		((Item *) elem)->Writeout(f);
 }
 
-void ItemList::Readin(Ainfile * f)
-{
+void ItemList::Readin(Ainfile * f) {
 	int i = f->GetInt();
 	for (int j=0; j<i; j++) {
 		Item * temp = new Item;
@@ -1076,16 +1066,14 @@ int ItemList::CanSell(int t)
 	return 0;
 }
 
-void ItemList::Selling(int t, int n)
-{
+void ItemList::Selling(int t, int n) {
 	forlist(this) {
 		Item *i = (Item *)elem;
 		if (i->type == t) i->selling += n;
 	}
 }
 
-AString ItemList::Report(int obs,int seeillusions,int nofirstcomma)
-{
+AString ItemList::Report(int obs,int seeillusions,int nofirstcomma) {
 	AString temp;
 	forlist(this) {
 		Item * i = (Item *) elem;
@@ -1110,8 +1098,7 @@ AString ItemList::Report(int obs,int seeillusions,int nofirstcomma)
 	return temp;
 }
 
-AString ItemList::BattleReport()
-{
+AString ItemList::BattleReport() {
 	AString temp;
 	forlist(this) {
 		Item * i = (Item *) elem;
@@ -1130,8 +1117,7 @@ AString ItemList::BattleReport()
 	return temp;
 }
 
-void ItemList::SetNum(int t,int n)
-{
+void ItemList::SetNum(int t,int n) {
 	if (n) {
 		forlist(this) {
 			Item * i = (Item *) elem;

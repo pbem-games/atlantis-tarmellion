@@ -115,11 +115,3 @@ $(patsubst %.o,$(GAME)/obj/%.o,$(ENGINE_OBJECTS)): $(GAME)/obj/%.o: %.cpp
 
 $(GAME)/obj/i_rand.o: i_rand.c
 	$(CC) $(CFLAGS) -c -o $@ $<
-
-
-
-
-
-
-
-

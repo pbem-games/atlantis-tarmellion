@@ -137,6 +137,11 @@ class ManType
 
   int flags;
   int minority; // This is used to point to another race which my ocuppy the hex.
+  // {guard weapon,guard armor,(guard shield),guard equiptment,starting equiptment, better weapon, better armor}
+  // guarditems[0..1] are for normal city guards,
+  // guarditems[4..6] are for starting city guard,
+  // guarditems[2..3] are for both.
+  int guarditems[7];
   int speciallevel[15];
   int defaultlevel;
   int defaultmagiclevel;

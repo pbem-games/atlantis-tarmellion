@@ -127,7 +127,14 @@ static char *terfill[] = {
  " !!!! ",
  " !!!! ",
 
- // For conquest
+ // volcano
+ " /\\/\\ ",
+ "/ *\\*\\",
+
+ // lake
+ " ~    ",
+ "    ~ ",
+
  // Island Plain
  "      ",
  "      ",
@@ -140,162 +147,593 @@ static char *terfill[] = {
  " /\\/\\ ",
  "/  \\ \\",
 
- // For Ceran terrains
-
- // plain1
- "      ",
- "      ",
- // plain2
- "      ",
- "      ",
- // plain3
- "      ",
- "      ",
-
- // forest1
- "  ^ ^ ",
- " ^ ^  ",
- // forest2
- "  ^ ^ ",
- " ^ ^  ",
- // forest3
- "  ^ ^ ",
- " ^ ^  ",
-
- // mystforest
- "  ` ` ",
- " ` `  ",
- // mystforest1
- "  ` ` ",
- " ` `  ",
- // mystforest2
- "  ` ` ",
- " ` `  ",
-
- // mountain1
- " /\\/\\ ",
- "/  \\ \\",
- // mountain2
- " /\\/\\ ",
- "/  \\ \\",
- // mountain3
- " /\\/\\ ",
- "/  \\ \\",
-
- // hill
- "  * * ",
- " * *  ",
- // hill1
- "  * * ",
- " * *  ",
- // hill2
- "  * * ",
- " * *  ",
-
- // swamp1
- "  v v ",
- " v v  ",
- // swamp2
- "  v v ",
- " v v  ",
- // swamp3
- "  v v ",
- " v v  ",
-
- // jungle1
- "  @ @ ",
- " @ @  ",
- // jungle2
- "  @ @ ",
- " @ @  ",
- // jungle3
- "  @ @ ",
- " @ @  ",
-
- // desert1
- "  . . ",
- " . .  ",
- // desert2
- "  . . ",
- " . .  ",
- // desert3
- "  . . ",
- " . .  ",
-
- // wasteland
- "  ; ; ",
- " ; ;  ",
- // wasteland1
- "  ; ; ",
- " ; ;  ",
-
- // lake
+ // Tarmellion ocean
  "  ~ ~ ",
  " ~ ~  ",
 
- // tundra1
- "  ' ' ",
- " ' '  ",
- // tundra2
- "  ' ' ",
- " ' '  ",
- // tundra2
- "  ' ' ",
- " ' '  ",
-
- // cavern1
- "  . . ",
- " . .  ",
- // cavern2
- "  . . ",
- " . .  ",
- // cavern3
- "  . . ",
- " . .  ",
-
- // underforest1
- "  ^ ^ ",
- " ^ ^  ",
- // underforest2
- "  ^ ^ ",
- " ^ ^  ",
- // underforest3
- "  ^ ^ ",
- " ^ ^  ",
-
- // tunnels1
- "      ",
- "      ",
- // tunnels2
+ // Tarmellion plain
  "      ",
  "      ",
 
- // grotto
- "  . . ",
- " . .  ",
- // deepforest
- "  ^ ^ ",
- " ^ ^  ",
- // chasm
- "      ",
- "      ",
- // grotto1
- "  . . ",
- " . .  ",
- // deepforest1
- "  ^ ^ ",
- " ^ ^  ",
- // chasm1
+ // Tarmellion plain
  "      ",
  "      ",
 
- // volcano
+ // Tarmellion plain
+ "      ",
+ "      ",
+
+ // Tarmellion lake
+ " ~    ",
+ "    ~ ",
+
+ // Tarmellion lake
+ " ~    ",
+ "    ~ ",
+
+ // Tarmellion lake
+ " ~    ",
+ "    ~ ",
+
+ // Tarmellion forest
+ "  ^ ^ ",
+ " ^ ^  ",
+
+ // Tarmellion forest
+ "  ^ ^ ",
+ " ^ ^  ",
+
+ // Tarmellion forest
+ "  ^ ^ ",
+ " ^ ^  ",
+
+ // Tarmellion mystforest
+ " * * *",
+ " | | |",
+
+ // Tarmellion mountain
  " /\\/\\ ",
  "/  \\ \\",
 
- // lake
+ // Tarmellion mountain
+ " /\\/\\ ",
+ "/  \\ \\",
+
+ // Tarmellion mountain
+ " /\\/\\ ",
+ "/  \\ \\",
+
+ // Tarmellion hill
+ "  * * ",
+ " * *  ",
+
+ // Tarmellion hill
+ "  * * ",
+ " * *  ",
+
+ // Tarmellion hill
+ "  * * ",
+ " * *  ",
+
+ // Tarmellion swamp
+ "  v v ",
+ " v v  ",
+
+ // Tarmellion swamp
+ "  v v ",
+ " v v  ",
+
+ // Tarmellion swamp
+ "  v v ",
+ " v v  ",
+
+ // Tarmellion jungle
+ "  @ @ ",
+ " @ @  ",
+
+ // Tarmellion jungle
+ "  @ @ ",
+ " @ @  ",
+
+ // Tarmellion jungle
+ "  @ @ ",
+ " @ @  ",
+
+ // Tarmellion desert
+ "  . . ",
+ " . .  ",
+
+ // Tarmellion desert
+ "  . . ",
+ " . .  ",
+
+ // Tarmellion desert
+ "  . . ",
+ " . .  ",
+
+ // Tarmellion volcano
+ " /\\/\\ ",
+ "/ *\\*\\",
+
+ // Tarmellion tundra
+ "  ' ' ",
+ " ' '  ",
+
+ // Tarmellion tundra
+ "  ' ' ",
+ " ' '  ",
+
+ // Tarmellion tundra
+ "  ' ' ",
+ " ' '  ",
+
+ // Tarmellion cavern
+ "  . . ",
+ " . .  ",
+
+ // Tarmellion cavern
+ "  . . ",
+ " . .  ",
+
+ // Tarmellion cavern
+ "  . . ",
+ " . .  ",
+
+ // Tarmellion underforest
+ "  ^ ^ ",
+ " ^ ^  ",
+
+ // Tarmellion underforest
+ "  ^ ^ ",
+ " ^ ^  ",
+
+ // Tarmellion underforest
+ "  ^ ^ ",
+ " ^ ^  ",
+
+ // Tarmellion tunnels
+ "      ",
+ "      ",
+
+ // Tarmellion tunnels
+ "      ",
+ "      ",
+
+ // Tarmellion tunnels
+ "      ",
+ "      ",
+
+ // Tarmellion grotto
+ " ~ . ~",
+ " . ~ .",
+
+ // Tarmellion plain
+ "      ",
+ "      ",
+
+ // Tarmellion plain
+ "      ",
+ "      ",
+
+ // Tarmellion plain
+ "      ",
+ "      ",
+
+ // Tarmellion lake
+ " ~    ",
+ "    ~ ",
+
+ // Tarmellion lake
+ " ~    ",
+ "    ~ ",
+
+ // Tarmellion lake
+ " ~    ",
+ "    ~ ",
+
+ // Tarmellion forest
+ "  ^ ^ ",
+ " ^ ^  ",
+
+ // Tarmellion forest
+ "  ^ ^ ",
+ " ^ ^  ",
+
+ // Tarmellion forest
+ "  ^ ^ ",
+ " ^ ^  ",
+
+ // Tarmellion mystforest
+ " * * *",
+ " | | |",
+
+ // Tarmellion mountain
+ " /\\/\\ ",
+ "/  \\ \\",
+
+ // Tarmellion mountain
+ " /\\/\\ ",
+ "/  \\ \\",
+
+ // Tarmellion mountain
+ " /\\/\\ ",
+ "/  \\ \\",
+
+ // Tarmellion hill
+ "  * * ",
+ " * *  ",
+
+ // Tarmellion hill
+ "  * * ",
+ " * *  ",
+
+ // Tarmellion hill
+ "  * * ",
+ " * *  ",
+
+ // Tarmellion swamp
+ "  v v ",
+ " v v  ",
+
+ // Tarmellion swamp
+ "  v v ",
+ " v v  ",
+
+ // Tarmellion swamp
+ "  v v ",
+ " v v  ",
+
+ // Tarmellion jungle
+ "  @ @ ",
+ " @ @  ",
+
+ // Tarmellion jungle
+ "  @ @ ",
+ " @ @  ",
+
+ // Tarmellion jungle
+ "  @ @ ",
+ " @ @  ",
+
+ // Tarmellion desert
+ "  . . ",
+ " . .  ",
+
+ // Tarmellion desert
+ "  . . ",
+ " . .  ",
+
+ // Tarmellion desert
+ "  . . ",
+ " . .  ",
+
+ // Tarmellion volcano
+ " /\\/\\ ",
+ "/ *\\*\\",
+
+ // Tarmellion tundra
+ "  ' ' ",
+ " ' '  ",
+
+ // Tarmellion tundra
+ "  ' ' ",
+ " ' '  ",
+
+ // Tarmellion tundra
+ "  ' ' ",
+ " ' '  ",
+
+ // Tarmellion cavern
+ "  . . ",
+ " . .  ",
+
+ // Tarmellion cavern
+ "  . . ",
+ " . .  ",
+
+ // Tarmellion cavern
+ "  . . ",
+ " . .  ",
+
+ // Tarmellion deepforest
+ "  ^ ^ ",
+ " ^ ^  ",
+
+ // Tarmellion deepforest
+ "  ^ ^ ",
+ " ^ ^  ",
+
+ // Tarmellion deepforest
+ "  ^ ^ ",
+ " ^ ^  ",
+
+ // Tarmellion tunnels
+ "      ",
+ "      ",
+
+ // Tarmellion tunnels
+ "      ",
+ "      ",
+
+ // Tarmellion tunnels
+ "      ",
+ "      ",
+
+ // Tarmellion grotto
+ " ~ . ~",
+ " . ~ .",
+
+ // Ceran ocean
  "  ~ ~ ",
  " ~ ~  ",
+
+ // Ceran ocean
+ "  ~ ~ ",
+ " ~ ~  ",
+
+ // Ceran plain
+ "      ",
+ "      ",
+
+ // Ceran plain
+ "      ",
+ "      ",
+
+ // Ceran plain
+ "      ",
+ "      ",
+
+ // Ceran plain
+ "      ",
+ "      ",
+
+ // Ceran grassland
+ " '` '`",
+ "'` '` ",
+
+ // Ceran grassland
+ " '` '`",
+ "'` '` ",
+
+ // Ceran grassland
+ " '` '`",
+ "'` '` ",
+
+ // Ceran grassland
+ " '` '`",
+ "'` '` ",
+
+ // Ceran lake
+ " ~    ",
+ "    ~ ",
+
+ // Ceran lake
+ " ~    ",
+ "    ~ ",
+
+ // Ceran lake
+ " ~    ",
+ "    ~ ",
+
+ // Ceran forest
+ "  ^ ^ ",
+ " ^ ^  ",
+
+ // Ceran forest
+ "  ^ ^ ",
+ " ^ ^  ",
+
+ // Ceran forest
+ "  ^ ^ ",
+ " ^ ^  ",
+
+ // Ceran forest
+ "  ^ ^ ",
+ " ^ ^  ",
+
+ // Ceran mystforest
+ " * * *",
+ " | | |",
+
+ // Ceran mystforest
+ " * * *",
+ " | | |",
+
+ // Ceran mountain
+ " /\\/\\ ",
+ "/  \\ \\",
+
+ // Ceran mountain
+ " /\\/\\ ",
+ "/  \\ \\",
+
+ // Ceran mountain
+ " /\\/\\ ",
+ "/  \\ \\",
+
+ // Ceran mountain
+ " /\\/\\ ",
+ "/  \\ \\",
+
+ // Ceran hill
+ "  * * ",
+ " * *  ",
+
+ // Ceran hill
+ "  * * ",
+ " * *  ",
+
+ // Ceran hill
+ "  * * ",
+ " * *  ",
+
+ // Ceran hill
+ "  * * ",
+ " * *  ",
+
+ // Ceran swamp
+ "  v v ",
+ " v v  ",
+
+ // Ceran swamp
+ "  v v ",
+ " v v  ",
+
+ // Ceran swamp
+ "  v v ",
+ " v v  ",
+
+ // Ceran swamp
+ "  v v ",
+ " v v  ",
+
+ // Ceran jungle
+ "  @ @ ",
+ " @ @  ",
+
+ // Ceran jungle
+ "  @ @ ",
+ " @ @  ",
+
+ // Ceran jungle
+ "  @ @ ",
+ " @ @  ",
+
+ // Ceran jungle
+ "  @ @ ",
+ " @ @  ",
+
+ // Ceran desert
+ "  . . ",
+ " . .  ",
+
+ // Ceran desert
+ "  . . ",
+ " . .  ",
+
+ // Ceran desert
+ "  . . ",
+ " . .  ",
+
+ // Ceran desert
+ "  . . ",
+ " . .  ",
+
+ // Ceran wasteland
+ "  ; ; ",
+ " ; ;  ",
+
+ // Ceran wasteland
+ "  ; ; ",
+ " ; ;  ",
+
+ // Ceran tundra
+ "  ' ' ",
+ " ' '  ",
+
+ // Ceran tundra
+ "  ' ' ",
+ " ' '  ",
+
+ // Ceran tundra
+ "  ' ' ",
+ " ' '  ",
+
+ // Ceran tundra
+ "  ' ' ",
+ " ' '  ",
+
+ // Ceran cavern
+ "  . . ",
+ " . .  ",
+
+ // Ceran cavern
+ "  . . ",
+ " . .  ",
+
+ // Ceran cavern
+ "  . . ",
+ " . .  ",
+
+ // Ceran cavern
+ "  . . ",
+ " . .  ",
+
+ // Ceran underforest
+ "  ^ ^ ",
+ " ^ ^  ",
+
+ // Ceran underforest
+ "  ^ ^ ",
+ " ^ ^  ",
+
+ // Ceran underforest
+ "  ^ ^ ",
+ " ^ ^  ",
+
+ // Ceran underforest
+ "  ^ ^ ",
+ " ^ ^  ",
+
+ // Ceran tunnels
+ "      ",
+ "      ",
+
+ // Ceran tunnels
+ "      ",
+ "      ",
+
+ // Ceran underlake
+ " ~    ",
+ "    ~ ",
+
+ // Ceran underlake
+ " ~    ",
+ "    ~ ",
+
+ // Ceran underlake
+ " ~    ",
+ "    ~ ",
+
+ // Ceran dcavern
+ "  . . ",
+ " . .  ",
+
+ // Ceran dcavern
+ "  . . ",
+ " . .  ",
+
+ // Ceran dcavern
+ "  . . ",
+ " . .  ",
+
+ // Ceran dcavern
+ "  . . ",
+ " . .  ",
+
+ // Ceran deepforest
+ "  ^ ^ ",
+ " ^ ^  ",
+
+ // Ceran deepforest
+ "  ^ ^ ",
+ " ^ ^  ",
+
+ // Ceran deepforest
+ "  ^ ^ ",
+ " ^ ^  ",
+
+ // Ceran deepforest
+ "  ^ ^ ",
+ " ^ ^  ",
+
+ // Ceran dtunnels
+ "      ",
+ "      ",
+
+ // Ceran dtunnels
+ "      ",
+ "      ",
 
 };
 

@@ -411,6 +411,9 @@ public:
 		REPORT_SHOW_EVERYTHING = (REPORT_SHOW_REGION |
 								  REPORT_SHOW_UNITS |
 								  REPORT_SHOW_STRUCTURES),
+                // just another collection
+                REPORT_SHOW_LITTLE = (REPORT_SHOW_PEASANTS | REPORT_SHOW_ALL_EXITS | REPORT_SHOW_ROADS | REPORT_SHOW_BUILDINGS),
+
 	};
 
 	// What sort of information should be shown to a unit just passing
@@ -560,6 +563,8 @@ public:
 
 		// Abbreviation for "the usual"
 		TAX_NORMAL = TAX_COMBAT_SKILL | TAX_USABLE_WEAPON,
+                // another combination
+                TAX_ME = TAX_NORMAL | TAX_STEALTH_SKILL | TAX_USABLE_BATTLE_ITEM,
 	};
 	int WHO_CAN_TAX;
 

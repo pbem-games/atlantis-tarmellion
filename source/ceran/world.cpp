@@ -39,6 +39,7 @@ static char *regionnames[] =
     "A'vespol",
     "Abernecht",
     "Abernethy",
+    "Abeuton",
     "Abrenton",
     "Achash",
     "Achoep't",
@@ -51,6 +52,7 @@ static char *regionnames[] =
     "Aikoburg",
     "Aildadale",
     "Aisheaberg",
+    "Alabrin-a-grim",
     "Alabrin-a-karak",
     "Alabrin-a-thol",
     "Alabrin-ban",
@@ -74,6 +76,7 @@ static char *regionnames[] =
     "Altenvoltan",
     "Aman-a-gun",
     "Aman-a-karak",
+    "Aman-a-lin",
     "Aman-dor",
     "Aman-killuk",
     "Aman-krag",
@@ -90,6 +93,7 @@ static char *regionnames[] =
     "Asaberg",
     "Asend",
     "Ashdim",
+    "Askul-a-grim",
     "Askul-a-luk",
     "Askul-a-menak",
     "Askul-dum",
@@ -127,6 +131,7 @@ static char *regionnames[] =
     "Beldorf",
     "Belelt",
     "Belfelt",
+    "Belgrad",
     "Belholm",
     "Belmar",
     "Belport",
@@ -653,10 +658,6 @@ static char *regionnames[] =
     "Melq",
     "Meqiville",
     "Mikedale",
-    "Mineden",
-    "Minegate",
-    "Minehome",
-    "Mining",
     "Morer",
     "Mosghae",
     "Mullaghcarn",
@@ -984,7 +985,6 @@ static char *regionnames[] =
     "Ustoist'ch",
     "Uxelberg",
     "Uzburg",
-    "Vaulthall",
     "Verburg",
     "Verdorf",
     "Verholm",
@@ -1074,7 +1074,6 @@ static char *regionnames[] =
     "Anshun",
     "Anstruther",
     "Antor",
-    "Arathong",
     "Arbroath",
     "Arcila",
     "Ardfert",
@@ -1137,7 +1136,6 @@ static char *regionnames[] =
     "Bergland",
     "Berneray",
     "Berori",
-    "Bingen",
     "Binhai",
     "Birde",
     "Bocagobi",
@@ -1236,6 +1234,7 @@ static char *regionnames[] =
     "Dariro",
     "Darm",
     "Darunt",
+    "Decca",
     "Dedihow",
     "Dedotyl",
     "Denbur",
@@ -1255,7 +1254,6 @@ static char *regionnames[] =
     "Dhakgrod",
     "Dhakwaz",
     "Dilavyk",
-    "Dommond",
     "Donnais",
     "Donndinon",
     "Donnnuon",
@@ -1283,6 +1281,7 @@ static char *regionnames[] =
     "Dunmanus",
     "Dunster",
     "Durness",
+    "Durthblod",
     "Durthrot",
     "Durthrun",
     "Durththang",
@@ -1309,6 +1308,7 @@ static char *regionnames[] =
     "Elmut",
     "Elodiauen",
     "Emlther",
+    "Emys'a",
     "Enburen",
     "Endandon",
     "Endbrodanfel",
@@ -1358,6 +1358,7 @@ static char *regionnames[] =
     "Fontengrois",
     "Fontennuondel",
     "Fontenois",
+    "Fontenquel",
     "Fontenrienne",
     "Fordiauen",
     "Fordorlun",
@@ -1389,7 +1390,6 @@ static char *regionnames[] =
     "Gluggby",
     "Gnoelhaala",
     "Golconda",
-    "Gonmaer",
     "Gorbad",
     "Gorbul",
     "Gordor",
@@ -1486,7 +1486,6 @@ static char *regionnames[] =
     "Kalaur'o",
     "Kalol",
     "Kalshy",
-    "Karacund",
     "Karand",
     "Kargbul",
     "Karggabab",
@@ -1497,6 +1496,7 @@ static char *regionnames[] =
     "Kargungol",
     "Karothea",
     "Kashmar",
+    "Kawapo",
     "Kekeloh",
     "Kelade",
     "Keswick",
@@ -2138,8 +2138,7 @@ void Game::CreateWorld()
     SetupNames();
 
     regions.CreateNexusLevel( 0, nx, ny, "nexus" );
-    //means (level, x-coordinate, y-coordinate, % of level is ocean, size of continent, name)
-    regions.CreateSurfaceLevel( 1, xx, yy, 50, 10, 0 );
+    regions.CreateSurfaceLevel( 1, xx, yy, 60, 16, 0 );
 
 	// Create underworld levels
 	int i;
@@ -2163,80 +2162,60 @@ void Game::CreateWorld()
 
 	CountNames();
 
-      //option for MakeShaftLinks are (from-level, to-level, % chance of shaft)	
-	//shafts from surface to first underworld and underdeeps level
-      	regions.MakeShaftLinks( 1, 2, 8 );
-	regions.MakeShaftLinks( 1, 5, 8 );
-	//shafts from underworld to deeper underworld
-	regions.MakeShaftLinks( 2, 3, 6 );
-	regions.MakeShaftLinks( 2, 4, 6 );
-	regions.MakeShaftLinks( 3, 4, 6 );
-	//shafts from underdeeps to deeper underdeeps
-	regions.MakeShaftLinks( 5, 6, 6 );
-	regions.MakeShaftLinks( 5, 6, 6 );
-	regions.MakeShaftLinks( 6, 7, 6 );
-	//shafts from deepest underworld to deepest underdeeps
-	regions.MakeShaftLinks( 4, 7, 4 );
+    if(Globals->UNDERWORLD_LEVELS+Globals->UNDERDEEP_LEVELS == 1) {
+		regions.MakeShaftLinks( 2, 1, 8 );
+	} else if(Globals->UNDERWORLD_LEVELS+Globals->UNDERDEEP_LEVELS) {
+		int i, ii;
+		// shafts from surface to underworld
+		regions.MakeShaftLinks(2, 1, 10);
+		for(i=3; i<Globals->UNDERWORLD_LEVELS+2; i++) {
+			regions.MakeShaftLinks(i, 1, 10*i-10);
+		}
+		// Shafts from underworld to underworld
+		if(Globals->UNDERWORLD_LEVELS > 1) {
+			for(i = 3; i < Globals->UNDERWORLD_LEVELS+2; i++) {
+				for(ii = 2; ii < i; ii++) {
+					regions.MakeShaftLinks(i, ii, ((i-ii)*12));
+					//if(i == ii+1) {
+					//	regions.MakeShaftLinks(i, ii, 12);
+					//} else {
+					//	regions.MakeShaftLinks(i, ii, 24);
+					//}
+				}
+			}
+        }
+		// underdeeps to underworld
+		if(Globals->UNDERDEEP_LEVELS && Globals->UNDERWORLD_LEVELS) {
+			// Connect the topmost of the underdeep to the bottommost
+			// underworld
+			regions.MakeShaftLinks(Globals->UNDERWORLD_LEVELS+2,
+					Globals->UNDERWORLD_LEVELS+1, 12);
+		}
+		// Now, connect the underdeep levels together
+		if(Globals->UNDERDEEP_LEVELS > 1) {
+			for(i = Globals->UNDERWORLD_LEVELS+3;
+					i < Globals->UNDERWORLD_LEVELS+Globals->UNDERDEEP_LEVELS+2;
+					i++) {
+				for(ii = Globals->UNDERWORLD_LEVELS+2; ii < i; ii++) {
+					regions.MakeShaftLinks(i, ii, ((i-ii)*15));
+					//if(i == ii+1) {
+					//	regions.MakeShaftLinks(i, ii, 12);
+					//} else {
+					//	regions.MakeShaftLinks(i, ii, 25);
+					//}
+				}
+			}
+		}
+	}
 
-	//    if(Globals->UNDERWORLD_LEVELS+Globals->UNDERDEEP_LEVELS == 1) {
-	//option for MakeShaftLinks are (from-level, to-level, % chance of shaft)
-	//regions.MakeShaftLinks( 2, 1, 8 );
-	//} else if(Globals->UNDERWORLD_LEVELS+Globals->UNDERDEEP_LEVELS) {
-	//int i, ii;
-	// shafts from surface to underworld
-	//regions.MakeShaftLinks(2, 1, 10);
-	//for(i=3; i<Globals->UNDERWORLD_LEVELS+2; i++) {
-	//	regions.MakeShaftLinks(i, 1, 10*i-10);
-	//}
-	// Shafts from underworld to underworld
-	//if(Globals->UNDERWORLD_LEVELS > 1) {
-	//for(i = 3; i < Globals->UNDERWORLD_LEVELS+2; i++) {
-	//		for(ii = 2; ii < i; ii++) {
-	//			if(i == ii+1) {
-	//				regions.MakeShaftLinks(i, ii, 12);
-	//			} else {
-	//				regions.MakeShaftLinks(i, ii, 24);
-	//			}
-	//		}
-	//	}
-        //}
-	// underdeeps to underworld
-	//if(Globals->UNDERDEEP_LEVELS && Globals->UNDERWORLD_LEVELS) {
-	// Connect the topmost of the underdeep to the bottommost
-	// underworld
-	//regions.MakeShaftLinks(Globals->UNDERWORLD_LEVELS+2,
-	//	Globals->UNDERWORLD_LEVELS+1, 12);
-	//}
-	// Now, connect the underdeep levels together
-	//if(Globals->UNDERDEEP_LEVELS > 1) {
-	//for(i = Globals->UNDERWORLD_LEVELS+3;
-	//			i < Globals->UNDERWORLD_LEVELS+Globals->UNDERDEEP_LEVELS+2;
-	//			i++) {
-	//		for(ii = Globals->UNDERWORLD_LEVELS+2; ii < i; ii++) {
-	//			if(i == ii+1) {
-	//				regions.MakeShaftLinks(i, ii, 12);
-	//			} else {
-	//				regions.MakeShaftLinks(i, ii, 25);
-	//			}
-	//		}
-	//	}
-	//}
-	//}
+    regions.SetACNeighbors( 0, 1, xx, yy );
 
-	//levels reachable from nexus
-	//    regions.SetACNeighbors( 0, 1, xx, yy );
-
-    //set up gates on surface
     regions.InitSetupGates( 1 );
-    // Set up gates on all levels of the underworld
-    for(int i=2; i < Globals->UNDERWORLD_LEVELS+2; i++) {
-      regions.InitSetupGates( i );
-    }
-    // Underdeeps has also gates.
-    for(int i=Globals->UNDERWORLD_LEVELS+2; i < Globals->UNDERWORLD_LEVELS+Globals->UNDERDEEP_LEVELS+2; i++) {
-      regions.InitSetupGates( i );
-    }
-
+	// Set up gates on all levels of the underworld
+	for(int i=2; i < Globals->UNDERWORLD_LEVELS+2; i++) {
+		regions.InitSetupGates( i );
+	}
+	// Underdeep has no gates, only the possible shafts above.
     regions.FinalSetupGates();
 
     regions.CalcDensities();
@@ -2247,184 +2226,194 @@ int ARegionList::GetRegType( ARegion *pReg )
     //
     // Figure out the distance from the equator, from 0 to 3.
     //
-      int lat = ( pReg->yloc * 8 ) / ( pRegionArrays[ pReg->zloc ]->y );
-    if (lat > 3)
-    {
-        lat = (7 - lat);
-    }
-    //
-    // Figure out the distance from the 0-meridian.
-    //    
+    int lat = ( pReg->yloc * 8 ) / ( pRegionArrays[ pReg->zloc ]->y );
+    if (lat > 3) lat = (7 - lat);
     int lass = ( pReg->xloc * 8 ) / ( pRegionArrays[ pReg->zloc ]->x );
     //if (lass < 4) then west of middle meridian
+    //
 
-	// Underworld region
+    // Underworld region
     if((pReg->zloc>1) && (pReg->zloc < Globals->UNDERWORLD_LEVELS+2)) {
-        int r = getrandom(80);
-	                if (r < 6) return R_T_OCEAN1;
-			if (r < 7) return R_T_GROTTO1;
-			if (r < 13) return R_T_CAVERN1;
-			if (r < 19) return R_T_CAVERN1;
-			if (r < 25) return R_T_CAVERN2;
-			if (r < 31) return R_T_CAVERN3;
-			if (r < 37) return R_T_UNDERFOREST1;
-			if (r < 43) return R_T_UNDERFOREST1;
-			if (r < 49) return R_T_UNDERFOREST2;
-			if (r < 55) return R_T_UNDERFOREST3;
-			if (r < 61) return R_T_GROTTO1;
-			if (r < 67) return R_T_TUNNELS1;
-			if (r < 73) return R_T_TUNNELS2;
-			if (r < 79) return R_T_TUNNELS3;
-			return R_T_VOLCANO1;
-    }
-
-	// Underdeep region
-	if((pReg->zloc > Globals->UNDERWORLD_LEVELS+1) &&
-	   (pReg->zloc < Globals->UNDERWORLD_LEVELS+Globals->UNDERDEEP_LEVELS+2)) {
-		int r = getrandom(80);
-	                if (r < 6) return R_T_OCEAN1;
-			if (r < 7) return R_T_GROTTO1;
-			if (r < 13) return R_T_CAVERN1;
-			if (r < 19) return R_T_CAVERN1;
-			if (r < 25) return R_T_CAVERN2;
-			if (r < 31) return R_T_CAVERN3;
-			if (r < 37) return R_T_UNDERFOREST1;
-			if (r < 43) return R_T_UNDERFOREST1;
-			if (r < 49) return R_T_UNDERFOREST2;
-			if (r < 55) return R_T_UNDERFOREST3;
-			if (r < 61) return R_T_GROTTO1;
-			if (r < 67) return R_T_TUNNELS1;
-			if (r < 73) return R_T_TUNNELS2;
-			if (r < 79) return R_T_TUNNELS3;
-			return R_T_VOLCANO1;
+        int r = getrandom(130);
+	if (r < 35) return R_OCEAN;
+	if ((r < 49) && (lass > 3)) return R_CE_GDCAVERN;
+	if ((r < 49) && (lass < 4)) return R_CE_EVCAVERN;
+	if ((r < 63) && (lass > 3)) return R_CE_GDCAVERN1;
+	if ((r < 63) && (lass < 4)) return R_CE_EVCAVERN1;
+	if ((r < 77) && (lass > 3)) return R_CE_GDUFOREST;
+	if ((r < 77) && (lass < 4)) return R_CE_EVUFOREST;
+	if ((r < 91) && (lass > 3)) return R_CE_GDUFOREST1;
+	if ((r < 91) && (lass < 4)) return R_CE_EVUFOREST1;
+	if (r < 108) return R_CE_TUNNELS;
+	if (r < 125) return R_CE_TUNNELS1;
+	if (r < 126) return R_CE_NEULAKE;
+	if ((r < 128) && (lass > 3)) return R_CE_GDULAKE;
+	if ((r < 128) && (lass < 4)) return R_CE_EVULAKE;
+	if (r < 130) return R_VOLCANO;
+	return (0);
+	}
+   // Underdeep region
+   if((pReg->zloc > Globals->UNDERWORLD_LEVELS+1) &&
+      (pReg->zloc < Globals->UNDERWORLD_LEVELS+Globals->UNDERDEEP_LEVELS+2)) {
+        int r = getrandom(130);
+	if (r < 35) return R_OCEAN;
+	if ((r < 49) && (lass > 3)) return R_CE_EVDCAVERN;
+	if ((r < 49) && (lass < 4)) return R_CE_GDDCAVERN;
+	if ((r < 63) && (lass > 3)) return R_CE_EVDCAVERN1;
+	if ((r < 63) && (lass < 4)) return R_CE_GDDCAVERN1;
+	if ((r < 77) && (lass > 3)) return R_CE_EVDFOREST;
+	if ((r < 77) && (lass < 4)) return R_CE_GDDFOREST;
+	if ((r < 91) && (lass > 3)) return R_CE_EVDFOREST1;
+	if ((r < 91) && (lass < 4)) return R_CE_GDDFOREST1;
+	if (r < 108) return R_CE_TUNNELS;
+	if (r < 125) return R_CE_TUNNELS1;
+	if (r < 126) return R_CE_NEULAKE;
+	if ((r < 128) && (lass > 3)) return R_CE_EVULAKE;
+	if ((r < 128) && (lass < 4)) return R_CE_GDULAKE;
+	if (r < 130) return R_VOLCANO;
+	return (0);
 	}
 
 	// Surface region
     if( pReg->zloc == 1 ) {
-        int r = getrandom(64);
+        int r = getrandom(130);
         switch (lat)
         {
         case 0: /* Arctic regions */
-	  if (r < 6) 
-	    {
-	      if (lass < 4) return R_T_TUNDRA1;
-	      if (lass > 3) return R_T_TUNDRA1;
-	    }
-			if (r < 12) return R_T_TUNDRA1;
-			if (r < 18) return R_T_TUNDRA2;
-			if (r < 24) return R_T_TUNDRA3;
-			if (r < 26) return R_T_MOUNTAIN1;
-			if (r < 28) return R_T_HILL3;
-			if (r < 30) return R_T_HILL1;
-			if (r < 32) return R_T_MOUNTAIN3;
-			if (r < 34) return R_T_FOREST1;
-			if (r < 36) return R_T_TUNDRA3;
-			if (r < 38) return R_T_TUNDRA2;
-			if (r < 40) return R_T_FOREST3;
-			if (r < 46) return R_T_PLAIN1;
-			if (r < 52) return R_T_PLAIN3;
-			if (r < 58) return R_T_TUNDRA1;
-			return R_T_VOLCANO1;
+			if ((r < 20) && (lass > 3)) return R_CE_EVTUNDRA;
+			if ((r < 20) && (lass < 4)) return R_CE_GDTUNDRA;
+			if ((r < 40) && (lass > 3)) return R_CE_EVTUNDRA1;
+			if ((r < 40) && (lass < 4)) return R_CE_GDTUNDRA1;
+			if ((r < 58) && (lass > 3)) return R_CE_EVMOUNTAIN;
+			if ((r < 58) && (lass < 4)) return R_CE_GDMOUNTAIN;
+			if ((r < 76) && (lass > 3)) return R_CE_EVMOUNTAIN1;
+			if ((r < 76) && (lass < 4)) return R_CE_GDMOUNTAIN1;
+			if ((r < 90) && (lass > 3)) return R_CE_EVFOREST;
+			if ((r < 90) && (lass < 4)) return R_CE_GDFOREST;
+			if ((r < 104) && (lass > 3)) return R_CE_EVFOREST1;
+			if ((r < 104) && (lass < 4)) return R_CE_GDFOREST1;
+			if ((r < 116) && (lass > 3)) return R_CE_EVPLAIN;
+			if ((r < 116) && (lass < 4)) return R_CE_GDPLAIN;
+			if ((r < 128) && (lass > 3)) return R_CE_EVPLAIN1;
+			if ((r < 128) && (lass < 4)) return R_CE_GDPLAIN1;
+			if ((r < 129) && (lass > 3)) return R_CE_WASTELAND;
+			if ((r < 129) && (lass < 4)) return R_VOLCANO;
+			if ((r < 130) && (lass > 3)) return R_CE_WASTELAND;
+			if ((r < 130) && (lass < 4)) return R_VOLCANO;
+			return (0);
 
         case 1: /* Colder regions */
-			if (r < 1) return R_T_TUNDRA1;
-			if (r < 2) return R_T_TUNDRA2;
-			if (r < 3) return R_T_TUNDRA3;
-			if (r < 6) return R_T_PLAIN1;
-			if (r < 9) return R_T_PLAIN2;
-			if (r < 12) return R_T_PLAIN3;
-			if (r < 15) return R_T_FOREST1;
-			if (r < 18) return R_T_FOREST1;
-			if (r < 21) return R_T_FOREST2;
-			if (r < 24) return R_T_FOREST3;
-			if (r < 27) return R_T_MYSTFOREST1;
-			if (r < 28) return R_T_LAKE1;
-			if (r < 29) return R_T_LAKE2;
-			if (r < 30) return R_T_LAKE3;
-			if (r < 33) return R_T_MOUNTAIN1;
-			if (r < 36) return R_T_MOUNTAIN1;
-			if (r < 39) return R_T_MOUNTAIN2;
-			if (r < 42) return R_T_MOUNTAIN3;
-			if (r < 45) return R_T_HILL1;
-			if (r < 48) return R_T_HILL1;
-			if (r < 51) return R_T_HILL2;
-			if (r < 54) return R_T_HILL3;
-			if (r < 56) return R_T_FOREST1;
-			if (r < 58) return R_T_FOREST2;
-			if (r < 60) return R_T_FOREST3;
-			if (r < 61) return R_T_SWAMP1;
-			if (r < 62) return R_T_SWAMP2;
-			if (r < 63) return R_T_SWAMP3;
-			return R_T_VOLCANO1;
-
+			if ((r < 10) && (lass > 3)) return R_CE_EVPLAIN;
+			if ((r < 10) && (lass < 4)) return R_CE_GDPLAIN;
+			if ((r < 20) && (lass > 3)) return R_CE_EVPLAIN1;
+			if ((r < 20) && (lass < 4)) return R_CE_GDPLAIN1;
+			if ((r < 30) && (lass > 3)) return R_CE_EVGRASSLAND;
+			if ((r < 30) && (lass < 4)) return R_CE_GDGRASSLAND;
+			if ((r < 40) && (lass > 3)) return R_CE_EVGRASSLAND1;
+			if ((r < 40) && (lass < 4)) return R_CE_GDGRASSLAND1;
+			if ((r < 50) && (lass > 3)) return R_CE_EVFOREST;
+			if ((r < 50) && (lass < 4)) return R_CE_GDFOREST;
+			if ((r < 60) && (lass > 3)) return R_CE_EVFOREST1;
+			if ((r < 60) && (lass < 4)) return R_CE_GDFOREST1;
+			if ((r < 70) && (lass > 3)) return R_CE_EVMOUNTAIN;
+			if ((r < 70) && (lass < 4)) return R_CE_GDMOUNTAIN;
+			if ((r < 80) && (lass > 3)) return R_CE_EVMOUNTAIN1;
+			if ((r < 80) && (lass < 4)) return R_CE_GDMOUNTAIN1;
+			if ((r < 90) && (lass > 3)) return R_CE_EVHILL;
+			if ((r < 90) && (lass < 4)) return R_CE_GDHILL;
+			if ((r < 100) && (lass > 3)) return R_CE_EVHILL1;
+			if ((r < 100) && (lass < 4)) return R_CE_GDHILL1;
+			if ((r < 110) && (lass > 3)) return R_CE_EVSWAMP;
+			if ((r < 110) && (lass < 4)) return R_CE_GDSWAMP;
+			if ((r < 120) && (lass > 3)) return R_CE_EVSWAMP1;
+			if ((r < 120) && (lass < 4)) return R_CE_GDSWAMP1;
+			if ((r < 121) && (lass > 3)) return R_CE_WASTELAND;
+			if ((r < 121) && (lass < 4)) return R_CE_MYSTFOREST;
+			if ((r < 122) && (lass > 3)) return R_CE_WASTELAND1;
+			if ((r < 122) && (lass < 4)) return R_CE_MYSTFOREST1;
+			if ((r < 124) && (lass > 3)) return R_CE_EVLAKE;
+			if ((r < 124) && (lass < 4)) return R_CE_GDLAKE;
+			if (r < 125) return R_CE_NELAKE;
+			if ((r < 127) && (lass > 3)) return R_CE_WASTELAND;
+			if ((r < 129) && (lass > 3)) return R_CE_WASTELAND1;
+			if ((r < 129) && (lass < 4)) return R_VOLCANO;
+			if (r < 130) return R_VOLCANO;
+			return (0);
         case 2: /* Warmer regions */
-			if (r < 1) return R_T_DESERT1;
-			if (r < 2) return R_T_DESERT2;
-			if (r < 3) return R_T_DESERT3;
-			if (r < 6) return R_T_PLAIN1;
-			if (r < 9) return R_T_PLAIN2;
-			if (r < 12) return R_T_PLAIN3;
-			if (r < 13) return R_T_JUNGLE1;
-			if (r < 14) return R_T_JUNGLE2;
-			if (r < 15) return R_T_JUNGLE3;
-			if (r < 18) return R_T_FOREST1;
-			if (r < 21) return R_T_FOREST2;
-			if (r < 24) return R_T_FOREST3;
-			if (r < 27) return R_T_MYSTFOREST1;
-			if (r < 28) return R_T_LAKE1;
-			if (r < 29) return R_T_LAKE2;
-			if (r < 30) return R_T_LAKE3;
-			if (r < 33) return R_T_MOUNTAIN1;
-			if (r < 36) return R_T_MOUNTAIN1;
-			if (r < 39) return R_T_MOUNTAIN2;
-			if (r < 42) return R_T_MOUNTAIN3;
-			if (r < 45) return R_T_HILL1;
-			if (r < 48) return R_T_HILL1;
-			if (r < 51) return R_T_HILL2;
-			if (r < 54) return R_T_HILL3;
-			if (r < 56) return R_T_PLAIN1;
-			if (r < 58) return R_T_PLAIN2;
-			if (r < 60) return R_T_PLAIN3;
-			if (r < 61) return R_T_SWAMP1;
-			if (r < 62) return R_T_SWAMP2;
-			if (r < 63) return R_T_SWAMP3;
-			return R_T_VOLCANO1;
-
+			if ((r < 6) && (lass > 3)) return R_CE_EVPLAIN;
+			if ((r < 6) && (lass < 4)) return R_CE_GDPLAIN;
+			if ((r < 12) && (lass > 3)) return R_CE_EVPLAIN1;
+			if ((r < 12) && (lass < 4)) return R_CE_GDPLAIN1;
+			if ((r < 24) && (lass > 3)) return R_CE_EVGRASSLAND;
+			if ((r < 24) && (lass < 4)) return R_CE_GDGRASSLAND;
+			if ((r < 36) && (lass > 3)) return R_CE_EVGRASSLAND1;
+			if ((r < 36) && (lass < 4)) return R_CE_GDGRASSLAND1;
+			if ((r < 42) && (lass > 3)) return R_CE_EVFOREST;
+			if ((r < 42) && (lass < 4)) return R_CE_GDFOREST;
+			if ((r < 48) && (lass > 3)) return R_CE_EVFOREST1;
+			if ((r < 48) && (lass < 4)) return R_CE_GDFOREST1;
+			if ((r < 54) && (lass > 3)) return R_CE_EVMOUNTAIN;
+			if ((r < 54) && (lass < 4)) return R_CE_GDMOUNTAIN;
+			if ((r < 60) && (lass > 3)) return R_CE_EVMOUNTAIN1;
+			if ((r < 60) && (lass < 4)) return R_CE_GDMOUNTAIN1;
+			if ((r < 66) && (lass > 3)) return R_CE_EVHILL;
+			if ((r < 66) && (lass < 4)) return R_CE_GDHILL;
+			if ((r < 72) && (lass > 3)) return R_CE_EVHILL1;
+			if ((r < 72) && (lass < 4)) return R_CE_GDHILL1;
+			if ((r < 82) && (lass > 3)) return R_CE_EVSWAMP;
+			if ((r < 82) && (lass < 4)) return R_CE_GDSWAMP;
+			if ((r < 92) && (lass > 3)) return R_CE_EVSWAMP1;
+			if ((r < 92) && (lass < 4)) return R_CE_GDSWAMP1;
+			if (r < 95) return R_CE_NELAKE;
+			if ((r < 99) && (lass > 3)) return R_CE_EVLAKE;
+			if ((r < 99) && (lass < 4)) return R_CE_GDLAKE;
+			if ((r < 101) && (lass > 3)) return R_CE_WASTELAND;
+			if ((r < 101) && (lass < 4)) return R_CE_MYSTFOREST;
+			if ((r < 103) && (lass > 3)) return R_CE_WASTELAND1;
+			if ((r < 103) && (lass < 4)) return R_CE_MYSTFOREST1;
+			if (r < 105) return R_VOLCANO;
+			if ((r < 111) && (lass > 3)) return R_CE_EVDESERT;
+			if ((r < 111) && (lass < 4)) return R_CE_GDDESERT;
+			if ((r < 117) && (lass > 3)) return R_CE_EVDESERT1;
+			if ((r < 117) && (lass < 4)) return R_CE_GDDESERT1;
+			if ((r < 123) && (lass > 3)) return R_CE_EVJUNGLE;
+			if ((r < 123) && (lass < 4)) return R_CE_GDJUNGLE;
+			if ((r < 129) && (lass > 3)) return R_CE_EVJUNGLE1;
+			if ((r < 129) && (lass < 4)) return R_CE_GDJUNGLE1;
+			return (R_VOLCANO);
         case 3: /* tropical */
-			if (r < 3) return R_T_DESERT1;
-			if (r < 6) return R_T_DESERT2;
-			if (r < 9) return R_T_DESERT3;
-			if (r < 10) return R_T_PLAIN1;
-			if (r < 11) return R_T_PLAIN2;
-			if (r < 12) return R_T_PLAIN3;
-			if (r < 15) return R_T_JUNGLE1;
-			if (r < 18) return R_T_JUNGLE2;
-			if (r < 21) return R_T_JUNGLE3;
-			if (r < 22) return R_T_FOREST1;
-			if (r < 23) return R_T_FOREST2;
-			if (r < 24) return R_T_FOREST3;
-			if (r < 27) return R_T_MYSTFOREST1;
-			if (r < 28) return R_T_LAKE1;
-			if (r < 29) return R_T_LAKE2;
-			if (r < 30) return R_T_LAKE3;
-			if (r < 33) return R_T_MOUNTAIN1;
-			if (r < 36) return R_T_MOUNTAIN1;
-			if (r < 39) return R_T_MOUNTAIN2;
-			if (r < 42) return R_T_MOUNTAIN3;
-			if (r < 45) return R_T_HILL1;
-			if (r < 48) return R_T_HILL1;
-			if (r < 51) return R_T_HILL2;
-			if (r < 54) return R_T_HILL3;
-			if (r < 56) return R_T_JUNGLE1;
-			if (r < 58) return R_T_JUNGLE2;
-			if (r < 60) return R_T_JUNGLE3;
-			if (r < 61) return R_T_SWAMP1;
-			if (r < 62) return R_T_SWAMP2;
-			if (r < 63) return R_T_SWAMP3;
-			return R_T_VOLCANO1;
-
+			if ((r < 10) && (lass > 3)) return R_CE_EVPLAIN;
+			if ((r < 10) && (lass < 4)) return R_CE_GDPLAIN;
+			if ((r < 20) && (lass > 3)) return R_CE_EVPLAIN1;
+			if ((r < 20) && (lass < 4)) return R_CE_GDPLAIN1;
+			if ((r < 26) && (lass > 3)) return R_CE_EVGRASSLAND;
+			if ((r < 26) && (lass < 4)) return R_CE_GDGRASSLAND;
+			if ((r < 32) && (lass > 3)) return R_CE_EVGRASSLAND1;
+			if ((r < 32) && (lass < 4)) return R_CE_GDGRASSLAND1;
+			if ((r < 42) && (lass > 3)) return R_CE_EVMOUNTAIN;
+			if ((r < 42) && (lass < 4)) return R_CE_GDMOUNTAIN;
+			if ((r < 52) && (lass > 3)) return R_CE_EVMOUNTAIN1;
+			if ((r < 52) && (lass < 4)) return R_CE_GDMOUNTAIN1;
+			if ((r < 62) && (lass > 3)) return R_CE_EVSWAMP;
+			if ((r < 62) && (lass < 4)) return R_CE_GDSWAMP;
+			if ((r < 72) && (lass > 3)) return R_CE_EVSWAMP1;
+			if ((r < 72) && (lass < 4)) return R_CE_GDSWAMP1;
+			if ((r < 82) && (lass > 3)) return R_CE_EVJUNGLE;
+			if ((r < 82) && (lass < 4)) return R_CE_GDJUNGLE;
+			if ((r < 92) && (lass > 3)) return R_CE_EVJUNGLE1;
+			if ((r < 92) && (lass < 4)) return R_CE_GDJUNGLE1;
+			if ((r < 104) && (lass > 3)) return R_CE_EVDESERT;
+			if ((r < 104) && (lass < 4)) return R_CE_GDDESERT;
+			if ((r < 110) && (lass > 3)) return R_CE_EVDESERT1;
+			if ((r < 110) && (lass < 4)) return R_CE_GDDESERT1;
+			if (r < 112) return R_CE_NELAKE;
+			if ((r < 114) && (lass > 3)) return R_CE_EVLAKE;
+			if ((r < 114) && (lass < 4)) return R_CE_GDLAKE;
+			if ((r < 120) && (lass > 3)) return R_CE_WASTELAND;
+			if ((r < 126) && (lass > 3)) return R_CE_WASTELAND1;
+			return R_VOLCANO;
         }
-        return R_T_OCEAN1;
+        return R_OCEAN;
     }
 
     if( pReg->zloc == 0 )
@@ -2438,90 +2427,120 @@ int ARegionList::GetRegType( ARegion *pReg )
     //
     // This really shouldn't get called either
     //
-    return( R_T_OCEAN1 );
+    return( R_OCEAN );
 }
 
 int ARegionList::GetLevelXScale(int level)
 {
 	// Surface and nexus are unscaled
 	if(level < 2) return 1;
-
+	//
 	// If we only have one underworld level it's 1/2 size
-	if(Globals->UNDERWORLD_LEVELS == 1)
-		return 2;
+	//if(Globals->UNDERWORLD_LEVELS == 1 && Globals->UNDERDEEP_LEVELS == 0)
+	//	return 2;
 	// We have multiple underworld levels
-	if(level >= 2 && level < Globals->UNDERWORLD_LEVELS+2) {
-		// Topmost underworld level is full size in the x direction
-		if(level == 2) return 1;
-		// All others are 1/2 size in the x direction
-		return 2;
-	}
-
-	if(level >= Globals->UNDERWORLD_LEVELS+2 &&
-			level < (Globals->UNDERWORLD_LEVELS+Globals->UNDERDEEP_LEVELS+2)){
-		// Topmost underdeep level is full size in the x direction
-		if(level == Globals->UNDERWORLD_LEVELS+2) return 1;
-		// All others are 1/2 size in the x direction
-		return 2;
-	}
+	//if(level >= 2 && level < Globals->UNDERWORLD_LEVELS+2) {
+	//	// Topmost underworld level is full size in the x direction
+	//	if(level == 2) return 1;
+	//	// All others are 1/2 size in the x direction
+	//	return 2;
+	//}
+	//
+	//if(level >= Globals->UNDERWORLD_LEVELS+2 &&
+	//		level < (Globals->UNDERWORLD_LEVELS+Globals->UNDERDEEP_LEVELS+2)){
+	//	// Topmost underdeep level is 1/2 size in the x direction
+	//	if(level == Globals->UNDERWORLD_LEVELS+2) return 2;
+	//	// All others are 1/4 size in the x direction
+	//	return 4;
+	//}
 	// We couldn't figure it out, assume not scaled.
-	return 1;
+	//return 1;
+	return 2;
 }
 
 int ARegionList::GetLevelYScale(int level)
 {
 	// Surface and nexus are unscaled
 	if(level < 2) return 1;
-
+	//
 	// If we only have one underworld level it's 1/2 size
-	if(Globals->UNDERWORLD_LEVELS == 1)
-		return 2;
-
+	//if(Globals->UNDERWORLD_LEVELS == 1 && Globals->UNDERDEEP_LEVELS == 0)
+	//	return 2;
+	//
 	// We have multiple underworld levels
-	if(level >= 2 && level < Globals->UNDERWORLD_LEVELS+2) {
-		// Topmost level is 1/2 size in the y direction
-		if(level == 2) return 2;
-		// Bottommost is 1/4 size in the y direction
-		if(level == Globals->UNDERWORLD_LEVELS+1) return 4;
-		// All others are 1/2 size in the y direction
-		return 2;
-	}
-	if(level >= Globals->UNDERWORLD_LEVELS+2 &&
-			level < (Globals->UNDERWORLD_LEVELS+Globals->UNDERDEEP_LEVELS+2)){
-		// Topmost level is 1/2 size in the y direction
-		if(level == Globals->UNDERWORLD_LEVELS+2) return 2;
-		// Bottommost is 1/4 size in the y direction
-		if(level == Globals->UNDERWORLD_LEVELS+Globals->UNDERDEEP_LEVELS+1) return 4;
-		// All others are 1/2 size in the y direction
-		return 2;
-	}
+	//if(level >= 2 && level < Globals->UNDERWORLD_LEVELS+2) {
+	//	// Topmost level is 1/2 size in the y direction
+	//	if(level == 2) return 2;
+	//	// Bottommost is 1/4 size in the y direction
+	//	if(level == Globals->UNDERWORLD_LEVELS+1) return 4;
+	//	// All others are 1/2 size in the y direction
+	//	return 2;
+	//}
+	//if(level >= Globals->UNDERWORLD_LEVELS+2 &&
+	//		level < (Globals->UNDERWORLD_LEVELS+Globals->UNDERDEEP_LEVELS+2)){
+	//	// All underdeep levels are 1/4 size in the y direction
+	//	return 4;
+	//}
 	// We couldn't figure it out, assume not scaled.
-	return 1;
+	//return 1;
+	return 2;
 }
 
-int ARegionList::CheckRegionExit(ARegion *pFrom, ARegion *pTo )
-{
-    if((pFrom->zloc==1) ||
-		(pFrom->zloc>Globals->UNDERWORLD_LEVELS+Globals->UNDERDEEP_LEVELS+1)) {
-        return( 1 );
-    }
-    //chance is % chance to leave the hex pTo or pFrom for each terrain type
-    int chance = 0;
-    if(     pFrom->type == R_T_CAVERN1 || pFrom->type == R_T_CAVERN2) {
-      chance = 75;
-    }
-    if(     pFrom->type == R_T_CAVERN3  || pFrom->type == R_T_UNDERFOREST1 || pFrom->type == R_T_UNDERFOREST3 || pFrom->type == R_T_TUNNELS2 || pFrom->type == R_T_GROTTO1 || pFrom->type == R_T_OCEAN1) {
-      chance = 50;
-    }
-    if(     pFrom->type == R_T_TUNNELS1   || pTo->type == R_T_TUNNELS3 ||
-            pFrom->type == R_T_UNDERFOREST2) {
-            chance = 35;
-    }
+int ARegionList::CheckRegionExit(ARegion *pFrom, ARegion *pTo ) {
+	if((pFrom->zloc==1) || (pFrom->zloc>Globals->UNDERWORLD_LEVELS+Globals->UNDERDEEP_LEVELS+1)) {
+		return( 1 );
+	}
 
-    if (getrandom(100) < chance) {
-        return( 0 );
-    }
-    return( 1 );
+	int chance = 0;
+	// caverns have many exits
+	if(	pFrom->type == R_CE_GDCAVERN   || pTo->type == R_CE_GDCAVERN ||
+		pFrom->type == R_CE_GDCAVERN1   || pTo->type == R_CE_GDCAVERN1 ||
+		pFrom->type == R_CE_EVCAVERN   || pTo->type == R_CE_EVCAVERN ||
+		pFrom->type == R_CE_EVCAVERN1   || pTo->type == R_CE_EVCAVERN1) {
+	       	chance = 66;
+	}
+	if(	pFrom->type == R_CE_GDDCAVERN   || pTo->type == R_CE_GDDCAVERN ||
+		pFrom->type == R_CE_GDDCAVERN1   || pTo->type == R_CE_GDDCAVERN1 ||
+		pFrom->type == R_CE_EVDCAVERN   || pTo->type == R_CE_EVDCAVERN ||
+		pFrom->type == R_CE_EVDCAVERN1   || pTo->type == R_CE_EVDCAVERN1) {
+	       	chance = 70;
+	}
+	// underforests are dense and have many walls
+	if(	pFrom->type == R_CE_GDUFOREST   || pTo->type == R_CE_GDUFOREST ||
+		pFrom->type == R_CE_GDUFOREST1   || pTo->type == R_CE_GDUFOREST1 ||
+		pFrom->type == R_CE_EVUFOREST   || pTo->type == R_CE_EVUFOREST ||
+		pFrom->type == R_CE_EVUFOREST1   || pTo->type == R_CE_EVUFOREST1) {
+       		chance = 40;
+	}
+	if(	pFrom->type == R_CE_GDDFOREST   || pTo->type == R_CE_GDDFOREST ||
+		pFrom->type == R_CE_GDDFOREST1   || pTo->type == R_CE_GDDFOREST1 ||
+		pFrom->type == R_CE_EVDFOREST   || pTo->type == R_CE_EVDFOREST ||
+		pFrom->type == R_CE_EVDFOREST1   || pTo->type == R_CE_EVDFOREST1) {
+	       	chance = 50;
+	}
+	// lakes in the underworld have good connections
+	if(     pFrom->type == R_CE_GDULAKE   || pFrom->type == R_CE_NEULAKE ||
+		pFrom->type == R_CE_EVULAKE) {
+		if (pTo->type == R_OCEAN) chance = 0; else chance = 70;
+	}
+	if(     pTo->type == R_CE_GDULAKE   || pTo->type == R_CE_NEULAKE ||
+		pTo->type == R_CE_EVULAKE) {
+		if (pFrom->type == R_OCEAN) chance = 0; else chance = 70;
+	}
+	// tunnels have bad connections.
+	if(	pFrom->type == R_CE_TUNNELS   || pTo->type == R_CE_TUNNELS ||
+		pFrom->type == R_CE_TUNNELS1  || pTo->type == R_CE_TUNNELS1) {
+	      	chance = 33;
+	}
+	if(	pFrom->type == R_CE_DTUNNELS   || pTo->type == R_CE_DTUNNELS ||
+		pFrom->type == R_CE_DTUNNELS1  || pTo->type == R_CE_DTUNNELS1) {
+	       	chance = 35;
+	}
+
+	if (getrandom(100) < chance) {
+		return( 0 );
+	}
+	return( 1 );
 }
 
 int ARegionList::GetWeather( ARegion *pReg, int month )
@@ -2582,7 +2601,7 @@ int ARegionList::GetWeather( ARegion *pReg, int month )
 
 int ARegion::CanBeStartingCity(ARegionArray *pRA)
 {
-    if (type == R_T_OCEAN1) return 0;
+    if (type == R_OCEAN) return 0;
     if (!IsCoastal()) return 0;
     if (town && town->pop == 5000) return 0;
 
@@ -2601,7 +2620,7 @@ int ARegion::CanBeStartingCity(ARegionArray *pRA)
         {
             ARegion * r2 = reg->ptr->neighbors[i];
             if (!r2) continue;
-            if (r2->type == R_T_OCEAN1) continue;
+            if (r2->type == R_OCEAN) continue;
             if (GetRegion(&inlist,r2->num)) continue;
             if (GetRegion(&donelist,r2->num)) continue;
             regs++;
@@ -2624,7 +2643,6 @@ void ARegion::MakeStartingCity()
 	if(!Globals->TOWNS_EXIST) return;
 
 	if(Globals->GATES_EXIST) gate = -1;
-
     if( !town )
     {
         AddTown();
@@ -2634,28 +2652,28 @@ void ARegion::MakeStartingCity()
     town->basepop = 5000;
 
     markets.DeleteAll();
-	if(Globals->START_CITIES_START_UNLIMITED) {
-		for (int i=0; i<NITEMS; i++) {
-			if( ItemDefs[i].flags & ItemType::DISABLED) continue;
-			if( ItemDefs[ i ].type & IT_NORMAL ) {
-				if (i==I_SILVER || i==I_LIVESTOCK || i==I_FISH || i==I_GRAIN)
-					continue;
-				m = new Market(M_BUY,i,(ItemDefs[i].baseprice * 5 / 2),-1,
-						5000,5000,-1,-1);
-				markets.Add(m);
-			}
-		}
-		ratio = ItemDefs[race].baseprice / (float)Globals->BASE_MAN_COST;
-		m=new Market(M_BUY,race,(int)(Wages()*4*ratio),-1,5000,5000,-1,-1);
-		markets.Add(m);
-	} else {
-		SetupCityMarket();
-		ratio = ItemDefs[race].baseprice / (float)Globals->BASE_MAN_COST;
-		/* Setup Recruiting */
-		m = new Market( M_BUY, race, (int)(Wages()*4*ratio),
-				Population()/5, 0, 10000, 0, 2000 );
-		markets.Add(m);
-	}
+        if(Globals->START_CITIES_START_UNLIMITED) {
+                for (int i=0; i<NITEMS; i++) {
+                        if( ItemDefs[i].flags & ItemType::DISABLED) continue;
+                        if( ItemDefs[ i ].type & IT_NORMAL ) {
+                                if (i==I_SILVER || i==I_LIVESTOCK || i==I_FISH || i==I_GRAIN)
+                                        continue;
+                                m = new Market(M_BUY,i,(ItemDefs[i].baseprice * 5 / 2),-1,
+                                                5000,5000,-1,-1);
+                                markets.Add(m);
+                        }
+                }
+                ratio = ItemDefs[race].baseprice / (float)Globals->BASE_MAN_COST;
+                m=new Market(M_BUY,race,(int)(Wages()*4*ratio),-1,5000,5000,-1,-1);
+                markets.Add(m);
+        } else {
+                SetupCityMarket();
+                ratio = ItemDefs[race].baseprice / (float)Globals->BASE_MAN_COST;
+                /* Setup Recruiting */
+                m = new Market( M_BUY, race, (int)(Wages()*4*ratio),
+                                Population()/5, 0, 10000, 0, 2000 );
+                markets.Add(m);
+        }
 }
 
 int ARegion::IsStartingCity() {

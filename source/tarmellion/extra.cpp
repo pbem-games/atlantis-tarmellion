@@ -32,29 +32,29 @@ int Game::SetupFaction( Faction *pFac )
 {
     pFac->unclaimed = Globals->START_MONEY + TurnNumber() * 50;
 
-	if(pFac->noStartLeader)
+    //	if(pFac->noStartLeader)
 		return 1;
 
-    ARegion *reg = NULL;
-	if(pFac->pStartLoc) {
-		reg = pFac->pStartLoc;
-	} else {
-		ARegionArray *pArr = regions.GetRegionArray(ARegionArray::LEVEL_SURFACE);
-		while(!reg || TerrainDefs[reg->type].similar_type == R_OCEAN) {
-			reg = pArr->GetRegion(getrandom(pArr->x), getrandom(pArr->y));
-		}
-	}
+//      ARegion *reg = NULL;
+//  	if(pFac->pStartLoc) {
+//  		reg = pFac->pStartLoc;
+//  	} else {
+//  		ARegionArray *pArr = regions.GetRegionArray(ARegionArray::LEVEL_SURFACE);
+//  		while(!reg || TerrainDefs[reg->type].similar_type == R_OCEAN) {
+//  			reg = pArr->GetRegion(getrandom(pArr->x), getrandom(pArr->y));
+//  		}
+//  	}
 
-    //
-    // Set up first unit.
-    //
-    Unit *temp2 = GetNewUnit( pFac );
-    temp2->SetMen( I_LEADERS, 1 );
-    temp2->reveal = REVEAL_FACTION;
-    temp2->type = U_NORMAL;
-    temp2->MoveUnit( reg->GetDummy() );
+//      //
+//      // Set up first unit.
+//      //
+//      Unit *temp2 = GetNewUnit( pFac );
+//      temp2->SetMen( I_LEADERS, 1 );
+//      temp2->reveal = REVEAL_FACTION;
+//      temp2->type = U_NORMAL;
+//      temp2->MoveUnit( reg->GetDummy() );
 
-    return( 1 );
+//      return( 1 );
 }
 
 Faction *Game::CheckVictory()
@@ -93,7 +93,104 @@ void Game::ModifyTablesPerRuleset(void)
 
 	//unused items disabled
 	DisableItem(I_MAN);
-
+	DisableItem(I_SLAVE);
+	DisableItem(I_MERCENARY);
+	DisableItem(I_LVIKING);
+	DisableItem(I_VIKING);
+	DisableItem(I_LBUCCANEER);
+	DisableItem(I_BUCCANEER);
+	DisableItem(I_LHIGHLANDER);
+	DisableItem(I_HIGHLANDER);
+	DisableItem(I_LBARBARIAN);
+	DisableItem(I_BARBARIAN);
+	DisableItem(I_LPLAINSMAN);
+	DisableItem(I_PLAINSMAN);
+	DisableItem(I_LHELOT);
+	DisableItem(I_HELOT);
+	DisableItem(I_LNORTHMAN);
+	DisableItem(I_NORTHMAN);
+	DisableItem(I_LICELANDER);
+	DisableItem(I_ICELANDER);
+	DisableItem(I_LHORSEPEOPLE);
+	DisableItem(I_HORSEPEOPLE);
+	DisableItem(I_LNOMAD);
+	DisableItem(I_NOMAD);
+	DisableItem(I_LTRIBESMAN);
+	DisableItem(I_TRIBESMAN);
+	DisableItem(I_LHEADHUNTER);
+	DisableItem(I_HEADHUNTER);
+	DisableItem(I_LFFOLK);
+	DisableItem(I_FFOLK);
+	DisableItem(I_LAMAZON);
+	DisableItem(I_AMAZON);
+	DisableItem(I_LLOWLANDER);
+	DisableItem(I_LOWLANDER);
+	DisableItem(I_LHALFORC);
+	DisableItem(I_HALFORC);
+	DisableItem(I_LCAVEDWELLER);
+	DisableItem(I_CAVEDWELLER);
+	DisableItem(I_LDARKMAN);
+	DisableItem(I_DARKMAN);
+	DisableItem(I_LDEEPFFOLK);
+	DisableItem(I_DEEPFFOLK);
+	DisableItem(I_LNIGHTSTALKER);
+	DisableItem(I_NIGHTSTALKER);
+	DisableItem(I_LHUMAN);
+	DisableItem(I_HUMAN);
+	DisableItem(I_LGNOLL);
+	DisableItem(I_GNOLL);
+	DisableItem(I_LHILLDWARF);
+	DisableItem(I_HILLDWARF);
+	DisableItem(I_LMOUNTAINDWARF);
+	DisableItem(I_MOUNTAINDWARF);
+	DisableItem(I_LICEDWARF);
+	DisableItem(I_ICEDWARF);
+	DisableItem(I_LDESERTDWARF);
+	DisableItem(I_DESERTDWARF);
+	DisableItem(I_LUNDERDWARF);
+	DisableItem(I_UNDERDWARF);
+	DisableItem(I_LDARKDWARF);
+	DisableItem(I_DARKDWARF);
+	DisableItem(I_LDEEPDWARF);
+	DisableItem(I_DEEPDWARF);
+	DisableItem(I_LGULLYDWARF);
+	DisableItem(I_GULLYDWARF);
+	DisableItem(I_LWOODELF);
+	DisableItem(I_WOODELF);
+	DisableItem(I_LSEAELF);
+	DisableItem(I_SEAELF);
+	DisableItem(I_LHIGHELF);
+	DisableItem(I_HIGHELF);
+	DisableItem(I_LTRIBALELF);
+	DisableItem(I_TRIBALELF);
+	DisableItem(I_LNIGHTELF);
+	DisableItem(I_NIGHTELF);
+	DisableItem(I_LDRAGONLORD);
+	DisableItem(I_DRAGONLORD);
+	DisableItem(I_LDROWELF);
+	DisableItem(I_DROWELF);
+	DisableItem(I_LDEATHWALKER);
+	DisableItem(I_DEATHWALKER);
+	DisableItem(I_LORC);
+	DisableItem(I_ORC);
+	DisableItem(I_LURUK);
+	DisableItem(I_URUK);
+	DisableItem(I_LGOBLINMAN);
+	DisableItem(I_GOBLINMAN);
+	DisableItem(I_LOGREMAN);
+	DisableItem(I_OGREMAN);
+	DisableItem(I_LHOBBIT);
+	DisableItem(I_HOBBIT);
+	DisableItem(I_LGNOME);
+	DisableItem(I_GNOME);
+	DisableItem(I_LMINOTAUR);
+	DisableItem(I_MINOTAUR);
+	DisableItem(I_LLIZARDMAN);
+	DisableItem(I_LIZARDMAN);
+	DisableItem(I_LFAIRY);
+	DisableItem(I_FAIRY);
+	DisableItem(I_LTITAN);
+	DisableItem(I_TITAN);
 
 	//unused skills disabled
 	DisableSkill(S_GEMCUTTING);
