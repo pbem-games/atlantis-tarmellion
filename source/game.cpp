@@ -998,8 +998,10 @@ int Game::ReadPlayersLine(AString *pToken, AString *pLine, Faction *pFac,
 									u->AdjustSkills();
 									int lvl = u->GetRealSkill(sk);
 									if (lvl > pFac->skills.GetDays(sk)) {
+										for( int i = pFac->skills.GetDays(sk) + 1; i <= lvl; i++ ) {
+											pFac->shows.Add(new ShowSkill(sk,i));
+										}
 										pFac->skills.SetDays(sk, lvl);
-										pFac->shows.Add(new ShowSkill(sk,lvl));
 									}
 									if (!u->gm_alias) {
 										u->Event(AString("Is taught ") +
