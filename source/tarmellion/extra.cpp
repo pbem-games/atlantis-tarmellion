@@ -23,6 +23,8 @@
 //
 // END A3HEADER
 //
+// This file contains extra game-specific functions
+//
 #include "game.h"
 #include <gamedata.h>
 
@@ -346,6 +348,19 @@ void Game::ModifyTablesPerRuleset(void)
 
 	//unused objects disabled
 	//DisableObject(O_BLACKKEEP);
+	DisableObject(O_JOINER);
+	DisableObject(O_WEAPONFORGE);
+	DisableObject(O_ARMORFORGE);
+	DisableObject(O_TEAMTRAINER);
+	DisableObject(O_APOTHECARY);
+	DisableObject(O_PELTMONGER);
+	DisableObject(O_SCULPTOR);
+	DisableObject(O_JEWELER);
+	DisableObject(O_FISHERY);
+	DisableObject(O_FARMHOUSE);
+	DisableObject(O_RANCHHOUSE);
+	DisableObject(O_CHANDLER);
+	DisableObject(O_RUNEMASTER);
 
 
 	// Make skills take twice as long to study.

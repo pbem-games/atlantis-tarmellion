@@ -388,8 +388,13 @@ AString ShowSpecial(int special, int level, int expandLevel, int fromItem) {
 	return temp;
 }
 
-static AString MonResist(int type, int val, int full) {
-	AString temp = "This monster ";
+static AString MonResist(int type, int val, int full, int mount = 0) {
+	AString temp = "This ";
+	if( mount )
+		temp += "mount ";
+	else
+		temp += "monster ";
+
 	if (full) {
 		temp += AString("has a resistance of ") + val;
 	} else {
@@ -871,6 +876,35 @@ AString *ItemDescription(int item, int full) {
 			if (pM->mountSpecial != -1) {
 				*temp += AString(" When ridden, this mount causes ") +
 					ShowSpecial(pM->mountSpecial, pM->specialLev, 1, 0);
+			}
+		}
+
+		if( pM->monster != -1 ) {
+			MonType * pMon = &MonDefs[pM->monster];
+			*temp += AString(" This mount attacks with a combat skill of ") +
+				pMon->attackLevel + ".";
+			for(int c = 0; c < NUM_ATTACK_TYPES; c++) {
+				if( !full || pMon->defense[c] > 0 )
+					*temp += AString(" ") + MonResist(c,pMon->defense[c], full, 1);
+			}
+			if (pMon->special && pMon->special != -1) {
+				*temp += AString(" ") +
+					"Mount can cast " +
+					ShowSpecial(pMon->special, pMon->specialLevel, 1, 0);
+			}
+			if (full) {
+				int hits = pMon->hits;
+				int atts = pMon->numAttacks;
+//				int regen = pMon->regen;
+				if (!hits) hits = 1;
+				if (!atts) atts = 1;
+				*temp += AString(" This mount has ") + atts + " melee " +
+					((atts > 1)?"attacks":"attack") + " per round and takes " +
+					hits + " " + ((hits > 1)?"hits":"hit") + " to kill.";
+//				if (regen > 0) {
+//					*temp += AString(" This mount regenerates ") + regen +
+//						" hits per round of battle.";
+//				}
 			}
 		}
 	}
