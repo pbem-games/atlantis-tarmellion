@@ -61,7 +61,7 @@ class Battle : public AListElem {
 
 		int Run(ARegion *, Unit *, AList *, AList *, AList *, int ass,
 				ARegionList *pRegs);
-		void FreeRound(Army *,Army *, int ass = 0);
+		void FreeRound(Army *,Army *, int ass = 0, bool attIsAttacker = true);
 		void NormalRound(int,Army *,Army *);
 		void DoAttack(int round, Soldier *a, Army *attackers, Army *def,
 				int behind, int ass, int canbehind);

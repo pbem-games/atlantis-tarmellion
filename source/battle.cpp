@@ -42,7 +42,7 @@ Battle::~Battle() {
 	}
 }
 
-void Battle::FreeRound(Army * att,Army * def, int ass) {
+void Battle::FreeRound(Army * att,Army * def, int ass, bool attIsAttacker ) {
 	/* Write header */
 	AddLine(*(att->leader->name) + " gets a free round of attacks.");
 
@@ -103,7 +103,10 @@ void Battle::FreeRound(Army * att,Army * def, int ass) {
 			}
 		}
 		if( ok ) {
-			AddLine( "Attacker does:" );
+			if( attIsAttacker )
+				AddLine( "Attacker does:" );
+			else
+				AddLine( "Defender does:" );
 			for( int i = 0; i < NUM_WEAPON_CLASSES; i++ ) {
 				if( att->roundAttacks[i] == 0 ) continue;
 				AddLine( AString( " " ) + att->roundAttacks[i] + " " + WeapClass( i ) + 
@@ -121,7 +124,10 @@ void Battle::FreeRound(Army * att,Army * def, int ass) {
 		forlist( &att->roundLeaderReports ) {
 			AddLine( *( AString * ) elem );
 		}
-		AddLine( AString( "Defender loses " ) + alv + ".");
+		if( attIsAttacker )
+			AddLine( AString( "Defender loses " ) + alv + ".");
+		else
+			AddLine( AString( "Attacker loses " ) + alv + ".");
 		
 	}
 	AddLine("");
@@ -413,10 +419,10 @@ int Battle::Run( ARegion * region, Unit * att, AList * atts, AList * targets,
 	armies[1] = new Army(tar,defs,region->type,ass);
 
 	if (ass) {
-		FreeRound(armies[0],armies[1], ass);
+		FreeRound(armies[0],armies[1], ass, true);
 	} else {
-		if (armies[0]->tac > armies[1]->tac) FreeRound(armies[0],armies[1]);
-		if (armies[1]->tac > armies[0]->tac) FreeRound(armies[1],armies[0]);
+		if (armies[0]->tac > armies[1]->tac) FreeRound(armies[0],armies[1], ass, true);
+		if (armies[1]->tac > armies[0]->tac) FreeRound(armies[1],armies[0], ass, false);
 	}
 
 	int round = 1;
@@ -430,7 +436,7 @@ int Battle::Run( ARegion * region, Unit * att, AList * atts, AList * targets,
 
 		if (armies[0]->NumAlive()) {
 		  AddLine(*(armies[0]->leader->name) + " is routed!");
-		  FreeRound(armies[1],armies[0]);
+		  FreeRound(armies[1],armies[0], false, false);
 		} else {
 		  AddLine(*(armies[0]->leader->name) + " is destroyed!");
 		}
