@@ -852,6 +852,18 @@ int Game::ReadPlayersLine(AString *pToken, AString *pLine, Faction *pFac,
 				}
 			}
 		}
+	} else if(*pToken == "Race:") {
+	  pTemp = pLine->gettoken();
+	  if(!pTemp) {
+	    Awrite(AString("Race: needs to specify a race."));
+	  } else {
+	    int it = ParseAllItems(pTemp);
+	    if (ItemDefs[it].type == IT_MAN) {
+	      pFac->race = it;
+	    } else {
+	      Awrite(AString("Race: needs to specify a race."));
+	    }
+	  }
 	} else if(*pToken == "Item:") {
 		pTemp = pLine->gettoken();
 		if(!pTemp) {

@@ -32,29 +32,29 @@ int Game::SetupFaction( Faction *pFac )
 {
     pFac->unclaimed = Globals->START_MONEY + TurnNumber() * 50;
 
-    //	if(pFac->noStartLeader)
-		return 1;
+    if(pFac->noStartLeader)
+      return 1;
 
-//      ARegion *reg = NULL;
-//  	if(pFac->pStartLoc) {
-//  		reg = pFac->pStartLoc;
-//  	} else {
-//  		ARegionArray *pArr = regions.GetRegionArray(ARegionArray::LEVEL_SURFACE);
-//  		while(!reg || TerrainDefs[reg->type].similar_type == R_OCEAN) {
-//  			reg = pArr->GetRegion(getrandom(pArr->x), getrandom(pArr->y));
-//  		}
-//  	}
+    ARegion *reg = NULL;
+	if(pFac->pStartLoc) {
+		reg = pFac->pStartLoc;
+	} else {
+		ARegionArray *pArr = regions.GetRegionArray(ARegionArray::LEVEL_SURFACE);
+		while(!reg || TerrainDefs[reg->type].similar_type == R_OCEAN) {
+			reg = pArr->GetRegion(getrandom(pArr->x), getrandom(pArr->y));
+		}
+	}
 
-//      //
-//      // Set up first unit.
-//      //
-//      Unit *temp2 = GetNewUnit( pFac );
-//      temp2->SetMen( I_LEADERS, 1 );
-//      temp2->reveal = REVEAL_FACTION;
-//      temp2->type = U_NORMAL;
-//      temp2->MoveUnit( reg->GetDummy() );
+    //
+    // Set up first unit.
+    //
+    Unit *temp2 = GetNewUnit( pFac );
+    temp2->SetMen( I_LEADERS, 1 );
+    temp2->reveal = REVEAL_FACTION;
+    temp2->type = U_NORMAL;
+    temp2->MoveUnit( reg->GetDummy() );
 
-//      return( 1 );
+    return( 1 );
 }
 
 Faction *Game::CheckVictory()
