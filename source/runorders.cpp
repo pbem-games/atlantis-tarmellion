@@ -142,6 +142,7 @@ int Game::CountMages(Faction *pFac) {
 						}
 					}
 					int magecost=ManDefs[magerace].defaultmagiclevel;
+					if (magerace==MAN_LEADER) magecost=1;
 					if (magecost>0)
 						for (int iii=1;iii<magecost+1;iii++)
 							i+=iii;
@@ -152,7 +153,6 @@ int Game::CountMages(Faction *pFac) {
 			}
 		}
 	}
-	//cout << "found " << i << " mages\n" << flush;
 	return i;
 }
 
@@ -301,11 +301,15 @@ AList * Game::CanSeeSteal(ARegion * r,Unit * u) {
 }
 
 void Game::Do1Assassinate(ARegion * r,Object * o,Unit * u) {
+	if (!Globals->ALLOW_ASSASSINATION) {
+		u->Error("ASSASSINATE: Order is disabled in this game.");
+		return;
+	}
 	AssassinateOrder * so = (AssassinateOrder *) u->stealorders;
 	Unit * tar = r->GetUnitId(so->target,u->faction->num);
 
 	if (!tar) {
-		u->Error("ASSASSINATE: Invalid unit given.");
+		u->Error(AString("ASSASSINATE: Invalid unit (")+AString(so->target->unitnum)+") given.");
 		return;
 	}
 	if (!tar->IsAlive()) {
@@ -313,9 +317,14 @@ void Game::Do1Assassinate(ARegion * r,Object * o,Unit * u) {
 		return;
 	}
 
+	if (!tar->GetMen()) {
+		u->Error(AString("ASSASSINATE: No valid target in unit (")+AString(so->target->unitnum)+").");
+		return;
+	}
+
 	// New rule -- You can only assassinate someone you can see
 	if (!u->CanSee(r, tar)) {
-		u->Error("ASSASSINATE: Invalid unit given.");
+		u->Error(AString("ASSASSINATE: Invalid unit (")+AString(so->target->unitnum)+") given.");
 		return;
 	}
 
@@ -380,13 +389,13 @@ void Game::Do1Steal(ARegion * r,Object * o,Unit * u) {
 	Unit * tar = r->GetUnitId(so->target,u->faction->num);
 
 	if (!tar) {
-		u->Error("STEAL: Invalid unit given.");
+		u->Error(AString("STEAL: Invalid unit (")+AString(so->target->unitnum)+") given.");
 		return;
 	}
 
 	// New RULE!! You can only steal from someone you can see.
 	if (!u->CanSee(r, tar)) {
-		u->Error("STEAL: Invalid unit given.");
+		u->Error(AString("STEAL: Invalid unit (")+AString(so->target->unitnum)+") given.");
 		return;
 	}
 
@@ -983,7 +992,7 @@ void Game::Do1EnterOrder(ARegion * r,Object * in,Unit * u) {
 		to = r->GetObject(u->enter);
 		u->enter = 0;
 		if (!to) {
-			u->Error("ENTER: Can't enter that.");
+			u->Error("ENTER: No such object.");
 			return;
 		}
 		if (!to->CanEnter(r,u)) {
@@ -1244,11 +1253,11 @@ void Game::DoAttackOrders() {
 							UnitId * id = (UnitId *) ord->targets.First();
 							ord->targets.Remove(id);
 							Unit * t = r->GetUnitId(id,u->faction->num);
-							delete id;
 							if (u->canattack && u->IsAlive()) {
 								if (t) AttemptAttack(r,u,t,0);
-								else u->Error("ATTACK: Non-existent unit.");
+								else u->Error(AString("ATTACK: Non-existent unit (")+AString(id->unitnum)+").");
 							}
+							delete id;
 						}
 						delete ord;
 						u->attackorders = 0;
@@ -1409,6 +1418,35 @@ int Game::GetBuyAmount(ARegion * r,Market * m) {
 			forlist ((&u->buyorders)) {
 				BuyOrder * o = (BuyOrder *) elem;
 				if (o->item == m->item) {
+					// Hardcoded for Ceran, need to create a flag to handle this later.
+					// Lizardmen cannot buy good or evil races.
+					if (u->faction->race==I_LIZARDMAN) {
+						if (ItemDefs[o->item].type&IT_MAN) {
+							if (ItemDefs[o->item].flags & ItemType::EVIL) {
+								u->Error("BUY: Can't buy evil aligned men.");
+								o->num = 0;
+							} else if (ItemDefs[o->item].flags & ItemType::GOOD) {
+								u->Error("BUY: Can't buy good aligned men.");
+								o->num = 0;
+							}
+						}
+					} else if ((o->item == I_LIZARDMAN)||(o->item == I_LLIZARDMAN)) {
+						u->Error("BUY: lizardmen won't follow your faction.");
+						o->num = 0;
+					}
+					if (u->faction->race == I_DRAGONLORD) {
+						if ((ItemDefs[o->item].type & IT_MAN) &&(!(ManDefs[ItemDefs[o->item].index].species&ManType::M_ELF))) {
+							u->Error("BUY: can't buy non-elven men.");
+							o->num = 0;
+						}
+					}
+					if ((o->item == I_DRAGONLORD)||(o->item == I_LDRAGONLORD)) {
+						if (!((u->faction->race==I_LIZARDMAN)||(u->faction->race==I_DRAGONLORD))) {
+						//if ((ItemDefs[u->faction->race].flags & ItemType::EVIL) || (ItemDefs[u->faction->race].flags & ItemType::GOOD)) {
+							u->Error("BUY: dragonlords won't follow your faction.");
+							o->num = 0;
+						}
+					}
 					if ((ItemDefs[u->faction->race].flags & ItemType::GOOD) && (ItemDefs[o->item].flags & ItemType::EVIL)) {
 					  	u->Error("BUY: Can't buy evil aligned items.");
 					  	o->num = 0;
@@ -2186,7 +2224,7 @@ int Game::DoGiveOrder(ARegion * r,Unit * u,GiveOrder * o) {
 	// Check there is enough to give
 	int amt = o->amount;
 	if (amt != -2 && amt > u->items.GetNum(o->item)) {
-		u->Error("GIVE: Not enough.");
+		u->Error(AString("GIVE: Not enough ") + AString(ItemDefs[o->item].name) +".");
 		amt = u->items.GetNum(o->item);
 	} else if (amt == -2) {
 		amt = u->items.GetNum(o->item);

@@ -935,8 +935,9 @@ int Game::ReadPlayersLine(AString *pToken, AString *pLine, Faction *pFac,
 								int it = ParseAllItems(pTemp);
 								if (it == -1) {
 									Awrite(AString("Must specify a valid ") +
-											"item to give for Item: in " +
-											"faction " + pFac->num);
+											"item to give for Item: " +
+											*pTemp +
+											" in faction " + pFac->num);
 								} else {
 									int has = u->items.GetNum(it);
 									u->items.SetNum(it, has + v);
@@ -961,8 +962,8 @@ int Game::ReadPlayersLine(AString *pToken, AString *pLine, Faction *pFac,
 		} else {
 			Unit *u = ParseGMUnit(pTemp, pFac);
 			if (!u) {
-				Awrite(AString("Skill: needs to specify a unit in faction ") +
-						pFac->num);
+				Awrite(AString("Skill: needs to specify a unit: ") + *pTemp+
+						"in faction " + pFac->num);
 			} else {
 				if (u->faction->num != pFac->num) {
 					Awrite(AString("Skill: unit ")+ u->num +
@@ -1039,8 +1040,8 @@ int Game::ReadPlayersLine(AString *pToken, AString *pLine, Faction *pFac,
 			} else {
 				Unit *u = ParseGMUnit(pTemp, pFac);
 				if (!u) {
-					Awrite(AString("Order: needs to specify a unit in ")+
-							"faction " + pFac->num);
+					Awrite(AString("Order: needs to specify a unit: ") + *pTemp +
+							" in faction " + pFac->num);
 				} else {
 					if (u->faction->num != pFac->num) {
 						Awrite(AString("Order: unit ")+ u->num +
@@ -2331,7 +2332,7 @@ char Game::GetRChar(ARegion * r) {
 		case R_T_LAKE3:
 		case R_CE_OCEAN:
 		case R_CE_OCEAN1:
-			 return 'w';
+			 return ' ';
 		case R_PLAIN:
 		case R_ISLAND_PLAIN:
 		case R_T_PLAIN1:

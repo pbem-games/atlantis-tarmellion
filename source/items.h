@@ -145,24 +145,41 @@ extern ItemType * ItemDefs;
 class ManType {
 	public:
 
-  enum {
-    NONE    = 0x00,
-    LEADER  = 0x01,
-    POPULUS = 0x02,
-    SCARCE  = 0x04,
-  };
+	enum {
+		NONE    = 0x00,
+		LEADER  = 0x01,
+		POPULUS = 0x02,
+		SCARCE  = 0x04,
+	};
 
-  int flags;
-  int minority; // This is used to point to another race which my ocuppy the hex.
-  // {guard weapon,guard armor,(guard shield),guard equiptment,starting equiptment, better weapon, better armor}
-  // guarditems[0..1] are for normal city guards,
-  // guarditems[4..6] are for starting city guard,
-  // guarditems[2..3] are for both.
-  int guarditems[7];
-  int speciallevel[20];
-  int defaultlevel;
-  int defaultmagiclevel;
-  int specialskills[20];
+	int flags;
+	int minority; // This is used to point to another race which my ocuppy the hex.
+	// {guard weapon,guard armor,(guard shield),guard equiptment,starting equiptment, better weapon, better armor}
+	// guarditems[0..1] are for normal city guards,
+	// guarditems[4..6] are for starting city guard,
+	// guarditems[2..3] are for both.
+	int guarditems[7];
+	int speciallevel[20];
+	int defaultlevel;
+	int defaultmagiclevel;
+	int specialskills[20];
+	int compatibleraces[5];
+	int incompatibleraces[5];
+	enum {
+		M_NONE		= 0x0000,
+		M_HUMAN 	= 0x0001,
+		M_ELF   	= 0x0002,
+		M_DWARF		= 0x0004,
+		M_GOBLINOID	= 0x0008,
+		M_BEASTMAN	= 0x0010,
+		M_GNOME		= 0x0020,
+		M_FAIRY		= 0x0040,
+		M_TITAN		= 0x0080,
+		M_LIZARDMAN	= 0x0100,
+		M_HOBBIT	= 0x0200,
+		M_ALL		= 0xFFFF,
+	};
+	int species;
 };
 
 extern ManType * ManDefs;

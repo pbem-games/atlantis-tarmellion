@@ -940,13 +940,16 @@ Soldier * Army::GetAttacker(int i,int &behind) {
 int Army::GetTargetNum(int special, int canAttackBehind) {
 	int tars = NumFront();
 	if (canAttackBehind) {
-		tars += NumAlive();
+		//tars += NumAlive();
+		tars = NumAlive();
 	}
 	if (tars == 0) {
 		canfront = canbehind;
 		notfront = notbehind;
 		tars = NumFront();
-		if (tars == 0) return -1;
+		if (tars == 0) {
+			return -1;
+		}
 	}
 
 	if (SpecialDefs[special].targflags) {

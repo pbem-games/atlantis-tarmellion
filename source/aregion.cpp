@@ -3043,7 +3043,6 @@ void ARegionList::SetupAnchors(ARegionArray * ta) {
 				reg = ta->GetRegion(tempx,tempy);
 				if (reg->type == R_NUM) {
 					reg->type = GetRegType(reg,0);
-					cout << "SetupAnchors: created " << TerrainDefs[reg->type].name << "\n" << flush;
 					if (TerrainDefs[reg->type].similar_type != R_OCEAN)
 						reg->wages = AGetName(0);
 					break;
@@ -3084,7 +3083,7 @@ void ARegionList::GrowTerrain(ARegionArray *pArr, int growOcean) {
 						if (t) {
 							if (t->type != R_NUM && (TerrainDefs[t->type].similar_type!=R_OCEAN || (growOcean && (t->type != R_LAKE)))) {
 								if (TerrainDefs[t->type].flags&TerrainType::ODD) {
-									cout << "Don't seed " << TerrainDefs[t->type].name << "\n" << flush;
+									//cout << "Don't seed " << TerrainDefs[t->type].name << "\n" << flush;
 								} else {
 									reg->race = t->type;
 									reg->wages = t->wages;
@@ -3391,7 +3390,6 @@ void ARegionList::SetStartingCities(int levelSrc, int maxX, int maxY) {
 	// setup surface starting cities
 	for (int j=0;j<SurfaceCityLevels;j++) {
 		for (int i=1;i<SurfaceCities[j]+1;i++) {
-			cout << "creating surface starting city no " << i << "\n" << flush;
 			// call GetStartingCity with 2nd parameter=0 as we don't want to check other AC exits.
 			// TODO: Change the procedure not to require that parameter anymore.
 			ARegion *pReg = GetStartingCity(AC,0,1,maxX,maxY);
@@ -3406,7 +3404,6 @@ void ARegionList::SetStartingCities(int levelSrc, int maxX, int maxY) {
 		for (int j=0;j<UnderworldCityLevels;j++) {
 			if (j>Globals->UNDERWORLD_LEVELS) break;
 			for (int i=1;i<UnderworldCities[j]+1;i++) {
-				cout << "creating underworld level "<<j+1<<" starting city no " << i << "\n" << flush;
 				// call GetStartingCity with 2nd parameter=0 as we don't want to check other AC exits.
 				// TODO: Change the procedure not to require that parameter anymore.
 				ARegion *pReg = GetStartingCity(AC,0,j+2,maxX,maxY);
@@ -3421,11 +3418,10 @@ void ARegionList::SetStartingCities(int levelSrc, int maxX, int maxY) {
 		// setup underdeep starting cities
 		for (int j=0;j<UnderdeepCityLevels;j++) {
 			if (j>Globals->UNDERDEEP_LEVELS) {
-				cout << "Warning: processing level " << j << " while Globals->UNDERDEEP_LEVELS = " << Globals->UNDERDEEP_LEVELS << "!\n" << flush;
+				//cout << "Warning: processing level " << j << " while Globals->UNDERDEEP_LEVELS = " << Globals->UNDERDEEP_LEVELS << "!\n" << flush;
 				break;
 			}
 			for (int i=1;i<UnderdeepCities[j]+1;i++) {
-				cout << "creating underdeep level "<<j+1<<" starting city no " << i << "\n" << flush;
 				// call GetStartingCity with 2nd parameter=0 as we don't want to check other AC exits.
 				// TODO: Change the procedure not to require that parameter anymore.
 				ARegion *pReg = GetStartingCity(AC,0,Globals->UNDERWORLD_LEVELS+j+2,maxX,maxY);

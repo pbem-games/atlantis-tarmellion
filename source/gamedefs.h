@@ -464,6 +464,7 @@ public:
 	// This has no effect unles MONSTER_NO_SPOILS is also set.
 	int MONSTER_SPOILS_RECOVERY;
 
+	int ALLOW_ASSASSINATION;
 	// Use this to limit the number of attacks an assassin gets in the free
 	// round.
 	int MAX_ASSASSIN_FREE_ATTACKS;
