@@ -884,16 +884,29 @@ int Unit::GetSkill(int sk)
 	// Only add bonus if the units currently has *some* ability in this skill
 	if( baseSkill == 0 ) return 0;
 
+	// find max bonus
 	int itemBonus = 0;
-	int numMen = GetMen();
 	forlist( &items ) {
 		Item * it = ( Item * ) elem;
-		if( it->num < numMen ) continue;
 		if( ItemDefs[it->type].bonusskill != sk ) continue;
 		if( itemBonus < ItemDefs[it->type].bonusskillamount )
 			itemBonus = ItemDefs[it->type].bonusskillamount;
 	}
-
+	// find max effective bonus
+	int numItems = 0;
+	int numMen = GetMen();
+	while( itemBonus > 0 ) {
+		forlist( &items ) {
+			Item * it = ( Item * ) elem;
+			if( ItemDefs[it->type].bonusskill != sk ) continue;
+			if( ItemDefs[it->type].bonusskillamount >= itemBonus ) {
+				numItems += it->num;
+			}
+		}
+		if( numItems >= numMen ) break;
+		itemBonus--;
+	}
+	
 	return baseSkill + itemBonus;
 }
 
@@ -1885,7 +1898,7 @@ int Unit::GetSkillBonus(int sk) {
 			while (max_bonus > 0) {
 			  for(int it=0;it<NITEMS;it++) {
 			    if ((ItemDefs[it].attributes & ItemType::STEA_BONUS)
-			       && (ItemDefs[it].pValue == max_bonus)) {
+			       && (ItemDefs[it].pValue >= max_bonus)) {
 			      nitems += items.GetNum(it);
 			    }
 			  }
