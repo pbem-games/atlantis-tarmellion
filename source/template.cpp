@@ -899,8 +899,9 @@ void ARegion::WriteTemplateHeader( Areport *f, Faction *fac, ARegionList *pRegs,
 			if (!m->amount) continue;
 			if (m->type == M_SELL) {
 
-				if (ItemDefs[m->item].type & IT_ADVANCED)
-					if (!HasItem(fac,m->item)) continue;
+				// deactivated by henrik
+				//if (ItemDefs[m->item].type & IT_ADVANCED)
+				//	if (!HasItem(fac,m->item)) continue;
 
 				if (!any) {
 					GetMapLine(buffer, line, pRegs);
