@@ -1387,6 +1387,19 @@ AString *ShowSkill::Report(Faction *f) {
 		*str += temp2 + " via magic.";
 	}
 
+	// Spell failure
+	if (SkillDefs[skill].failChance > 0) {
+		temp += " The chance that this spell will fail is equal to ";
+		temp += AString(SkillDefs[skill].failChance) + " ";
+
+		if (SkillDefs[skill].failType == SkillType::FAIL_MINUS_SKILL ) {
+			temp += "minus the caster's skill level ";
+		} else if (SkillDefs[skill].failType == SkillType::FAIL_DIVIDE_SKILL ) {
+			temp += "divided by the caster's skill level ";
+		}		
+		temp += "percent, per casting.";
+	}
+
 	// Buildings
 	comma = 0;
 	temp = "A unit with this skill may BUILD the following structures: ";
