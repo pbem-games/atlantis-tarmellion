@@ -1794,7 +1794,7 @@ void ARegion::WriteReport(Areport * f,Faction * fac,int month, ARegionList *pReg
 	int present = Present(fac) || fac->IsNPC();
 	if (farsight || passer || present)  {
 		AString temp = Print(pRegions);
-		if (Population() &&
+		if (Population() && race != -1 &&
 			(present || farsight ||
 			 (Globals->TRANSIT_REPORT & GameDefs::REPORT_SHOW_PEASANTS))) {
 			temp += AString(", ") + Population() + " peasants";

@@ -82,8 +82,8 @@ void AList::Insert(AListElem * e) {
 	num ++;
 	e->prev = 0;
 	e->next = list;
-	list->prev = e;
 	list = e;
+	list->prev = e;
 	if (!lastelem) lastelem = list;
 }
 

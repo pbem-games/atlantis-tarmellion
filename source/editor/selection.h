@@ -26,8 +26,10 @@
 //
 // END A3HEADER
 
-#ifndef TREE_CLASS
-#define TREE_CLASS
+#ifndef SELECTION_CLASS
+#define SELECTION_CLASS
+
+class SelectionCanvas;
 
 #include "../alist.h"
 #include "../aregion.h"
@@ -39,23 +41,28 @@
 // control ids
 enum
 {
-	Tree_Multi_Select,
-	Tree_Tree,
+	Selection_Tree,
+	Selection_Tool_Back,
+	Selection_Tool_Forward,
+	Selection_Tool_Zoom_In,
+	Selection_Tool_Zoom_Out,
 };
 
-class TreeCanvas : public wxScrolledWindow
+class SelectionCanvas : public wxScrolledWindow
 {
 public:
-	TreeCanvas( wxWindow *parent );
-	~TreeCanvas();
+	SelectionCanvas( wxWindow *parent );
+	~SelectionCanvas();
 	void Init();
 
-	void AddItem( Faction *, bool populate = true );
-	void AddItem( ARegion *, bool populate = true );
-	void AddItem( Market * );
-	void AddItem( Production * );
-	void AddItem( Object *, bool populate = true );
-	void AddItem( Unit * );
+	void AddItem( Faction *, wxTreeItemId, bool populate = true );
+	void AddItem( ARegion *, wxTreeItemId, bool populate = true );
+	void AddItem( Market *, wxTreeItemId );
+	void AddItem( Production *, wxTreeItemId );
+	void AddItem( Object *, wxTreeItemId, bool populate = true );
+	void AddItem( Unit *, wxTreeItemId );
+	void AddItem( Game *, wxTreeItemId );
+	void AddItem( ARegionArray *, wxTreeItemId, bool populate = true );
 
 	void RemoveItem( Faction * );
 	void RemoveItem( ARegion * );
@@ -76,8 +83,6 @@ public:
 
 	bool lastUnitByFaction;
 
-	void OnMouse( wxMouseEvent & );
-
 	DECLARE_EVENT_TABLE()
 
 private:
@@ -91,6 +96,9 @@ private:
 	wxTreeItemId FindCategory( const char *, wxTreeItemId );
 	wxTreeItemId FindSelected( AListElem *, int type, bool unitByFaction = false );
 
+	void AddElem( AListElem * );
+	void RemoveElem( AListElem * );
+
 	void UpdateSelectionLeafs( int type );
 	void UpdateSelectionRegions();
 	void UpdateSelectionFactions();
@@ -99,15 +107,22 @@ private:
 	void UpdateSelectionProductions();
 	void UpdateSelectionUnits( bool unitByFaction = true );
 
-	void OnResize( wxSizeEvent & );
+	void OnSize( wxSizeEvent & );
 	void OnLeafSelection( wxTreeEvent & );
 	void OnLeafSelecting( wxTreeEvent & );
 	bool IsLeafHighlighted( wxTreeItemId );
+	void OnBack( wxCommandEvent & );
+	void OnForward( wxCommandEvent & );
+	void OnZoomOut( wxCommandEvent & );
+	void OnZoomIn( wxCommandEvent & );
+	void OnZoomIn( wxTreeEvent & );
+	void ZoomIn();
+
+	void Resize();
 
 	void DeselectAll();
 	void UnHighlightLeaf( wxTreeItemId );
 	void HighlightLeaf( wxTreeItemId );
-	void UnhighlightSelection();
 
 	wxTreeCtrl * tree;
 
@@ -120,16 +135,19 @@ private:
 	int curSelection;
 
 	int selectOK;
-public:
 	bool treeWait;
 
+	wxSizer * sizerSelect;
+	wxSizer * sizerTool;
+	wxToolBar * toolBar;
+
 };
+
 
 class TreeLeaf : public wxTreeItemData
 {
 	public:
 		~TreeLeaf();
-		virtual void MakeSelection( bool add = false );
 
 		int class_id;
 };
@@ -138,7 +156,6 @@ class RegionLeaf : public TreeLeaf
 {
 	public:
 		RegionLeaf( ARegion * );
-		void MakeSelection( bool add = false );
 
 		ARegion * region;
 };
@@ -147,7 +164,6 @@ class LevelLeaf : public TreeLeaf
 {
 	public:
 		LevelLeaf( ARegionArray *, int );
-		void MakeSelection( bool add = false );
 
 		ARegionArray * regionArray;
 		int level;
@@ -157,7 +173,6 @@ class FactionLeaf : public TreeLeaf
 {
 	public:
 		FactionLeaf( Faction * );
-		void MakeSelection( bool add = false );
 
 		Faction * faction;
 };
@@ -166,7 +181,6 @@ class MarketLeaf : public TreeLeaf
 {
 	public:
 		MarketLeaf( Market * );
-		void MakeSelection( bool add = false );
 
 		Market * market;
 };
@@ -175,7 +189,6 @@ class ObjectLeaf : public TreeLeaf
 {
 	public:
 		ObjectLeaf( Object * );
-		void MakeSelection( bool add = false );
 
 		Object * object;
 };
@@ -184,7 +197,6 @@ class UnitLeaf : public TreeLeaf
 {
 	public:
 		UnitLeaf( Unit *, bool byFac );
-		void MakeSelection( bool add = false );
 
 		bool byFaction;
 		Unit * unit;
@@ -194,7 +206,6 @@ class ProductionLeaf : public TreeLeaf
 {
 	public:
 		ProductionLeaf( Production * );
-		void MakeSelection( bool add = false );
 
 		Production * production;
 };
@@ -203,7 +214,6 @@ class GameLeaf : public TreeLeaf
 {
 	public:
 		GameLeaf( Game * );
-		void MakeSelection( bool add = false );
 
 		Game * game;
 };
