@@ -2178,6 +2178,7 @@ void ARegion::SetWeather(int newWeather) {
 int ARegion::IsCoastal() {
 //	if ((type != R_LAKE) && (TerrainDefs[type].similar_type == R_OCEAN)) return 1;
 	if (TerrainDefs[type].flags & TerrainType::CANSAIL) return 1;
+	if (TerrainDefs[type].flags & TerrainType::CANTSAIL) return 0;
 
 	int seacount = 0;
 	for (int i=0; i<NDIRS; i++) {
