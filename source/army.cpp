@@ -939,9 +939,9 @@ Soldier * Army::GetAttacker(int i,int &behind) {
 
 int Army::GetTargetNum(int special, int canAttackBehind) {
 	int tars = NumFront();
-//	if (canAttackBehind) {
-//	  tars += NumAlive();
-//	}
+	if (canAttackBehind) {
+		tars += NumAlive();
+	}
 	if (tars == 0) {
 		canfront = canbehind;
 		notfront = notbehind;
@@ -976,11 +976,13 @@ int Army::GetTargetNum(int special, int canAttackBehind) {
 		}
 	} else {
 		int i = getrandom(tars);
-		//		if (i<canfront) return i;
-		//		return i + canbehind - canfront;
-		return i;
+		if (canAttackBehind) {
+			return i;
+		} else {
+			if (i<canfront) return i;
+			return i + canbehind - canfront;
+		}
 	}
-
 	return -1;
 }
 

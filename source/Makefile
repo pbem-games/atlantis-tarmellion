@@ -10,7 +10,7 @@ GAME ?= standard
 
 CPLUS = g++
 CC = gcc
-CFLAGS = -g -I. -I.. -Wall
+CFLAGS = -g -I. -I.. -Wall -Wno-deprecated
 
 RULESET_OBJECTS = extra.o monsters.o rules.o world.o
 
