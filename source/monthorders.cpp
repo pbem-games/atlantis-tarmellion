@@ -1370,6 +1370,129 @@ done_moving:
 	return loc;
 }
 
+void Game::RunTunnelOrders()
+{
+	forlist(&regions) {
+		ARegion * pRegion = (ARegion *) elem;
+		forlist(&pRegion->objects) {
+			Object * obj = (Object *) elem;
+			forlist(&obj->units) {
+				Unit * u = (Unit *) elem;
+				if(u->monthorders) {
+					if (u->monthorders->type == O_TUNNEL) {
+						Do1TunnelOrder(pRegion,u);
+						delete u->monthorders;
+						u->monthorders = 0;
+					}
+				}
+			}
+		}
+	}
+}
+
+void Game::Do1TunnelOrder(ARegion * pRegion, Unit * pUnit)
+{
+	// Get target region
+	ARegion * target = pRegion->neighbors[( (TunnelOrder *) pUnit->monthorders )->dir];
+	if( !target ) {
+		pUnit->Error("TUNNEL: No region in that direction.");
+		return;
+	}
+	if( !( TerrainDefs[target->type].flags & TerrainType::CANTUNNEL ) ) {
+		pUnit->Error("TUNNEL: Cannot tunnel into this type of terrain.");
+		return;
+	}
+
+	// Unit must be able to move into new region
+	int newTerrain = TerrainDefs[target->type].similar_type;
+	int cost = TerrainDefs[newTerrain].movepoints;
+	
+	if(	pUnit->CalcMovePoints() - pUnit->movepoints < cost) {
+		if (pUnit->MoveType() == M_NONE) {
+			pUnit->Error("TUNNEL: Unit is overloaded and cannot move.");
+		} else {
+			pUnit->Error("TUNNEL: Unit has insufficient movement points.");
+		}
+		return;
+	}
+
+	// Unit must be skilled in quarrying and mining
+	// Only units with a skill level of at least (difficulty) will count
+	// Unit requires total of (difficulty * 1000) levels of mining and quarrying
+	// Difficulty of > 1 requires 1 pick or enchanted pick for every man
+	// Difficulty of > 2 requires 1 enchanted pick per man
+	int difficulty = 1;
+	if( target->type == R_CE_GRANITE ) difficulty = 2;
+	else if( target->type == R_CE_BASALT ) difficulty = 3;
+
+	if( pUnit->GetSkill( S_MINING ) < difficulty ) {
+		pUnit->Error(AString("TUNNEL: Unit must know at least ") + SkillDefs[S_MINING].name + " " +
+			difficulty + " to tunnel through " + TerrainDefs[target->type].name + ".");
+		return;
+	}
+	if( pUnit->GetSkill( S_QUARRYING ) < difficulty ) {
+		pUnit->Error(AString("TUNNEL: Unit must know at least ") + SkillDefs[S_QUARRYING].name + " " +
+			difficulty + " to tunnel through " + TerrainDefs[target->type].name + ".");
+		return;
+	}
+
+	int men = pUnit->GetMen();
+	if( difficulty > 0 ) {
+		int picks = pUnit->items.GetNum(I_ENCHANTEDPICK);
+		if( difficulty < 3 ) picks += pUnit->items.GetNum(I_PICK);
+		if( picks < men ) men = picks;
+	}
+	
+	if( men * pUnit->GetSkill(S_MINING) < (difficulty * 1000) ) {
+		pUnit->Error( AString("TUNNEL: Unit does not have enough tools and/or skilled men") );
+//		              + " (" + 
+//					  pUnit->GetMen() + ", " + pUnit->items.GetNum(I_PICK) + 
+//					  ", " + pUnit->items.GetNum(I_ENCHANTEDPICK) + ", " +
+//					  pUnit->GetSkill(S_MINING) + ", " + 
+//					  (men * pUnit->GetSkill(S_MINING)) +
+//					  "/" +
+//					  (difficulty*1000) + ")." );
+		return;
+	}
+	if( men * pUnit->GetSkill(S_QUARRYING) < (difficulty * 1000) ) {
+		pUnit->Error( AString("TUNNEL: Unit does not have enough tools and/or skilled men") );
+		return;
+	}
+
+
+	// OK, now let's tunnel!
+
+	// First get the byproducts of the venture
+	// This will be random number, determined by products in terraindef
+	for( int i = 0; i < 21; i++ ) {
+		int item = TerrainDefs[target->type].prods[i].product;
+		if( item != -1 && ITEM_ENABLED(item) ) {
+			if( getrandom(100) < TerrainDefs[target->type].prods[i].chance ) {
+				int amt = getrandom( TerrainDefs[target->type].prods[i].amount );
+				pUnit->items.SetNum( item, pUnit->items.GetNum( item ) + amt );
+				pUnit->Event(AString("Produces ") + ItemString(item, amt) + 
+					" from tunnelling.");
+			}
+		}
+	}
+
+	pUnit->Event(AString( "Tunnels into ") + target->ShortPrint(&regions) + "." );
+
+	// Change terrain type
+	target->type = newTerrain;
+
+	// Change products and economy
+	target->products.DeleteAll();
+	target->markets.DeleteAll();
+	target->SetupProds();
+	target->SetupPop();
+
+	// Move tunnelers into region
+	pUnit->MoveUnit( target->GetDummy() );
+
+}
+
+
 void Game::RunSettleOrders(ARegion * pRegion)
 {
 	forlist(&pRegion->objects) {

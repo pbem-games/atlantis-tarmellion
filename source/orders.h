@@ -49,6 +49,7 @@ class ForgetOrder;
 class EvictOrder;
 class IdleOrder;
 class SettleOrder;
+class TunnelOrder;
 
 #include "unit.h"
 #include "gamedefs.h"
@@ -114,6 +115,7 @@ enum {
 	O_STUDY,
 	O_TAX,
 	O_TEACH,
+	O_TUNNEL,
 	O_TURN,
 	O_WEAPON,
 	O_WITHDRAW,
@@ -160,6 +162,14 @@ class MoveOrder : public Order {
 		AList dirs;
 };
 
+class TunnelOrder : public Order {
+	public:
+		TunnelOrder();
+		~TunnelOrder();
+
+		int dir;
+};
+		
 class WithdrawOrder : public Order {
 	public:
 		WithdrawOrder();

@@ -83,6 +83,7 @@ char * od[] = {
 	"study",
 	"tax",
 	"teach",
+	"tunnel",
 	"turn",
 	"weapon",
 	"withdraw",
@@ -140,6 +141,14 @@ WithdrawOrder::WithdrawOrder() {
 }
 
 WithdrawOrder::~WithdrawOrder() {
+}
+
+TunnelOrder::TunnelOrder() {
+	type = O_TUNNEL;
+	dir = -1;
+}
+
+TunnelOrder::~TunnelOrder() {
 }
 
 GiveOrder::GiveOrder() {

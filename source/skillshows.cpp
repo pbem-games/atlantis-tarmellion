@@ -28,8 +28,6 @@
 #include "gamedata.h"
 #include "astring.h"
 
-#define ITEM_ENABLED(X) (!(ItemDefs[(X)].flags & ItemType::DISABLED))
-#define ITEM_DISABLED(X) (ItemDefs[(X)].flags & ItemType::DISABLED)
 #define SKILL_ENABLED(X) (!(SkillDefs[(X)].flags & SkillType::DISABLED))
 #define SKILL_DISABLED(X) (SkillDefs[(X)].flags & SkillType::DISABLED)
 #define OBJECT_ENABLED(X) (!(ObjectDefs[(X)].flags & ObjectType::DISABLED))

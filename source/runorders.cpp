@@ -77,6 +77,8 @@ void Game::RunOrders() {
 	RunSailOrders();
 	Awrite("Running Move Orders...");
 	RunMoveOrders();
+	Awrite("Running Tunnel Orders...");
+	RunTunnelOrders();
 	SinkUncrewedShips();
 	DrownUnits();
 	FindDeadFactions();

@@ -34,6 +34,9 @@ class ItemType;
 #include "alist.h"
 #include "astring.h"
 
+#define ITEM_ENABLED(X) (!(ItemDefs[(X)].flags & ItemType::DISABLED))
+#define ITEM_DISABLED(X) (ItemDefs[(X)].flags & ItemType::DISABLED)
+
 enum {
 	ATTACK_COMBAT,
 	ATTACK_ENERGY,

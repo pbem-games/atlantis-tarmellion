@@ -329,6 +329,7 @@ public:
     void ProcessAttackOrder(Unit *,AString *, OrdersCheck *pCheck );
     void ProcessBuildOrder( Unit *, AString *, OrdersCheck *pCheck );
     void ProcessSailOrder(Unit *,AString *, OrdersCheck *pCheck );
+    void ProcessTunnelOrder(Unit *,AString *, OrdersCheck *pCheck );
     void ProcessEnterOrder(Unit *,AString *, OrdersCheck *pCheck );
     void ProcessLeaveOrder(Unit *, OrdersCheck *pCheck );
     void ProcessPromoteOrder(Unit *,AString *, OrdersCheck *pCheck );
@@ -510,6 +511,8 @@ public:
     // Month long orders
     //
     void RunMoveOrders();
+    void RunTunnelOrders();
+	void Do1TunnelOrder(ARegion *,Unit *);
     Location * DoAMoveOrder(Unit *,ARegion *,Object *);
     void DoMoveEnter(Unit *,ARegion *,Object **);
     void RunMonthOrders();

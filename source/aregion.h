@@ -65,6 +65,7 @@ class TerrainType {
 			CANSAIL = 0x8,		// you can sail through this terrain type as if it were ocean
 			CANTWALK = 0x10,	// you can only sail or swim here // TODO: allow also flying
 			CANTSAIL = 0x20,	// you cannot sail into this terrain, even if it is coastal // TODO
+			CANTUNNEL = 0x40,	// you can tunnell into this terrain
 		};
 		int flags;
 

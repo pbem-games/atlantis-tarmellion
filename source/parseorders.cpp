@@ -593,6 +593,9 @@ void Game::ProcessOrder(int orderNum, Unit *unit, AString *o,
 		case O_TEACH:
 			ProcessTeachOrder(unit, o, pCheck);
 			break;
+		case O_TUNNEL:
+			ProcessTunnelOrder(unit, o, pCheck);
+			break;
 		case O_WORK:
 			ProcessWorkOrder(unit, pCheck);
 			break;
@@ -2592,6 +2595,36 @@ void Game::ProcessAdvanceOrder(Unit * u,AString * o, OrdersCheck *pCheck) {
 			return;
 		}
 	}
+}
+
+void Game::ProcessTunnelOrder(Unit * u,AString * o, OrdersCheck *pCheck) {
+	TunnelOrder *order = new TunnelOrder();
+
+	AString * token = o->gettoken();
+	if( !token ) {
+		ParseError(pCheck, u, 0, "TUNNEL: Bad direction.");
+		return;
+	}
+	int dir = ParseDir(token);
+	delete token;
+	if( dir == -1 ) {
+		ParseError(pCheck, u, 0, "TUNNEL: Bad direction.");
+		return;
+	}
+	order->dir = dir;
+
+	if (u->monthorders ||
+		(Globals->TAX_PILLAGE_MONTH_LONG &&
+		 ((u->taxing == TAX_TAX) || (u->taxing == TAX_PILLAGE)))) {
+		if (u->monthorders) delete u->monthorders;
+		AString err = "STUDY: Overwriting previous ";
+		if (u->inTurnBlock) err += "DELAYED ";
+		err += "month-long order.";
+		ParseError(pCheck, u, 0, err);
+	}
+	if (Globals->TAX_PILLAGE_MONTH_LONG) u->taxing = TAX_NONE;
+
+	u->monthorders = order;
 }
 
 void Game::ProcessMoveOrder(Unit * u,AString * o, OrdersCheck *pCheck) {
