@@ -600,6 +600,7 @@ public:
 	int TARMELLION_SUMMONING;	// Use tarmellion summoning rules
 
 	int MULTIPLE_MAGES_PER_UNIT; // allow several mages per unit
+	int DISABLE_RESTART;	//disallows restart command if setups are done outside of the game.
 };
 
 extern GameDefs * Globals;

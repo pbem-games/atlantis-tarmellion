@@ -1198,6 +1198,11 @@ void Game::ProcessQuitOrder(Unit *u,AString *o, OrdersCheck *pCheck) {
 }
 
 void Game::ProcessRestartOrder(Unit *u,AString *o, OrdersCheck *pCheck) {
+	if (Globals->DISABLE_RESTART) {
+		u->Error("RESTART: Order is disabled in this game.\nTo restart quit this game and signup again.");
+		return;
+	}
+
 	if (!pCheck) {
 		if (u->faction->password && !(*(u->faction->password) == "none")) {
 			AString *token = o->gettoken();
