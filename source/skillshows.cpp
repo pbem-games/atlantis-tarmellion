@@ -1443,6 +1443,30 @@ AString *ShowSkill::Report(Faction *f) {
 				"mage should issue the order CAST Create_Food to cast "
 				"this spell.";
 			break;
+		case S_ENCHANT_RINGS:
+			if (level > 1) break;
+			*str += "A mage with the Enchant Rings skill may create "
+					"magic rings that increase a certain skill (note that a unit must possess "
+					"one ring for each man to gain this bonus). To use this spell, the mage "
+					"should CAST Enchant_Rings <ring>, where <ring> is the name of the magic "
+					"ring the caster wants to create.";
+			break;
+		case S_ENCHANT_AMULETS:
+			if (level > 1) break;
+			*str += "A mage with the Enchant Amulet skill may create "
+					"magic amulets that increase a certain skill (note that a unit must possess "
+					"one ring for each man to gain this bonus). To use this spell, the mage "
+					"should CAST Enchant_Amulets <amulet>, where <amulet> is the name of the "
+					"magic amulet the caster wants to create.";
+			break;
+		case S_CREATE_CHARMS:
+			if (level > 1) break;
+			*str += "A mage with the Create Charms skill may create "
+					"magic charms that increase a certain skill (note that a unit must possess "
+					"one charm for each man to gain this bonus). To use this spell, the mage "
+					"should CAST Create_Charms <charm>, where <charm> is the name of the magic "
+					"charm the caster wants to create.";
+			break;
 	}
 
 	AString temp;

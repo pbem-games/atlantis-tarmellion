@@ -57,6 +57,9 @@ void Game::ProcessCastOrder(Unit * u,AString * o, OrdersCheck *pCheck) {
 			case S_MIND_READING:
 				ProcessMindReading(u,o, pCheck);
 				break;
+			case S_ENCHANT_RINGS:
+			case S_ENCHANT_AMULETS:
+			case S_CREATE_CHARMS:
 			case S_ENCHANT_WEAPONS:
 			case S_ENCHANT_ARMOR:
 			case S_SUMMON_DRAGON:
@@ -660,6 +663,10 @@ void Game::RunACastOrder(ARegion * r,Object *o,Unit * u) {
 		case S_ENGRAVE_RUNES_OF_WARDING:
 			RunEngraveRunes(r,o,u);
 			break;
+		case S_ENCHANT_RINGS:
+		case S_ENCHANT_AMULETS:
+		case S_CREATE_CHARMS:
+			RunCreateArtifact(r,u,sk,((CastItemOrder *)u->castorders)->item);
 		case S_CONSTRUCT_PORTAL:
 			RunCreateArtifact(r,u,sk,I_PORTAL);
 			break;

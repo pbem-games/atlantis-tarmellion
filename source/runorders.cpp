@@ -1544,20 +1544,34 @@ void Game::DoBuy(ARegion * r,Market * m) {
 						delete sl;
 					}
 					if (o->item == I_BONDSMAN) {
-						if( u->faction->race) {
-							o->item = u->faction->race;
+						if( u->faction->race ) {
+							ManType * facRace = &ManDefs[ItemDefs[u->faction->race].index];
+							if( facRace->flags | ManType::LEADER ) {
+								o->item = facRace->minority;
+							} else {
+								o->item = u->faction->race;
+							}
 						} else {
 							u->Error("BUY: Faction has no race set.");
+							delete o;
+							continue;
 						}
 					}
 					if (o->item == I_LBONDSMAN) {
 						if( u->faction->race) {
-							o->item = ManDefs[ItemDefs[u->faction->race].index].minority;
+							ManType * facRace = &ManDefs[ItemDefs[u->faction->race].index];
+							if( facRace->flags | ManType::LEADER ) {
+								o->item = u->faction->race;
+							} else {
+								o->item = facRace->minority;
+							}
 						} else {
 							u->Error("BUY: Faction has no race set.");
+							delete o;
+							continue;
 						}
 					}
-					if(o->item) {
+					if(o->item != -1) {
 						u->items.SetNum(o->item,u->items.GetNum(o->item) + temp);
 						u->faction->DiscoverItem(o->item, 0, 1);
 						u->SetMoney(u->GetMoney() - temp * m->price);

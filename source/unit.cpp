@@ -509,7 +509,8 @@ AString * Unit::BattleReport(int obs) {
 	*temp += items.BattleReport();
 
 	int lvl;
-	lvl = GetRealSkill(S_TACTICS);
+//	lvl = GetRealSkill(S_TACTICS);
+	lvl = GetSkill(S_TACTICS);
 	if (lvl) {
 		*temp += ", ";
 		*temp += SkillDefs[S_TACTICS].name;
@@ -517,7 +518,8 @@ AString * Unit::BattleReport(int obs) {
 		*temp += lvl;
 	}
 
-	lvl = GetRealSkill(S_COMBAT);
+//	lvl = GetRealSkill(S_COMBAT);
+	lvl = GetSkill(S_COMBAT);
 	if (lvl) {
 		*temp += ", ";
 		*temp += SkillDefs[S_COMBAT].name;
@@ -525,7 +527,8 @@ AString * Unit::BattleReport(int obs) {
 		*temp += lvl;
 	}
 
-	lvl = GetRealSkill(S_ARCHERY);
+//	lvl = GetRealSkill(S_ARCHERY);
+	lvl = GetSkill(S_ARCHERY);
 	if (lvl) {
 		*temp += ", ";
 		*temp += SkillDefs[S_ARCHERY].name;
@@ -533,7 +536,8 @@ AString * Unit::BattleReport(int obs) {
 		*temp += lvl;
 	}
 
-	lvl = GetRealSkill(S_CROSSBOW);
+//	lvl = GetRealSkill(S_CROSSBOW);
+	lvl = GetSkill(S_ARCHERY);
 	if (lvl) {
 		*temp += ", ";
 		*temp += SkillDefs[S_CROSSBOW].name;
@@ -541,7 +545,8 @@ AString * Unit::BattleReport(int obs) {
 		*temp += lvl;
 	}
 
-	lvl = GetRealSkill(S_RIDING);
+//	lvl = GetRealSkill(S_RIDING);
+	lvl = GetSkill(S_RIDING);
 	if (lvl) {
 		*temp += ", ";
 		*temp += SkillDefs[S_RIDING].name;
