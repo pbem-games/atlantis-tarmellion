@@ -191,10 +191,11 @@ Soldier::Soldier(Unit * u,Object * o,int regtype,int r,int ass) {
 			// however.
 			dskill[ATTACK_RIDING] += ridingBonus;
 			riding = item;
-			if( MountDefs[ItemDefs[riding].index].monster != -1 )
+			if( MountDefs[ItemDefs[riding].index].monster != -1 ) {
 				mount = new Soldier( u, o, regtype, riding, ass );
-			mount->rider = this;
-			break;
+				mount->rider = this;
+				break;
+			}
 		}
 	}
 	// If no mount available that can be used for this terrain type, find
