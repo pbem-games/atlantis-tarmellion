@@ -43,6 +43,12 @@ Battle::~Battle() {
 }
 
 void Battle::FreeRound(Army * att,Army * def, int ass, bool attIsAttacker ) {
+	int debug = 0;
+
+//	if( att->leader->faction->num == 16 ) debug = 1;
+
+	if( debug ) Awrite( "Free round" );
+
 	/* Write header */
 	AddLine(*(att->leader->name) + " gets a free round of attacks.");
 
@@ -72,13 +78,25 @@ void Battle::FreeRound(Army * att,Army * def, int ass, bool attIsAttacker ) {
 		AddLine(*(def->leader->name) + " is overwhelmed.");
 	}
 
+	if( debug ) {
+		Awrite( "Running attacks..." );
+	}
+
 	/* Run attacks until done */
 	int alv = def->NumAlive();
 	while (att->CanAttack() && def->NumAlive()) {
 		int num = getrandom(att->CanAttack());
 		int behind;
 		Soldier * a = att->GetAttacker(num, behind);
+		if(debug) {
+			Awrite( a->name + " (" + num + ") attacks!" );
+		}
 		DoAttack(att->round, a, att, def, behind, ass, overwhelmed);
+	}
+
+	if( debug ) {
+		Awrite( AString( "Attacker can attack? : " ) + att->CanAttack() );
+		Awrite( AString( "Defenders alive : " ) + def->NumAlive() );
 	}
 
 	/* Write losses */
@@ -139,8 +157,11 @@ void Battle::DoAttack(int round, Soldier *a, Army *attackers, Army *def,
 {
 	int debug = 0;
 
+//	if( a->unit->num == 121 ) debug=1;
+if( debug ) Awrite("1");
 	DoSpecialAttack(round, a, attackers, def, behind, canattackback);
 	if (!def->NumAlive()) return;
+if( debug ) Awrite("2");
 
 	// New Rule: Mounts can use specials even if they are behind 1
 	if (!behind && (a->riding != -1)) {
@@ -179,12 +200,14 @@ void Battle::DoAttack(int round, Soldier *a, Army *attackers, Army *def,
 	int numAttacks = a->attacks;
 	int totHit = 0;
 	int fullreport = 0;
+if( debug ) Awrite( AString("Num attacks : ") + numAttacks );
 
 	if( a->unit->GetMen() == 1 && ItemDefs[a->race].type & IT_MAN &&
 		ManDefs[ItemDefs[a->race].index].flags & ManType::LEADER )
 	{
 		fullreport = 1;
 	}
+if( debug ) Awrite( AString("Full report : ") + fullreport );
 
 	if (a->attacks < 0) {
 		if (round % (-1 * a->attacks) == 1)
@@ -212,11 +235,13 @@ void Battle::DoAttack(int round, Soldier *a, Army *attackers, Army *def,
 		if (!pWep || (!(pWep->flags & WeaponType::RANGED)) )
 			numAttacks = 0;
 	}
+if( debug ) Awrite( AString("Num attacks : ") + numAttacks );
 
 	for (int i = 0; i < numAttacks; i++) {
 		if( debug ) {
 			AString * temp = new AString;
-			*temp = AString("**") + a->name + " attacked with a combat skill of " + a->askill + ".";
+			if( debug )
+				*temp = AString("**") + a->name + " attacked with a combat skill of " + a->askill + ".";
 			attackers->roundLeaderReports.Add( temp );
 		}
 		int numHit = def->DoAnAttack(0, 1, attackType, a->askill, flags, attackClass,
@@ -237,6 +262,7 @@ void Battle::DoAttack(int round, Soldier *a, Army *attackers, Army *def,
 			attackers->roundAttacks[attackClass] += numAttacks;
 		}
 	}
+if( debug ) Awrite( "-Done Attack" );
 
 	a->ClearOneTimeEffects();
 

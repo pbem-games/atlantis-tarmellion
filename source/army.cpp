@@ -85,6 +85,10 @@ Soldier::Soldier(Unit * u,Object * o,int regtype,int r,int ass) {
 
 	effects = 0;
 
+	int debug=0;
+//	if( u->num == 121 ) debug = 1;
+	
+
 	/* Building bonus */
 	if (o->capacity) {
 		building = o->type;
@@ -142,6 +146,10 @@ Soldier::Soldier(Unit * u,Object * o,int regtype,int r,int ass) {
 	}
 
 	name = *(unit->name);
+
+	if( debug ) {
+		Awrite( AString( "New Soldier from" ) + name );
+	}
 
 	SetupHealing();
 
@@ -223,6 +231,7 @@ Soldier::Soldier(Unit * u,Object * o,int regtype,int r,int ass) {
 		}
 
 //	}
+
 	//
 	// Find the correct weapon for this soldier.
 	//
@@ -279,6 +288,7 @@ Soldier::Soldier(Unit * u,Object * o,int regtype,int r,int ass) {
 			}
 		}
 	}
+
 	// If we did not get a weapon, set attack and defense bonuses to
 	// combat skill (and riding bonus if applicable).
 	if (weapon == -1) {
@@ -314,7 +324,7 @@ Soldier::Soldier(Unit * u,Object * o,int regtype,int r,int ass) {
 		MonType * mt = &MonDefs[ManDefs[ItemDefs[race].index].monster];
 
 		// Check minimum number of attacks and hits
-		if( mt->numAttacks > attacks ) attacks = mt->numAttacks;
+		if( attacks >= 0 && mt->numAttacks > 0 > attacks ) attacks = mt->numAttacks;
         if( mt->hits > hits ) {
 			hits = mt->hits;
 			maxhits = hits;
@@ -342,6 +352,16 @@ Soldier::Soldier(Unit * u,Object * o,int regtype,int r,int ass) {
 		if (mt->defense[ATTACK_RANGED] > dskill[ATTACK_RANGED]) {
 			dskill[ATTACK_RANGED] = mt->defense[ATTACK_RANGED];
 		}
+	}
+
+	if( debug ) {
+//		Awrite( AString("- Armor: ") + armor );
+		Awrite( AString("- Weapon: ") + weapon );
+		Awrite( AString("- NumAttacks: ") + attacks );
+		Awrite( AString("- Attack: ") +  askill );
+		Awrite( AString("- Defense: ") +  dskill[ATTACK_COMBAT] );
+//		Awrite( AString("- Mount: ") + riding );
+//		Awrite( AString("- Shield: ") + shield );
 	}
 
 }
