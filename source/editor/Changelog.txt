@@ -1,0 +1,20 @@
+v0.1 -> v0.2
+------------
+* Tree view properly displayed when a second game file loaded
+* New objects and units automatically selected
+* Towns can be added/removed
+* Most changes in edit panel now reflected instantly in tree view
+* Tweaked Open/Save dialogs
+* Tweaked icons
+* Saving can now overwrite old files
+* Control-click now works the same as shift-click on the map screen
+* New markets/productions/objects/units can be added directly from region edit screen
+* New units can be added directly from faction and object screens
+* Add market/production/object/unit buttons will just create item in current region (TODO: replace this button with clone button)
+* Made Edit Panel a little bigger
+* Map title now displays level name
+* Added option to recreate sub-data for items when certain attribute(s) of that item are changed. So far only implemented for regions(terrain type)
+* Fixed bug where FindItem functions did not return an invalid tree id when the item wasn't found
+* Fixed bug where buy & sell markets were switched
+* Fixed bug where combobox fields were incorrectly resetting when selecting multiple items
+* Fixed some textual errors
