@@ -662,16 +662,18 @@ int Faction::CanCatch(ARegion *r, Unit *t) {
 	return 0;
 }
 
-int Faction::CanSee(ARegion * r,Unit * u, int practise, int useScout) {
+int Faction::CanSee(ARegion * r,Unit * u, int practise, int activeUse) {
 	int detfac = 0;
 	if (u->faction == this) return 2;
 	if (u->reveal == REVEAL_FACTION) return 2;
 	int retval = 0;
 	if (u->reveal == REVEAL_UNIT) retval = 1;
-	int hideLevel = u->GetSkill(S_STEALTH);
-	if( useScout && hideLevel < u->GetSkill(S_SCOUTING) + 1 )
-		hideLevel = u->GetSkill(S_SCOUTING) + 1;
+//	int hideLevel = u->GetSkill(S_STEALTH);
+//	if( useScout && hideLevel < u->GetSkill(S_SCOUTING) + 1 )
+//		hideLevel = u->GetSkill(S_SCOUTING) + 1;
 
+	int hideLevel = u->GetStealthLevel( activeUse );
+	
 	forlist((&r->objects)) {
 		Object * obj = (Object *) elem;
 		int dummy = 0;

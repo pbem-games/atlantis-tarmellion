@@ -303,7 +303,8 @@ AString Unit::StudyableSkills() {
 
 AString Unit::GetName(int obs) {
 	AString ret = *name;
-	int stealth = GetSkill(S_STEALTH);
+//	int stealth = GetSkill(S_STEALTH);
+	int stealth = GetStealthLevel();
 	if (reveal == REVEAL_FACTION || obs > stealth) {
 		ret += ", ";
 		ret += *faction->name;
@@ -344,7 +345,9 @@ AString Unit::SpoilsReport() {
 }
 
 void Unit::WriteReport(Areport * f,int obs,int truesight,int detfac, int autosee) {
-	int stealth = GetSkill(S_STEALTH);
+//	int stealth = GetSkill(S_STEALTH);
+	int stealth = GetStealthLevel();
+
 	if (obs==-1) {
 		/* The unit belongs to the Faction writing the report */
 		obs = 2;
@@ -1436,8 +1439,8 @@ int Unit::CanCatch(ARegion *r,Unit *u) {
 	return faction->CanCatch(r,u);
 }
 
-int Unit::CanSee(ARegion * r,Unit * u, int practise, int useScout) {
-	return faction->CanSee(r,u, practise, useScout);
+int Unit::CanSee(ARegion * r,Unit * u, int practise, int activeUse ) {
+	return faction->CanSee(r,u, practise, activeUse);
 }
 
 int Unit::ItemsWithAttribute(int att) {
@@ -1478,7 +1481,7 @@ int Unit::Hostile() {
 int Unit::Forbids(ARegion * r,Unit * u) {
 	if (guard != GUARD_GUARD) return 0;
 	if (!IsAlive()) return 0;
-	if (!CanSee(r,u, Globals->SKILL_PRACTISE_AMOUNT > 0, 1)) return 0;
+	if (!CanSee(r,u, Globals->SKILL_PRACTISE_AMOUNT > 0)) return 0;
 	if (!CanCatch(r,u)) return 0;
 	if (GetAttitude(r,u) < A_NEUTRAL) return 1;
 	return 0;
@@ -2076,3 +2079,48 @@ int GetSpellFailureChance( Unit * u, int sk )
 
 	return chance;
 }
+
+/// Get the stealth level of the unit
+/// activeUse should be true if unit is performing a stealth
+///  dependant action (eg theft or assassination)
+int Unit::GetStealthLevel( int activeUse )
+{
+
+	int monstealth = 100;
+	int manstealth = 100;
+	int manscout = 100;
+
+	if (guard == GUARD_GUARD) return 0;
+
+	forlist(&items) {
+		Item * i = (Item *) elem;
+		if (ItemDefs[i->type].type & IT_MONSTER) {
+			int temp = MonDefs[ItemDefs[i->type].index].stealth;
+			if (temp < monstealth) monstealth = temp;
+		} else {
+			if (ItemDefs[i->type].type & IT_MAN) {
+				if (manstealth == 100) {
+					manstealth = GetRealSkill(S_STEALTH);
+				}
+				if (manscout == 100) {
+					manscout = GetRealSkill(S_SCOUTING);
+				}
+			}
+		}
+	}
+
+	// LLS
+	int bonus = GetSkillBonus(S_STEALTH);
+	manstealth += bonus;
+	manscout += bonus;
+	
+	// Scouting acts as stealth+1
+	manscout++;
+
+	int highest = manstealth;
+	if( activeUse && manscout > manstealth ) highest = manscout;
+
+	if (monstealth < highest) return monstealth;
+	return manstealth;
+}
+
