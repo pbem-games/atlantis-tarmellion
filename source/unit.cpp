@@ -1781,6 +1781,7 @@ int Unit::GetWeapon(int index, int riding, int ridingBonus, int &attackBonus,
 	defenseBonus = 0;
 	attacks = 1;
 	int combatSkill = GetSkill(S_COMBAT);
+	
 	forlist(&items) {
 		Item *pItem = (Item *)elem;
 		if (!pItem->num) continue;

@@ -197,7 +197,7 @@ Soldier::Soldier(Unit * u,Object * o,int regtype,int r,int ass) {
 			break;
 		}
 	}
-
+ 
 	//
 	// Find the correct weapon for this soldier.
 	//
@@ -655,6 +655,11 @@ finished_army:
 		canfront = canbehind;
 		notfront = notbehind;
 	}
+
+	for( int i = 0; i < NUM_WEAPON_CLASSES; i++ ) {
+		roundAttacks[i] = 0;
+		roundHits[i] = 0;
+	}
 }
 
 Army::~Army() {
@@ -665,6 +670,11 @@ void Army::Reset() {
 	canfront = notfront;
 	canbehind = notbehind;
 	notfront = notbehind;
+	for( int i = 0; i < NUM_WEAPON_CLASSES; i++ ) {
+		roundAttacks[i] = 0;
+		roundHits[i] = 0;
+	}
+	roundLeaderReports.DeleteAll();
 }
 
 void Army::WriteLosses(Battle * b) {

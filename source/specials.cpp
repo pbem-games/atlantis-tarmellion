@@ -202,9 +202,26 @@ void Battle::DoSpecialAttack(int round, Soldier *a, Army *attackers,
 
 	if (!(spd->effectflags & SpecialType::FX_DAMAGE)) return;
 
+	int fullreport = 0;
+	if( !Globals->AGGREGATE_BATTLE_REPORTS ) {
+		fullreport = 1;
+	} else if( a->unit->GetMen() == 1 &&
+		       ItemDefs[a->race].type & IT_MAN &&
+			   ManDefs[ItemDefs[a->race].index].flags & ManType::LEADER )
+	{
+		fullreport = 1;
+	}
+	
 	// Check for spell failure
 	if( getrandom( 100 ) < a->specialfail ) {
-		AddLine(a->name + " " + spd->spelldesc + ", but the spell fizzles.");
+		if( fullreport ) {
+			AString temp = a->name + " " + spd->spelldesc + ", but the spell fizzles.";
+			if( Globals->AGGREGATE_BATTLE_REPORTS ) {
+				attackers->roundLeaderReports.Add( new AString( temp ) );
+			} else {
+				AddLine( temp );
+			}
+		}
 		return;
 	}
 
@@ -230,23 +247,39 @@ void Battle::DoSpecialAttack(int round, Soldier *a, Army *attackers,
 		if (num != -1) {
 			if (tot == -1) tot = num;
 			else tot += num;
+			if( !fullreport )
+				attackers->roundHits[spd->damage[i].dclass] += num;
 		}
+		if( !fullreport )
+			attackers->roundAttacks[spd->damage[i].dclass] += realtimes;
 	}
-	if (tot == -1) {
-		AddLine(a->name + " " + spd->spelldesc + ", but it is deflected.");
-	} else {
-		if (spd->effectflags & SpecialType::FX_DONT_COMBINE) {
-			AString temp = a->name + " " + spd->spelldesc;
-			for(i = 0; i < dam; i++) {
-				if (i) temp += ", ";
-				if (i == dam-1) temp += " and ";
-				temp += results[dam];
-			}
-			temp += AString(spd->spelltarget) + ".";
-			AddLine(temp);
+	if (fullreport) {
+		if (tot == -1) {
+			AString temp = a->name + " " + spd->spelldesc + ", but it is deflected.";
+			if( Globals->AGGREGATE_BATTLE_REPORTS ) {
+				attackers->roundLeaderReports.Add( new AString( temp ) );
+			} else {
+				AddLine( temp );
+			}	
 		} else {
-			AddLine(a->name + " " + spd->spelldesc + ", " + spd->spelldesc2 +
-					tot + spd->spelltarget + ".");
+			AString temp;
+			if (spd->effectflags & SpecialType::FX_DONT_COMBINE) {
+				temp = a->name + " " + spd->spelldesc;
+				for(i = 0; i < dam; i++) {
+					if (i) temp += ", ";
+					if (i == dam-1) temp += " and ";
+					temp += results[dam];
+				}
+				temp += AString(spd->spelltarget) + ".";
+			} else {
+				temp =a->name + " " + spd->spelldesc + ", " + spd->spelldesc2 +
+						tot + spd->spelltarget + ".";
+			}
+			if( Globals->AGGREGATE_BATTLE_REPORTS ) {
+				attackers->roundLeaderReports.Add( new AString( temp ) );
+			} else {
+				AddLine( temp );
+			}
 		}
 	}
 }

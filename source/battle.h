@@ -82,6 +82,9 @@ class Battle : public AListElem {
 		Faction * attacker; /* Only matters in the case of an assassination */
 		AString * asstext;
 		AList text;
+
+		void ClearRoundStats();
 };
 
+int AttackTypeToWeaponClass( int attackType );
 #endif

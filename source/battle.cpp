@@ -27,6 +27,7 @@
 #include "army.h"
 #include "gamedefs.h"
 #include "gamedata.h"
+#include "items.h"
 
 Battle::Battle() {
 	asstext = 0;
@@ -71,13 +72,38 @@ void Battle::FreeRound(Army * att,Army * def, int ass) {
 	/* Write losses */
 	def->Regenerate(this);
 	alv -= def->NumAlive();
-	AddLine(*(def->leader->name) + " loses " + alv + ".");
+	if( !Globals->AGGREGATE_BATTLE_REPORTS ) {
+		AddLine(*(def->leader->name) + " loses " + alv + ".");
+	} else {
+		int ok = 0;
+		for( int i = 0; i < NUM_WEAPON_CLASSES; i++ ) {
+			if( att->roundAttacks[i] > 0 ) {
+				ok = 1;
+				break;
+			}
+		}
+		if( ok ) {
+			AddLine( "Attacker does:" );
+			for( int i = 0; i < NUM_WEAPON_CLASSES; i++ ) {
+				if( att->roundAttacks[i] == 0 ) continue;
+				AddLine( AString( " " ) + att->roundAttacks[i] + " " + WeapClass( i ) + 
+					" attack" + (att->roundAttacks[i] == 1 ? "" : "s") + 
+					" killing " + att->roundHits[i] + "." );
+			}
+		}
+		forlist( &att->roundLeaderReports ) {
+			AddLine( *( AString * ) elem );
+		}
+		AddLine( AString( "Defender loses " ) + alv + ".");
+		
+	}
 	AddLine("");
 	att->Reset();
 }
 
 void Battle::DoAttack(int round, Soldier *a, Army *attackers, Army *def,
-			int behind, int ass, int canattackback) {
+			int behind, int ass, int canattackback)
+{
 	DoSpecialAttack(round, a, attackers, def, behind, canattackback);
 	if (!def->NumAlive()) return;
 
@@ -99,17 +125,30 @@ void Battle::DoAttack(int round, Soldier *a, Army *attackers, Army *def,
 				if (num != -1) {
 					if (tot == -1) tot = num;
 					else tot += num;
+					attackers->roundHits[spd->damage[i].dclass] += num;
 				}
+				attackers->roundAttacks[spd->damage[i].dclass] += realtimes;
 			}
 			if (tot != -1) {
-				AddLine(a->name + " " + spd->spelldesc + ", " +
-						spd->spelldesc2 + tot + spd->spelltarget + ".");
+				if( !Globals->AGGREGATE_BATTLE_REPORTS ) {
+					AddLine(a->name + " " + spd->spelldesc + ", " +
+							spd->spelldesc2 + tot + spd->spelltarget + ".");
+				} 
 			}
 		}
 	}
 	if (!def->NumAlive()) return;
 
 	int numAttacks = a->attacks;
+	int totHit = 0;
+	int fullreport = 0;
+
+	if( a->unit->GetMen() == 1 && ItemDefs[a->race].type & IT_MAN &&
+		ManDefs[ItemDefs[a->race].index].flags & ManType::LEADER )
+	{
+		fullreport = 1;
+	}
+
 	if (a->attacks < 0) {
 		if (round % (-1 * a->attacks) == 1)
 			numAttacks = 1;
@@ -120,28 +159,42 @@ void Battle::DoAttack(int round, Soldier *a, Army *attackers, Army *def,
 		numAttacks = Globals->MAX_ASSASSIN_FREE_ATTACKS;
 	}
 
+	WeaponType *pWep = 0;
+	if (a->weapon != -1) pWep = &WeaponDefs[ItemDefs[a->weapon ].index];
+	int flags = WeaponType::SHORT;
+	int attackType = ATTACK_COMBAT;
+	int mountBonus = 0;
+	int attackClass = SLASHING;
+	if (pWep) {
+		flags = pWep->flags;
+		attackType = pWep->attackType;
+		mountBonus = pWep->mountBonus;
+		attackClass = pWep->weapClass;
+	}
+	if (behind) {
+		if (!pWep || (!(pWep->flags & WeaponType::RANGED)) )
+			numAttacks = 0;
+	}
+
 	for (int i = 0; i < numAttacks; i++) {
-		WeaponType *pWep = 0;
-		if (a->weapon != -1) pWep = &WeaponDefs[ItemDefs[a->weapon ].index];
 
-		if (behind) {
-			if (!pWep) break;
-			if (!(pWep->flags & WeaponType::RANGED)) break;
-		}
-
-		int flags = WeaponType::SHORT;
-		int attackType = ATTACK_COMBAT;
-		int mountBonus = 0;
-		int attackClass = SLASHING;
-		if (pWep) {
-			flags = pWep->flags;
-			attackType = pWep->attackType;
-			mountBonus = pWep->mountBonus;
-			attackClass = pWep->weapClass;
-		}
-		def->DoAnAttack(0, 1, attackType, a->askill, flags, attackClass,
+		int numHit = def->DoAnAttack(0, 1, attackType, a->askill, flags, attackClass,
 				0, mountBonus, canattackback);
+		if( numHit != -1 ) totHit += numHit;
+
 		if (!def->NumAlive()) break;
+	}
+
+	if( Globals->AGGREGATE_BATTLE_REPORTS && numAttacks > 0 ) {
+		if( fullreport ) {
+			if( totHit < 0 ) totHit = 0;
+			AString temp = a->name + " does " + numAttacks + " " + WeapClass( attackClass ) +
+				" attack" + ( numAttacks == 1 ? "" : "s" ) + " killing " + totHit + ".";
+			attackers->roundLeaderReports.Add( new AString( temp ) );
+		} else {
+			attackers->roundHits[attackClass] += totHit;
+			attackers->roundAttacks[attackClass] += numAttacks;
+		}
 	}
 
 	a->ClearOneTimeEffects();
@@ -149,7 +202,7 @@ void Battle::DoAttack(int round, Soldier *a, Army *attackers, Army *def,
 	// Mount gets to attack too
 	if( a->mount )
 		DoAttack(round, a->mount, attackers, def, behind, ass, canattackback);
-
+	
 }
 
 void Battle::NormalRound(int round,Army * a,Army * b) {
@@ -205,10 +258,55 @@ void Battle::NormalRound(int round,Army * a,Army * b) {
 	/* Finish round */
 	a->Regenerate(this);
 	b->Regenerate(this);
-	aialive -= aalive;
-	AddLine(*(a->leader->name) + " loses " + aialive + ".");
+ 	aialive -= aalive;
 	bialive -= balive;
-	AddLine(*(b->leader->name) + " loses " + bialive + ".");
+	if( !Globals->AGGREGATE_BATTLE_REPORTS ) {
+		AddLine(*(a->leader->name) + " loses " + aialive + ".");
+		AddLine(*(b->leader->name) + " loses " + bialive + ".");
+	} else {
+		int ok = 0;
+		for( int i = 0; i < NUM_WEAPON_CLASSES; i++ ) {
+			if( a->roundAttacks[i] > 0 ) {
+				ok = 1;
+				break;
+			}
+		}
+		if( ok ) {
+			AddLine( "Attacker does:" );
+			for( int i = 0; i < NUM_WEAPON_CLASSES; i++ ) {
+				if( a->roundAttacks[i] == 0 ) continue;
+				AddLine( AString( " " ) + a->roundAttacks[i] + " " + WeapClass( i ) + 
+					" attack" + (a->roundAttacks[i] == 1 ? "" : "s") + 
+					" killing " + a->roundHits[i] + "." );
+			}
+		}
+		forlist( &a->roundLeaderReports ) {
+			AddLine( *( AString * ) elem );
+		}
+		AddLine( AString( "Defender loses " ) + bialive + ".");
+		ok = 0;
+		for( int i = 0; i < NUM_WEAPON_CLASSES; i++ ) {
+			if( b->roundAttacks[i] > 0 ) {
+				ok = 1;
+				break;
+			}
+		}
+		if( ok ) {
+			AddLine( "Defender does:" );
+			for( int i = 0; i < NUM_WEAPON_CLASSES; i++ ) {
+				if( b->roundAttacks[i] == 0 ) continue;
+				AddLine( AString( " " ) + b->roundAttacks[i] + " " + WeapClass( i ) + 
+					" attack" + (b->roundAttacks[i] == 1 ? "" : "s") + 
+					" killing " + b->roundHits[i] + "." );
+			}
+		}
+		{
+			forlist( &b->roundLeaderReports ) {
+				AddLine( *( AString * ) elem );
+			}
+		}
+		AddLine( AString( "Attacker loses " ) + aialive + ".");
+	}
 	AddLine("");
 	a->Reset();
 	b->Reset();
@@ -728,4 +826,10 @@ int Game::RunBattle(ARegion * r,Unit * attacker,Unit * target,int ass,
 		}
 	}
 	return result;
+}
+
+int AttackTypeToWeaponClass( int attackType )
+{
+	if( attackType == ATTACK_ENERGY ) return MAGIC_ENERGY;
+	return SLASHING;
 }

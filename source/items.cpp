@@ -406,7 +406,7 @@ static AString MonResist(int type, int val, int full) {
     return temp;
 }
 
-static AString WeapClass(int wclass) {
+AString WeapClass(int wclass) {
 	switch(wclass) {
 		case SLASHING: return AString("slashing");
 		case PIERCING: return AString("piercing");

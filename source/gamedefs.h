@@ -598,6 +598,8 @@ public:
 	int FP_FACTOR;
 	int ACN_IS_STARTING_CITY;
 	int TARMELLION_SUMMONING;	// Use tarmellion summoning rules
+	int AGGREGATE_BATTLE_REPORTS;	// Show summary of all attacks per round instead of 
+		                            // reporting each attack as it is done
 
 	int MULTIPLE_MAGES_PER_UNIT; // allow several mages per unit
 	int DISABLE_RESTART;	//disallows restart command if setups are done outside of the game.

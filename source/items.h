@@ -370,6 +370,7 @@ int ParseAllItems(AString *);
 int ParseEnabledItem(AString *);
 int ParseBattleItem(int);
 
+AString WeapClass(int wclass);
 AString ItemString(int type,int num);
 AString *ItemDescription(int item, int full);
 

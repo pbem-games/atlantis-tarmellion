@@ -156,6 +156,11 @@ class Army {
 
 		int hitsalive; // current number of "living hits"
 		int hitstotal; // Number of hits at start of battle.
+
+		int roundHits[NUM_WEAPON_CLASSES];
+		int roundAttacks[NUM_WEAPON_CLASSES];
+		AList roundLeaderReports;
+
 };
 
 #endif
