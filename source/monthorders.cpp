@@ -735,7 +735,7 @@ void Game::RunUnitProduce(ARegion *r, Object *obj, Unit *u) {
 	int output = maxproduced * ItemDefs[o->item].pOut;
 	if (ItemDefs[o->item].flags & ItemType::SKILLOUT)
 		output *= level;
-	if (ItemDefs[o->item].type != IT_ABSTRACT) {
+	if (!(ItemDefs[o->item].type & IT_ABSTRACT)) {
 		u->items.SetNum(o->item,u->items.GetNum(o->item) + output);
 	}
 	for (unsigned int by=0;by<sizeof(ItemDefs[o->item].byproducts)
@@ -912,7 +912,7 @@ void Game::RunAProduction(ARegion * r,Production * p) {
 
 			amt -= ubucks;
 			attempted -= uatt;
-			if (ItemDefs[po->item].type != IT_ABSTRACT) {
+			if (!(ItemDefs[po->item].type & IT_ABSTRACT)) {
 				u->items.SetNum(po->item,u->items.GetNum(po->item)
 							+ ubucks);
 			}

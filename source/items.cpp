@@ -999,7 +999,7 @@ AString *ItemDescription(int item, int full) {
 		  *temp += AString(" To produce this item a ") + ObjectDefs[ItemDefs[item].requiredstructure].name + " is required.";
 		}
 	}
-	if (ItemDefs[item].type == IT_ABSTRACT) {
+	if (ItemDefs[item].type & IT_ABSTRACT) {
 	  *temp += AString(" This is an abstract item.");
 	}
 	int len = sizeof(ItemDefs[item].byproducts)/sizeof(ItemDefs[item].byproducts[0]);
