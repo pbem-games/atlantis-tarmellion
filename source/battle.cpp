@@ -655,6 +655,7 @@ void Game::GetAFacs( ARegion * r, Unit * att, AList * targets,
 		FactionPtr * fp = new FactionPtr;
 		fp->ptr = att->faction;
 		afacs.Add(fp);
+		return;
 	}
 
 	// Cycle through units in the region to see if they will join in the attack
