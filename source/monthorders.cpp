@@ -1373,21 +1373,47 @@ void Game::Do1SettleOrder(ARegion * pRegion, Unit * pUnit)
 		return;
 	}
 
-	int newRace = ManDefs[ItemDefs[pRegion->race].index].alternaterace;
-
-	// Change market for this man
-	float ratio = ItemDefs[newRace].baseprice / (float)Globals->BASE_MAN_COST;
+	// Remove men markets
 	forlist( &pRegion->markets ) {
 		Market * m = ( Market * ) elem;
-		if( m->type == M_BUY && m->item == pRegion->race ) {
+		if( m->type == M_BUY && ItemDefs[m->item].type & IT_MAN ) {
 			pRegion->markets.Remove( m );
-			delete m;
-			m = new Market(M_BUY, newRace, (int)(pRegion->Wages()*4*ratio),
-							pRegion->Population()/5, 0, 10000, 0, 2000);
-			pRegion->markets.Add( m );
+			delete m;		
 		}
 	}
 
+
+	int newRace = ManDefs[ItemDefs[pRegion->race].index].alternaterace;
+
+	// Set up new men markets
+	Market * m;
+	float ratio = ItemDefs[newRace].baseprice / (float)Globals->BASE_MAN_COST;
+	m = new Market(M_BUY, newRace, (int)(pRegion->Wages()*4*ratio),
+					pRegion->Population()/5, 0, 10000, 0, 2000);
+	pRegion->markets.Add( m );
+
+	// Add minority races
+	int minority = ManDefs[ItemDefs[newRace].index].minority;
+	int divisor = 25;
+	while (minority != -1) {
+		ratio = ItemDefs[minority].baseprice / (float)Globals->BASE_MAN_COST;
+		int current = pRegion->Population() / divisor;
+		int max = 10000/divisor;
+		if (ManDefs[ItemDefs[minority].index].flags & ManType::POPULUS) {
+			current *= 2;
+			max *= 2;
+		} else if (ManDefs[ItemDefs[minority].index].flags & ManType::SCARCE) {
+			current /= 2;
+			max /= 2;
+		}
+		m = new Market(M_BUY, minority, (int)(pRegion->Wages()*4*ratio),
+			   current, 0, 10000, 0, max);
+		pRegion->markets.Add(m);
+		minority = ManDefs[ItemDefs[minority].index].minority;
+		divisor *= 5;
+		if (divisor > 10000) break; // sanity check
+	}
+	
 	// Change race
 	pRegion->race = newRace;
 
