@@ -25,40 +25,40 @@
 #include "gamedefs.h"
 
 char *dr[] = {
-  "North",
-  "Northeast",
-  "Southeast",
-  "South",
-  "Southwest",
-  "Northwest"
+	"North",
+	"Northeast",
+	"Southeast",
+	"South",
+	"Southwest",
+	"Northwest"
 };
 
 char ** DirectionStrs = dr;
 
 char *da[] = {
-    "N",
-    "NE",
-    "SE",
-    "S",
-    "SW",
-    "NW"
+	"N",
+	"NE",
+	"SE",
+	"S",
+	"SW",
+	"NW"
 };
 
 char ** DirectionAbrs = da;
 
 char *mn[] = {
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December"
+	"January",
+	"February",
+	"March",
+	"April",
+	"May",
+	"June",
+	"July",
+	"August",
+	"September",
+	"October",
+	"November",
+	"December"
 };
 
 char ** MonthNames = mn;

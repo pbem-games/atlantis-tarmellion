@@ -46,14 +46,12 @@ enum {
 	BATTLE_DRAW
 };
 
-class BattlePtr : public AListElem
-{
+class BattlePtr : public AListElem {
 	public:
 		Battle * ptr;
 };
 
-class Battle : public AListElem
-{
+class Battle : public AListElem {
 	public:
 		Battle();
 		~Battle();

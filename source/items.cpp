@@ -42,14 +42,12 @@ AString AttType(int atype) {
 	}
 }
 
-static AString DefType(int atype)
-{
-	if(atype == NUM_ATTACK_TYPES) return AString("all");
+static AString DefType(int atype) {
+	if (atype == NUM_ATTACK_TYPES) return AString("all");
 	return AttType(atype);
 }
 
-int ParseAllItems(AString *token)
-{
+int ParseAllItems(AString *token) {
 	int r = -1;
 	for(int i = 0; i < NITEMS; i++) {
 		if ((ItemDefs[i].type & IT_MONSTER) &&
@@ -72,11 +70,10 @@ int ParseAllItems(AString *token)
 	return r;
 }
 
-int ParseEnabledItem(AString * token)
-{
+int ParseEnabledItem(AString * token) {
 	int r = -1;
 	for (int i=0; i<NITEMS; i++) {
-		if(ItemDefs[i].flags & ItemType::DISABLED) continue;
+		if (ItemDefs[i].flags & ItemType::DISABLED) continue;
 		if ((ItemDefs[i].type & IT_MONSTER) &&
 				ItemDefs[i].index == MONSTER_ILLUSION) {
 			if ((*token == (AString("i") + ItemDefs[i].name)) ||
@@ -94,18 +91,15 @@ int ParseEnabledItem(AString * token)
 			}
 		}
 	}
-	if(r != -1) {
-		if(ItemDefs[r].flags & ItemType::DISABLED) r = -1;
-	}
+	if (r != -1) if (ItemDefs[r].flags & ItemType::DISABLED) r = -1;
 	return r;
 }
 
-int ParseGiveableItem(AString * token)
-{
+int ParseGiveableItem(AString * token) {
 	int r = -1;
 	for (int i=0; i<NITEMS; i++) {
-		if(ItemDefs[i].flags & ItemType::DISABLED) continue;
-		if(ItemDefs[i].flags & ItemType::CANTGIVE) continue;
+		if (ItemDefs[i].flags & ItemType::DISABLED) continue;
+		if (ItemDefs[i].flags & ItemType::CANTGIVE) continue;
 		if ((ItemDefs[i].type & IT_MONSTER) &&
 				ItemDefs[i].index == MONSTER_ILLUSION) {
 			if ((*token == (AString("i") + ItemDefs[i].name)) ||
@@ -123,16 +117,13 @@ int ParseGiveableItem(AString * token)
 			}
 		}
 	}
-	if(r != -1) {
-		if(ItemDefs[r].flags & ItemType::DISABLED) r = -1;
-	}
+	if (r != -1) if (ItemDefs[r].flags & ItemType::DISABLED) r = -1;
 	return r;
 }
 
-int ParseBattleItem(int item)
-{
+int ParseBattleItem(int item) {
 	for(int i = 0; i < NUMBATTLEITEMS; i++) {
-		if(item == BattleItemDefs[i].itemNum) return i;
+		if (item == BattleItemDefs[i].itemNum) return i;
 	}
 	return -1;
 }
@@ -153,33 +144,32 @@ AString ItemString(int type, int num) {
 	return temp;
 }
 
-static AString EffectStr(int effect)
-{
+static AString EffectStr(int effect) {
 	AString temp, temp2;
 	int comma = 0;
 	int i;
 
 	temp += EffectDefs[effect].name;
 
-	if(EffectDefs[effect].attackVal) {
+	if (EffectDefs[effect].attackVal) {
 		temp2 += AString(EffectDefs[effect].attackVal) + " to attack";
 		comma = 1;
 	}
 
 	for(i = 0; i < 4; i++) {
-		if(EffectDefs[effect].defMods[i].type == -1) continue;
-		if(comma) temp2 += ", ";
+		if (EffectDefs[effect].defMods[i].type == -1) continue;
+		if (comma) temp2 += ", ";
 		temp2 += AString(EffectDefs[effect].defMods[i].val) + " versus " +
 			DefType(EffectDefs[effect].defMods[i].type) + " attacks";
 		comma = 1;
 	}
 
-	if(comma) {
+	if (comma) {
 		temp += AString(" (") + temp2 + ")";
 	}
 
-	if(comma) {
-		if(EffectDefs[effect].flags & EffectType::EFF_ONESHOT) {
+	if (comma) {
+		if (EffectDefs[effect].flags & EffectType::EFF_ONESHOT) {
 			temp += " for their next attack";
 		} else {
 			temp += " for the rest of the battle";
@@ -187,8 +177,8 @@ static AString EffectStr(int effect)
 	}
 	temp += ".";
 
-	if(EffectDefs[effect].cancelEffect != -1) {
-		if(comma) temp += " ";
+	if (EffectDefs[effect].cancelEffect != -1) {
+		if (comma) temp += " ";
 		temp += AString("This effect cancels out the effects of ") +
 			EffectDefs[EffectDefs[effect].cancelEffect].name + ".";
 	}
@@ -202,20 +192,20 @@ AString ShowSpecial(int special, int level, int expandLevel, int fromItem) {
 	int last = -1;
 	int val;
 
-	if(special < 0 || special > (NUMSPECIALS-1)) special = 0;
+	if (special < 0 || special > (NUMSPECIALS-1)) special = 0;
 	SpecialType *spd = &SpecialDefs[special];
 	temp += spd->specialname;
 	temp += AString(" in battle");
-	if(expandLevel)
+	if (expandLevel)
 		temp += AString(" at a skill level of ") + level;
 	temp += ".";
 	if (fromItem)
 		temp += " This ability only affects the possessor of the item.";
 
-	if((spd->targflags & SpecialType::HIT_BUILDINGIF) ||
+	if ((spd->targflags & SpecialType::HIT_BUILDINGIF) ||
 			(spd->targflags & SpecialType::HIT_BUILDINGEXCEPT)) {
 		temp += " This ability will ";
-		if(spd->targflags & SpecialType::HIT_BUILDINGEXCEPT) {
+		if (spd->targflags & SpecialType::HIT_BUILDINGEXCEPT) {
 			temp += "not ";
 		} else {
 			temp += "only ";
@@ -223,10 +213,10 @@ AString ShowSpecial(int special, int level, int expandLevel, int fromItem) {
 
 		temp += "target units which are inside the following structures: ";
 		for(i = 0; i < 3; i++) {
-			if(spd->buildings[i] == -1) continue;
-			if(ObjectDefs[spd->buildings[i]].flags & ObjectType::DISABLED)
+			if (spd->buildings[i] == -1) continue;
+			if (ObjectDefs[spd->buildings[i]].flags & ObjectType::DISABLED)
 				continue;
-			if(last == -1) {
+			if (last == -1) {
 				last = i;
 				continue;
 			}
@@ -234,33 +224,33 @@ AString ShowSpecial(int special, int level, int expandLevel, int fromItem) {
 			last = i;
 			comma++;
 		}
-		if(comma) {
+		if (comma) {
 			temp += "or ";
 		}
 		temp += AString(ObjectDefs[spd->buildings[last]].name) + ".";
 	}
-	if((spd->targflags & SpecialType::HIT_SOLDIERIF) ||
+	if ((spd->targflags & SpecialType::HIT_SOLDIERIF) ||
 			(spd->targflags & SpecialType::HIT_SOLDIEREXCEPT) ||
 			(spd->targflags & SpecialType::HIT_MOUNTIF) ||
 			(spd->targflags & SpecialType::HIT_MOUNTEXCEPT)) {
 		temp += " This ability will ";
-		if((spd->targflags & SpecialType::HIT_SOLDIEREXCEPT) ||
+		if ((spd->targflags & SpecialType::HIT_SOLDIEREXCEPT) ||
 				(spd->targflags & SpecialType::HIT_MOUNTEXCEPT)) {
 			temp += "not ";
 		} else {
 			temp += "only ";
 		}
 		temp += "target ";
-		if((spd->targflags & SpecialType::HIT_MOUNTIF) ||
+		if ((spd->targflags & SpecialType::HIT_MOUNTIF) ||
 				(spd->targflags & SpecialType::HIT_MOUNTEXCEPT)) {
 			temp += "units mounted on ";
 		}
 		comma = 0;
 		last = -1;
 		for(i = 0; i < 7; i++) {
-			if(spd->targets[i] == -1) continue;
-			if(ItemDefs[spd->targets[i]].flags & ItemType::DISABLED) continue;
-			if(last == -1) {
+			if (spd->targets[i] == -1) continue;
+			if (ItemDefs[spd->targets[i]].flags & ItemType::DISABLED) continue;
+			if (last == -1) {
 				last = i;
 				continue;
 			}
@@ -269,16 +259,16 @@ AString ShowSpecial(int special, int level, int expandLevel, int fromItem) {
 			last = i;
 			comma++;
 		}
-		if(comma) {
+		if (comma) {
 			temp += "or ";
 		}
 		temp += AString(ItemDefs[spd->targets[last]].names) + " [" +
 			ItemDefs[spd->targets[last]].abr + "].";
 	}
-	if((spd->targflags & SpecialType::HIT_EFFECTIF) ||
+	if ((spd->targflags & SpecialType::HIT_EFFECTIF) ||
 			(spd->targflags & SpecialType::HIT_EFFECTEXCEPT)) {
 		temp += " This ability will ";
-		if(spd->targflags & SpecialType::HIT_EFFECTEXCEPT) {
+		if (spd->targflags & SpecialType::HIT_EFFECTEXCEPT) {
 			temp += "not ";
 		} else {
 			temp += "only ";
@@ -286,8 +276,8 @@ AString ShowSpecial(int special, int level, int expandLevel, int fromItem) {
 		temp += "target creatures which are currently affected by ";
 		last = -1;
 		for(i = 0; i < 3; i++) {
-			if(spd->effects[i] == -1) continue;
-			if(last == -1) {
+			if (spd->effects[i] == -1) continue;
+			if (last == -1) {
 				last = i;
 				continue;
 			}
@@ -295,29 +285,29 @@ AString ShowSpecial(int special, int level, int expandLevel, int fromItem) {
 			last = i;
 			comma++;
 		}
-		if(comma) {
+		if (comma) {
 			temp += "or ";
 		}
 		temp += AString(EffectDefs[spd->effects[last]].name) + ".";
 	}
-	if(spd->targflags & SpecialType::HIT_ILLUSION) {
+	if (spd->targflags & SpecialType::HIT_ILLUSION) {
 		temp += " This ability will only target illusions.";
 	}
-	if(spd->targflags & SpecialType::HIT_NOMONSTER) {
+	if (spd->targflags & SpecialType::HIT_NOMONSTER) {
 		temp += " This ability cannot target monsters.";
 	}
-	if(spd->effectflags & SpecialType::FX_NOBUILDING) {
+	if (spd->effectflags & SpecialType::FX_NOBUILDING) {
 		temp += AString(" The bonus given to units inside buildings is ") +
 			"not effective against this ability.";
 	}
 
-	if(spd->effectflags & SpecialType::FX_SHIELD) {
+	if (spd->effectflags & SpecialType::FX_SHIELD) {
 		temp += " This ability provides a shield against all ";
 		comma = 0;
 		last = -1;
 		for(i = 0; i < 4; i++) {
-			if(spd->shield[i] == -1) continue;
-			if(last == -1) {
+			if (spd->shield[i] == -1) continue;
+			if (last == -1) {
 				last = i;
 				continue;
 			}
@@ -325,30 +315,30 @@ AString ShowSpecial(int special, int level, int expandLevel, int fromItem) {
 			last = i;
 			comma++;
 		}
-		if(comma) {
+		if (comma) {
 			temp += "and ";
 		}
 		temp += DefType(spd->shield[last]) + " attacks against the entire" +
 			" army at a level equal to the skill level of the ability.";
 	}
-	if(spd->effectflags & SpecialType::FX_DEFBONUS) {
+	if (spd->effectflags & SpecialType::FX_DEFBONUS) {
 		temp += " This ability provides ";
 		comma = 0;
 		last = -1;
 		for(i = 0; i < 4; i++) {
-			if(spd->defs[i].type == -1) continue;
-			if(last == -1) {
+			if (spd->defs[i].type == -1) continue;
+			if (last == -1) {
 				last = i;
 				continue;
 			}
 			val = spd->defs[last].val;
-			if(expandLevel) {
-				if(spd->effectflags & SpecialType::FX_USE_LEV)
+			if (expandLevel) {
+				if (spd->effectflags & SpecialType::FX_USE_LEV)
 					val *= level;
 			}
 
 			temp += AString("a defensive bonus of ") + val;
-			if(!expandLevel) {
+			if (!expandLevel) {
 				temp += " per skill level";
 			}
 			temp += AString(" versus ") + DefType(spd->defs[last].type) +
@@ -356,16 +346,16 @@ AString ShowSpecial(int special, int level, int expandLevel, int fromItem) {
 			last = i;
 			comma++;
 		}
-		if(comma) {
+		if (comma) {
 			temp += "and ";
 		}
 		val = spd->defs[last].val;
-		if(expandLevel) {
-			if(spd->effectflags & SpecialType::FX_USE_LEV)
+		if (expandLevel) {
+			if (spd->effectflags & SpecialType::FX_USE_LEV)
 				val *= level;
 		}
 		temp += AString("a defensive bonus of ") + val;
-		if(!expandLevel) {
+		if (!expandLevel) {
 			temp += " per skill level";
 		}
 		temp += AString(" versus ") + DefType(spd->defs[last].type) +
@@ -375,20 +365,20 @@ AString ShowSpecial(int special, int level, int expandLevel, int fromItem) {
 
 	/* Now the damages */
 	for(i = 0; i < 4; i++) {
-		if(spd->damage[i].type == -1) continue;
+		if (spd->damage[i].type == -1) continue;
 		temp += AString(" This ability does between ") +
 			spd->damage[i].minnum + " and ";
 		val = spd->damage[i].value * 2;
-		if(expandLevel) {
-			if(spd->effectflags & SpecialType::FX_USE_LEV)
+		if (expandLevel) {
+			if (spd->effectflags & SpecialType::FX_USE_LEV)
 				val *= level;
 		}
 		temp += AString(val);
-		if(!expandLevel) {
+		if (!expandLevel) {
 			temp += " times the skill level of the mage";
 		}
 		temp += AString(" ") + AttType(spd->damage[i].type) + " attacks.";
-		if(spd->damage[i].effect) {
+		if (spd->damage[i].effect) {
 			temp += " Each attack causes the target to be effected by ";
 			temp += EffectStr(spd->damage[i].effect);
 		}
@@ -397,17 +387,16 @@ AString ShowSpecial(int special, int level, int expandLevel, int fromItem) {
 	return temp;
 }
 
-static AString MonResist(int type, int val, int full)
-{
+static AString MonResist(int type, int val, int full) {
 	AString temp = "This monster ";
-	if(full) {
+	if (full) {
 		temp += AString("has a resistance of ") + val;
 	} else {
 		temp += "is ";
-		if(val < 1) temp += "very susceptible";
-		else if(val == 1) temp += "susceptible";
-		else if(val > 1 && val < 3) temp += "typically resistant";
-		else if(val > 2 && val < 5) temp += "slightly resistant";
+		if (val < 1) temp += "very susceptible";
+		else if (val == 1) temp += "susceptible";
+		else if (val > 1 && val < 3) temp += "typically resistant";
+		else if (val > 2 && val < 5) temp += "slightly resistant";
 		else temp += "very resistant";
 	}
 	temp += " to ";
@@ -416,8 +405,7 @@ static AString MonResist(int type, int val, int full)
     return temp;
 }
 
-static AString WeapClass(int wclass)
-{
+static AString WeapClass(int wclass) {
 	switch(wclass) {
 		case SLASHING: return AString("slashing");
 		case PIERCING: return AString("piercing");
@@ -431,12 +419,11 @@ static AString WeapClass(int wclass)
 	}
 }
 
-static AString WeapType(int flags, int wclass)
-{
+static AString WeapType(int flags, int wclass) {
 	AString type;
-	if(flags & WeaponType::RANGED) type = "ranged";
-	if(flags & WeaponType::LONG) type = "long";
-	if(flags & WeaponType::SHORT) type = "short";
+	if (flags & WeaponType::RANGED) type = "ranged";
+	if (flags & WeaponType::LONG) type = "long";
+	if (flags & WeaponType::SHORT) type = "short";
 	type += " ";
 	type += WeapClass(wclass);
 	return type;
@@ -445,7 +432,7 @@ static AString WeapType(int flags, int wclass)
 AString *ItemDescription(int item, int full) {
 	int i;
 
-	if(ItemDefs[item].flags & ItemType::DISABLED)
+	if (ItemDefs[item].flags & ItemType::DISABLED)
 		return NULL;
 
 	AString *temp = new AString;
@@ -458,17 +445,17 @@ AString *ItemDescription(int item, int full) {
 
 	if (ItemDefs[item].walk) {
 		int cap = ItemDefs[item].walk - ItemDefs[item].weight;
-		if(cap) {
+		if (cap) {
 			*temp += AString(", walking capacity ") + cap;
 		} else {
 			*temp += ", can walk";
 		}
 	}
-	if((ItemDefs[item].hitchItem != -1 )&&
+	if ((ItemDefs[item].hitchItem != -1)&&
 			!(ItemDefs[ItemDefs[item].hitchItem].flags & ItemType::DISABLED)) {
 		int cap = ItemDefs[item].walk - ItemDefs[item].weight +
 			ItemDefs[item].hitchwalk;
-		if(cap) {
+		if (cap) {
 			*temp += AString(", walking capacity ") + cap +
 				" when hitched to a " +
 				ItemDefs[ItemDefs[item].hitchItem].name;
@@ -476,7 +463,7 @@ AString *ItemDescription(int item, int full) {
 	}
 	if (ItemDefs[item].ride) {
 		int cap = ItemDefs[item].ride - ItemDefs[item].weight;
-		if(cap) {
+		if (cap) {
 			*temp += AString(", riding capacity ") + cap;
 		} else {
 			*temp += ", can ride";
@@ -484,7 +471,7 @@ AString *ItemDescription(int item, int full) {
 	}
 	if (ItemDefs[item].swim) {
 		int cap = ItemDefs[item].swim - ItemDefs[item].weight;
-		if(cap) {
+		if (cap) {
 			*temp += AString(", swimming capacity ") + cap;
 		} else {
 			*temp += ", can swim";
@@ -492,15 +479,15 @@ AString *ItemDescription(int item, int full) {
 	}
 	if (ItemDefs[item].fly) {
 		int cap = ItemDefs[item].fly - ItemDefs[item].weight;
-		if(cap) {
+		if (cap) {
 			*temp += AString(", flying capacity ") + cap;
 		} else {
 			*temp += ", can fly";
 		}
 	}
 
-	if(Globals->ALLOW_WITHDRAW) {
-		if(ItemDefs[item].type & IT_NORMAL && item != I_SILVER) {
+	if (Globals->ALLOW_WITHDRAW) {
+		if (ItemDefs[item].type & IT_NORMAL && item != I_SILVER) {
 			*temp += AString(", costs ") + (ItemDefs[item].baseprice*5/2) +
 				" silver to withdraw";
 		}
@@ -514,7 +501,7 @@ AString *ItemDescription(int item, int full) {
 	}
 	*temp += ".";
 
-	if(ItemDefs[item].type & IT_MAN) {
+	if (ItemDefs[item].type & IT_MAN) {
 		int man = ItemDefs[item].index;
 		if (ManDefs[man].flags & ManType::LEADER) {
 		  *temp += " This race may study multiple skills.";
@@ -527,11 +514,11 @@ AString *ItemDescription(int item, int full) {
 		int first = 1;
 		for(c = 0; c < len; c++) {
 			int skill = ManDefs[man].specialskills[c];
-			if(skill != -1) {
-				if(SkillDefs[skill].flags & SkillType::DISABLED) continue;
-				if(!first) *temp += ", ";
+			if (skill != -1) {
+				if (SkillDefs[skill].flags & SkillType::DISABLED) continue;
+				if (!first) *temp += ", ";
 				int end = (c == len -1 || (c < len -1 && ManDefs[man].speciallevel[c] != ManDefs[man].speciallevel[c+1]) ? 1 : 0);
-				if(!first && end) *temp += "and ";
+				if (!first && end) *temp += "and ";
 				found = 1;
 				first = 0;
 				*temp += SkillStrs(ManDefs[man].specialskills[c]);
@@ -546,7 +533,7 @@ AString *ItemDescription(int item, int full) {
 				}
 			}
 		}
-		if(found) {
+		if (found) {
 			*temp += AString("all other non-magic skills can be studied to level ") + ManDefs[man].defaultlevel;
 			*temp += AString(" and other magic skills to level ") + ManDefs[man].defaultmagiclevel + ".";
 		} else {
@@ -554,7 +541,7 @@ AString *ItemDescription(int item, int full) {
 				ManDefs[man].defaultlevel;
 		}
 	}
-	if(ItemDefs[item].type & IT_MONSTER) {
+	if (ItemDefs[item].type & IT_MONSTER) {
 		*temp += " This is a monster.";
 		int mon = ItemDefs[item].index;
 		*temp += AString(" This monster attacks with a combat skill of ") +
@@ -562,18 +549,18 @@ AString *ItemDescription(int item, int full) {
 		for(int c = 0; c < NUM_ATTACK_TYPES; c++) {
 			*temp += AString(" ") + MonResist(c,MonDefs[mon].defense[c], full);
 		}
-		if(MonDefs[mon].special && MonDefs[mon].special != -1) {
+		if (MonDefs[mon].special && MonDefs[mon].special != -1) {
 			*temp += AString(" ") +
 				"Monster can cast " +
 				ShowSpecial(MonDefs[mon].special, MonDefs[mon].specialLevel,
 						1, 0);
 		}
-		if(full) {
+		if (full) {
 			int hits = MonDefs[mon].hits;
 			int atts = MonDefs[mon].numAttacks;
 			int regen = MonDefs[mon].regen;
-			if(!hits) hits = 1;
-			if(!atts) atts = 1;
+			if (!hits) hits = 1;
+			if (!atts) atts = 1;
 			*temp += AString(" This monster has ") + atts + " melee " +
 				((atts > 1)?"attacks":"attack") + " per round and takes " +
 				hits + " " + ((hits > 1)?"hits":"hit") + " to kill.";
@@ -587,44 +574,54 @@ AString *ItemDescription(int item, int full) {
 				MonDefs[mon].obs + ".";
 		}
 		*temp += " This monster might have ";
-		if(MonDefs[mon].spoiltype != -1) {
-			if(MonDefs[mon].spoiltype & IT_MAGIC) {
+		if (MonDefs[mon].spoiltype != -1) {
+			if (MonDefs[mon].spoiltype & IT_MAGIC) {
 				*temp += "magic items and ";
-			} else if(MonDefs[mon].spoiltype & IT_ADVANCED) {
+			} else if (MonDefs[mon].spoiltype & IT_ADVANCED) {
 				*temp += "advanced items and ";
-			} else if(MonDefs[mon].spoiltype & IT_NORMAL) {
+			} else if (MonDefs[mon].spoiltype & IT_NORMAL) {
 				*temp += "normal or trade items and ";
+			} else if(MonDefs[mon].spoiltype & IT_QUEST) {
+				*temp += "quest items and ";
+			} else if(MonDefs[mon].spoiltype & IT_MONKEEP) {
+				*temp += "rare items and ";
 			}
 		}
 		*temp += "silver as treasure.";
 	}
 
-	if(ItemDefs[item].type & IT_WEAPON) {
+	if(ItemDefs[item].type & IT_QUEST) {
+		*temp += " This is a quest item.";
+	}
+
+	if (ItemDefs[item].type & IT_WEAPON) {
 		int wep = ItemDefs[item].index;
 		WeaponType *pW = &WeaponDefs[wep];
 		*temp += " This is a ";
 		*temp += WeapType(pW->flags, pW->weapClass) + " weapon.";
-		if(pW->flags & WeaponType::NEEDSKILL) {
+		if (pW->flags & WeaponType::NEEDSKILL) {
 			*temp += AString(" Knowledge of ") + SkillStrs(pW->baseSkill);
-			if(pW->orSkill != -1)
+			if (pW->orSkill != -1)
 				*temp += AString(" or ") + SkillStrs(pW->orSkill);
 			*temp += " is needed to wield this weapon.";
 		} else {
-			if(pW->baseSkill == -1 && pW->orSkill == -1)
+			if (pW->baseSkill == -1 && pW->orSkill == -1)
 				*temp += " No skill is needed to wield this weapon.";
 		}
+		if(pW->flags & WeaponType::TWOHANDED)
+			*temp += " No shield can be used with this weapon.";
 
 		int flag = 0;
-		if(pW->attackBonus != 0) {
+		if (pW->attackBonus != 0) {
 			*temp += " This weapon grants a ";
 			*temp += ((pW->attackBonus > 0) ? "bonus of " : "penalty of ");
 			*temp += abs(pW->attackBonus);
 			*temp += " on attack";
 			flag = 1;
 		}
-		if(pW->defenseBonus != 0) {
-			if(flag) {
-				if(pW->attackBonus == pW->defenseBonus) {
+		if (pW->defenseBonus != 0) {
+			if (flag) {
+				if (pW->attackBonus == pW->defenseBonus) {
 					*temp += " and defense.";
 					flag = 0;
 				} else {
@@ -634,17 +631,17 @@ AString *ItemDescription(int item, int full) {
 				*temp += " This weapon grants a ";
 				flag = 1;
 			}
-			if(flag) {
+			if (flag) {
 				*temp += ((pW->defenseBonus > 0)?"bonus of ":"penalty of ");
 				*temp += abs(pW->defenseBonus);
 				*temp += " on defense.";
 				flag = 0;
 			}
 		}
-		if(flag) *temp += ".";
-		if(pW->mountBonus && full) {
+		if (flag) *temp += ".";
+		if (pW->mountBonus && full) {
 			*temp += " This weapon ";
-			if(pW->attackBonus != 0 || pW->defenseBonus != 0)
+			if (pW->attackBonus != 0 || pW->defenseBonus != 0)
 				*temp += "also ";
 			*temp += "grants a ";
 			*temp += ((pW->mountBonus > 0)?"bonus of ":"penalty of ");
@@ -652,29 +649,29 @@ AString *ItemDescription(int item, int full) {
 			*temp += " against mounted opponents.";
 		}
 
-		if(pW->flags & WeaponType::NOFOOT)
+		if (pW->flags & WeaponType::NOFOOT)
 			*temp += " Only mounted troops may use this weapon.";
-		else if(pW->flags & WeaponType::NOMOUNT)
+		else if (pW->flags & WeaponType::NOMOUNT)
 			*temp += " Only foot troops may use this weapon.";
 
-		if(pW->flags & WeaponType::RIDINGBONUS) {
+		if (pW->flags & WeaponType::RIDINGBONUS) {
 			*temp += " Wielders of this weapon, if mounted, get their riding "
 				"skill bonus on combat attack and defense.";
-		} else if(pW->flags & WeaponType::RIDINGBONUSDEFENSE) {
+		} else if (pW->flags & WeaponType::RIDINGBONUSDEFENSE) {
 			*temp += " Wielders of this weapon, if mounted, get their riding "
 				"skill bonus on combat defense.";
 		}
 
-		if(pW->flags & WeaponType::NODEFENSE) {
+		if (pW->flags & WeaponType::NODEFENSE) {
 			*temp += " Defenders are treated as if they have an "
 				"effective combat skill of 0.";
 		}
 
-		if(pW->flags & WeaponType::NOATTACKERSKILL) {
+		if (pW->flags & WeaponType::NOATTACKERSKILL) {
 			*temp += " Attackers do not get skill bonus on defense.";
 		}
 
-		if(pW->flags & WeaponType::ALWAYSREADY) {
+		if (pW->flags & WeaponType::ALWAYSREADY) {
 			*temp += " Wielders of this weapon never miss a round to ready "
 				"their weapon.";
 		} else {
@@ -682,16 +679,16 @@ AString *ItemDescription(int item, int full) {
 				"gets a chance to attack in any given round.";
 		}
 
-		if(full) {
+		if (full) {
 			int atts = pW->numAttacks;
 			*temp += AString(" This weapon attacks versus the target's ") +
 				"defense against " + AttType(pW->attackType) + " attacks.";
 			*temp += AString(" This weapon allows ");
-			if(atts > 0) {
-				if(atts >= WeaponType::NUM_ATTACKS_HALF_SKILL) {
+			if (atts > 0) {
+				if (atts >= WeaponType::NUM_ATTACKS_HALF_SKILL) {
 					int max = WeaponType::NUM_ATTACKS_HALF_SKILL;
 					char *attd = "half the skill level (rounded up)";
-					if(atts >= WeaponType::NUM_ATTACKS_SKILL) {
+					if (atts >= WeaponType::NUM_ATTACKS_SKILL) {
 						max = WeaponType::NUM_ATTACKS_SKILL;
 						attd = "the skill level";
 					}
@@ -699,7 +696,7 @@ AString *ItemDescription(int item, int full) {
 					*temp += attd;
 					*temp += " of the attacker";
 					int val = atts - max;
-					if(val > 0) *temp += AString(" plus ") + val;
+					if (val > 0) *temp += AString(" plus ") + val;
 				} else {
 					*temp += AString(atts) + ((atts==1)?" attack ":" attacks");
 				}
@@ -707,25 +704,28 @@ AString *ItemDescription(int item, int full) {
 			} else {
 				atts = -atts;
 				*temp += "1 attack every ";
-				if(atts == 1) *temp += "round .";
+				if (atts == 1) *temp += "round .";
 				else *temp += AString(atts) + " rounds.";
 			}
-			if(pW->flags & WeaponType::USEINASSASSINATE) {
+			if (pW->flags & WeaponType::USEINASSASSINATE) {
 				*temp += " This weapon may be used during assassination "
 					"attempts.";
 			}
 		}
 	}
 
-	if(ItemDefs[item].type & IT_ARMOR) {
-		*temp += " This is a type of armor.";
+	if (ItemDefs[item].type & IT_ARMOR) {
 		int arm = ItemDefs[item].index;
 		ArmorType *pA = &ArmorDefs[arm];
+		if (pA->flags & ArmorType::SHIELD)
+			*temp += " This is a type of shield.";
+		else
+			*temp += " This is a type of armor.";
 		*temp += " This armor will protect its wearer ";
 		for(i = 0; i < NUM_WEAPON_CLASSES; i++) {
-			if(i == NUM_WEAPON_CLASSES - 1) {
+			if (i == NUM_WEAPON_CLASSES - 1) {
 				*temp += ", and ";
-			} else if(i > 0) {
+			} else if (i > 0) {
 				*temp += ", ";
 			}
 			int percent = (int)(((float)pA->saves[i]*100.0) /
@@ -734,31 +734,31 @@ AString *ItemDescription(int item, int full) {
 				WeapClass(i) + " attacks";
 		}
 		*temp += ".";
-		if(full) {
-			if(pA->flags & ArmorType::USEINASSASSINATE) {
+		if (full) {
+			if (pA->flags & ArmorType::USEINASSASSINATE) {
 				*temp += " This armor may be worn during assassination "
 					"attempts.";
 			}
 		}
 	}
 
-	if(ItemDefs[item].type & IT_TOOL) {
+	if (ItemDefs[item].type & IT_TOOL) {
 //		int comma = 0;
 //		int last = -1;
 		*temp += " This is a tool.";
 // 		for(i = NITEMS - 1; i > 0; i--) {
-// 			if(ItemDefs[i].flags & ItemType::DISABLED) continue;
-// 			if(ItemDefs[i].mult_item == item) {
+// 			if (ItemDefs[i].flags & ItemType::DISABLED) continue;
+// 			if (ItemDefs[i].mult_item == item) {
 // 				last = i;
 // 				break;
 // 			}
 // 		}
 // 		for(i = 0; i < NITEMS; i++) {
-// 		   if(ItemDefs[i].flags & ItemType::DISABLED) continue;
-// 		   if(ItemDefs[i].mult_item == item) {
-// 			   if(comma) {
-// 				   if(last == i) {
-// 					   if(comma > 1) *temp += ",";
+// 		   if (ItemDefs[i].flags & ItemType::DISABLED) continue;
+// 		   if (ItemDefs[i].mult_item == item) {
+// 			   if (comma) {
+// 				   if (last == i) {
+// 					   if (comma > 1) *temp += ",";
 // 					   *temp += " and ";
 // 				   } else {
 // 					   *temp += ", ";
@@ -766,7 +766,7 @@ AString *ItemDescription(int item, int full) {
 // 			   } else
 // 				*temp += ". This item increases the production of ";
 // 			   comma++;
-// 			   if(i == I_SILVER) {
+// 			   if (i == I_SILVER) {
 // 				   *temp += "entertainment";
 // 			   } else {
 // 				   *temp += ItemDefs[i].names;
@@ -779,18 +779,18 @@ AString *ItemDescription(int item, int full) {
 // 		comma = 0;
 // 		last = -1;
 // 		for(i = NOBJECTS - 1; i > 0; i--) {
-// 			if(ObjectDefs[i].flags & ObjectType::DISABLED) continue;
-// 			if(ObjectDefs[i].mult_item == item) {
+// 			if (ObjectDefs[i].flags & ObjectType::DISABLED) continue;
+// 			if (ObjectDefs[i].mult_item == item) {
 // 				last = i;
 // 				break;
 // 			}
 // 		}
 // 		for(i = 0; i < NOBJECTS; i++) {
-// 		   if(ObjectDefs[i].flags & ObjectType::DISABLED) continue;
-// 		   if(ObjectDefs[i].mult_item == item) {
-// 			   if(comma) {
-// 				   if(last == i) {
-// 					   if(comma > 1) *temp += ",";
+// 		   if (ObjectDefs[i].flags & ObjectType::DISABLED) continue;
+// 		   if (ObjectDefs[i].mult_item == item) {
+// 			   if (comma) {
+// 				   if (last == i) {
+// 					   if (comma > 1) *temp += ",";
 // 					   *temp += " and ";
 // 				   } else {
 // 					   *temp += ", ";
@@ -807,12 +807,12 @@ AString *ItemDescription(int item, int full) {
 		// fSharky
 	}
 	
-	if(ItemDefs[item].type & IT_TRADE) {
+	if (ItemDefs[item].type & IT_TRADE) {
 		*temp += " This is a trade good.";
-		if(full) {
-			if(Globals->RANDOM_ECONOMY) {
+		if (full) {
+			if (Globals->RANDOM_ECONOMY) {
 				int maxbuy, minbuy, maxsell, minsell;
-				if(Globals->MORE_PROFITABLE_TRADE_GOODS) {
+				if (Globals->MORE_PROFITABLE_TRADE_GOODS) {
 					minsell = (ItemDefs[item].baseprice*250)/100;
 					maxsell = (ItemDefs[item].baseprice*350)/100;
 					minbuy = (ItemDefs[item].baseprice*100)/100;
@@ -834,13 +834,13 @@ AString *ItemDescription(int item, int full) {
 		}
 	}
 
-	if(ItemDefs[item].type & IT_MOUNT) {
+	if (ItemDefs[item].type & IT_MOUNT) {
 		*temp += " This is a mount.";
 		int mnt = ItemDefs[item].index;
 		MountType *pM = &MountDefs[mnt];
-		if(pM->skill == -1) {
+		if (pM->skill == -1) {
 			*temp += " No skill is required to use this mount.";
-		} else if(SkillDefs[pM->skill].flags & SkillType::DISABLED) {
+		} else if (SkillDefs[pM->skill].flags & SkillType::DISABLED) {
 			*temp += " This mount is unridable.";
 		} else {
 			*temp += AString(" This mount requires ") + SkillStrs(pM->skill) +
@@ -850,43 +850,43 @@ AString *ItemDescription(int item, int full) {
 			pM->minBonus + " when ridden into combat.";
 		*temp += AString(" This mount gives a maximum bonus of +") +
 			pM->maxBonus + " when ridden into combat.";
-		if(full) {
-			if(ItemDefs[item].fly) {
+		if (full) {
+			if (ItemDefs[item].fly) {
 				*temp += AString(" This mount gives a maximum bonus of +") +
 					pM->maxHamperedBonus + " when ridden into combat in " +
 					"terrain which allows ridden mounts but not flying "+
 					"mounts.";
 			}
-			if(pM->mountSpecial != -1) {
+			if (pM->mountSpecial != -1) {
 				*temp += AString(" When ridden, this mount causes ") +
 					ShowSpecial(pM->mountSpecial, pM->specialLev, 1, 0);
 			}
 		}
 	}
 
-	if(ItemDefs[item].attributes & ItemType::CAN_CONSUME) {
+	if (ItemDefs[item].attributes & ItemType::CAN_CONSUME) {
 	  *temp += AString(" Can be consumed for maintenance.");
 	}
-	if(ItemDefs[item].attributes & ItemType::CAN_HEAL) {
+	if (ItemDefs[item].attributes & ItemType::CAN_HEAL) {
 	  *temp += AString(" Can be used to heal with a ") +
 	    ItemDefs[item].pValue + AString("% chance.");
 	}
-	if(ItemDefs[item].attributes & ItemType::STOP_THEFT) {
+	if (ItemDefs[item].attributes & ItemType::STOP_THEFT) {
 	  *temp += AString(" Stops attempts of theft.");
 	}
-	if(ItemDefs[item].attributes & ItemType::STOP_ASSASINATE) {
+	if (ItemDefs[item].attributes & ItemType::STOP_ASSASINATE) {
 	  *temp += AString(" Stops attempts of assasination.");
 	}
-	if(ItemDefs[item].attributes & ItemType::OBSE_BONUS) {
+	if (ItemDefs[item].attributes & ItemType::OBSE_BONUS) {
 	  *temp += AString(" Provides an observation bonus of ") +
 	    ItemDefs[item].pValue + AString(".");
 	}
-	if(ItemDefs[item].attributes & ItemType::STEA_BONUS) {
+	if (ItemDefs[item].attributes & ItemType::STEA_BONUS) {
 	  *temp += AString(" Provides a stealth bonus of ") +
 	    ItemDefs[item].pValue + AString(".");
 	}
 
-	if(ItemDefs[item].pSkill != -1 &&
+	if (ItemDefs[item].pSkill != -1 &&
 			!(SkillDefs[ItemDefs[item].pSkill].flags & SkillType::DISABLED)) {
 		unsigned int c;
 		unsigned int len;
@@ -902,16 +902,16 @@ AString *ItemDescription(int item, int full) {
 		for(c = 0; c < len; c++) {
 			int itm = ItemDefs[item].pInput[c].item;
 			int amt = ItemDefs[item].pInput[c].amt;
-			if(itm == -1 || ItemDefs[itm].flags & ItemType::DISABLED) {
+			if (itm == -1 || ItemDefs[itm].flags & ItemType::DISABLED) {
 				tot--;
 				continue;
 			}
-			if(count == 0) {
+			if (count == 0) {
 				*temp += " from ";
 				if (ItemDefs[item].flags & ItemType::ORINPUTS)
 					*temp += "any of ";
 			} else if (count == tot) {
-				if(c > 1) *temp += ",";
+				if (c > 1) *temp += ",";
 				*temp += " and ";
 			} else {
 				*temp += ", ";
@@ -919,10 +919,10 @@ AString *ItemDescription(int item, int full) {
 			count++;
 			*temp += AString(amt) + " " + ItemDefs[itm].names;
 		}
-		if(ItemDefs[item].pOut) {
+		if (ItemDefs[item].pOut) {
 			*temp += AString(" at a rate of ") + ItemDefs[item].pOut;
-			if(ItemDefs[item].pMonths) {
-				if(ItemDefs[item].pMonths == 1) {
+			if (ItemDefs[item].pMonths) {
+				if (ItemDefs[item].pMonths == 1) {
 					*temp += " per man-month.";
 				} else {
 					*temp += AString(" per ") + ItemDefs[item].pMonths +
@@ -930,12 +930,12 @@ AString *ItemDescription(int item, int full) {
 				}
 			}
 		}
-		if((ItemDefs[item].mult_item != -1) && !(ItemDefs[ItemDefs[item].mult_item].flags & ItemType::DISABLED)) {
+		if ((ItemDefs[item].mult_item != -1) && !(ItemDefs[ItemDefs[item].mult_item].flags & ItemType::DISABLED)) {
 		  *temp += AString(" Production of this item is increased by ")
 		    + ItemDefs[item].mult_val + AString(" when using ")
 		    + ItemDefs[ItemDefs[item].mult_item].names + AString(".");
 		}
-		if(ItemDefs[item].requiredstructure != -1) {
+		if (ItemDefs[item].requiredstructure != -1) {
 		  *temp += AString(" To produce this item a ") + ObjectDefs[ItemDefs[item].requiredstructure].name + " is required.";
 		}
 	}
@@ -967,7 +967,7 @@ AString *ItemDescription(int item, int full) {
 	  }
 	  *temp += ".";
 	}
-	if(ItemDefs[item].mSkill != -1 &&
+	if (ItemDefs[item].mSkill != -1 &&
 			!(SkillDefs[ItemDefs[item].mSkill].flags & SkillType::DISABLED)) {
 		unsigned int c;
 		unsigned int len;
@@ -980,14 +980,14 @@ AString *ItemDescription(int item, int full) {
 		for(c = 0; c < len; c++) {
 			int itm = ItemDefs[item].mInput[c].item;
 			int amt = ItemDefs[item].mInput[c].amt;
-			if(itm == -1 || ItemDefs[itm].flags & ItemType::DISABLED) {
+			if (itm == -1 || ItemDefs[itm].flags & ItemType::DISABLED) {
 				tot--;
 				continue;
 			}
-			if(count == 0) {
+			if (count == 0) {
 				*temp += " at a cost of ";
 			} else if (count == tot) {
-				if(c > 1) *temp += ",";
+				if (c > 1) *temp += ",";
 				*temp += " and ";
 			} else {
 				*temp += ", ";
@@ -998,13 +998,13 @@ AString *ItemDescription(int item, int full) {
 		*temp += ".";
 	}
 
-	if((ItemDefs[item].type & IT_BATTLE) && full) {
+	if ((ItemDefs[item].type & IT_BATTLE) && full) {
 		*temp += " This item is a miscellaneous combat item.";
 		for(i = 0; i < NUMBATTLEITEMS; i++) {
-			if(BattleItemDefs[i].itemNum == item) {
-				if(BattleItemDefs[i].flags & BattleItemType::MAGEONLY) {
+			if (BattleItemDefs[i].itemNum == item) {
+				if (BattleItemDefs[i].flags & BattleItemType::MAGEONLY) {
 					*temp += " This item may only be used by a mage";
-					if(Globals->APPRENTICES_EXIST) {
+					if (Globals->APPRENTICES_EXIST) {
 						*temp += " or an apprentice";
 					}
 					*temp += ".";
@@ -1015,27 +1015,24 @@ AString *ItemDescription(int item, int full) {
 			}
 		}
 	}
-	if((ItemDefs[item].flags & ItemType::CANTGIVE) && full) {
+	if ((ItemDefs[item].flags & ItemType::CANTGIVE) && full) {
 		*temp += " This item cannot be given to other units.";
 	}
 
 	return temp;
 }
 
-int IsSoldier(int item)
-{
+int IsSoldier(int item) {
 	if (ItemDefs[item].type & IT_MAN || ItemDefs[item].type & IT_MONSTER)
 		return 1;
 	return 0;
 }
 
-Item::Item()
-{
+Item::Item() {
 	selling = 0;
 }
 
-Item::~Item()
-{
+Item::~Item() {
 }
 
 AString Item::Report(int seeillusions) {
@@ -1076,8 +1073,7 @@ void ItemList::Readin(Ainfile * f) {
 	}
 }
 
-int ItemList::GetNum(int t)
-{
+int ItemList::GetNum(int t) {
 	forlist(this) {
 		Item * i = (Item *) elem;
 		if (i->type == t) return i->num;
@@ -1085,8 +1081,7 @@ int ItemList::GetNum(int t)
 	return 0;
 }
 
-int ItemList::Weight()
-{
+int ItemList::Weight() {
 	int wt = 0;
 	forlist(this) {
 		Item * i = (Item *) elem;
@@ -1095,8 +1090,7 @@ int ItemList::Weight()
 	return wt;
 }
 
-int ItemList::CanSell(int t)
-{
+int ItemList::CanSell(int t) {
 	forlist(this) {
 		Item *i = (Item *)elem;
 		if (i->type == t) return i->num - i->selling;

@@ -22,16 +22,7 @@
 // http://www.prankster.com/project
 //
 // END A3HEADER
-// MODIFICATIONS
-// Date        Person          Comments
-// ----        ------          --------
-// 2000/MAR/14 Larry Stanbery  Replaced specfic skill bonus functions with
-//                             generic function.
-//                             Added function to compute production bonus.
-// 2001/FEB/07 Joseph Traub    Changes to allow mage support for city guards.
-// 2001/Feb/18 Joseph Traub    Added support for Apprentices.
-// 2001/Feb/25 Joseph Traub    Added a flag preventing units from crossing
-//                             water.
+//
 
 #ifndef UNIT_CLASS
 #define UNIT_CLASS
@@ -111,8 +102,7 @@ class UnitPtr : public AListElem {
 };
 UnitPtr *GetUnitList(AList *, Unit *);
 
-class Unit : public AListElem
-{
+class Unit : public AListElem {
 	public:
 		Unit();
 		Unit(int,Faction *,int = 0);

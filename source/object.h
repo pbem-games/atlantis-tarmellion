@@ -22,10 +22,7 @@
 // http://www.prankster.com/project
 //
 // END A3HEADER
-// MODIFICATIONS
-// Date			Person				Comments
-// ----			------				--------
-// 2000/MAR/21	Azthar Septragen	Added roads.
+//
 #ifndef OBJECT_CLASS
 #define OBJECT_CLASS
 
@@ -90,8 +87,7 @@ int ParseObject(AString *);
 
 int ObjectIsShip(int);
 
-class Object : public AListElem
-{
+class Object : public AListElem {
 	public:
 		Object( ARegion *region );
 		~Object();

@@ -22,18 +22,13 @@
 // http://www.prankster.com/project
 //
 // END A3HEADER
-// MODIFICATONS
-// Date			Person				Comments
-// ----			------				--------
-// 2000/MAR/21	Azthar Septragen	Added roads.
 #include "object.h"
 #include "items.h"
 #include "skills.h"
 #include "gamedata.h"
 #include "unit.h"
 
-int ParseObject(AString * token)
-{
+int ParseObject(AString * token) {
 	int r = -1;
 	for (int i=O_DUMMY+1; i<NOBJECTS; i++) {
 		if (*token == ObjectDefs[i].name) {
@@ -41,20 +36,18 @@ int ParseObject(AString * token)
 			break;
 		}
 	}
-	if(r != -1) {
-		if(ObjectDefs[r].flags & ObjectType::DISABLED) r = -1;
+	if (r != -1) {
+		if (ObjectDefs[r].flags & ObjectType::DISABLED) r = -1;
 	}
 	return r;
 }
 
-int ObjectIsShip(int ot)
-{
+int ObjectIsShip(int ot) {
 	if (ObjectDefs[ot].capacity) return 1;
 	return 0;
 }
 
-Object::Object(ARegion *reg)
-{
+Object::Object(ARegion *reg) {
 	num = 0;
 	type = O_DUMMY;
 	name = new AString("Dummy");
@@ -68,24 +61,21 @@ Object::Object(ARegion *reg)
 	prevdir = -1;
 }
 
-Object::~Object()
-{
+Object::~Object() {
 	if (name) delete name;
 	if (describe) delete describe;
 	region = (ARegion *)NULL;
 }
 
-void Object::Writeout(Aoutfile *f)
-{
+void Object::Writeout(Aoutfile *f) {
 	f->PutInt(num);
 	f->PutInt(type);
 	f->PutInt(incomplete);
 	f->PutStr(*name);
-	if (describe) {
+	if (describe)
 		f->PutStr(*describe);
-	} else {
+	else
 		f->PutStr("none");
-	}
 	f->PutInt(inner);
 	f->PutInt(-1);
 	if (Globals->PREVENT_SAIL_THROUGH && !Globals->ALLOW_TRIVIAL_PORTAGE)
@@ -98,8 +88,7 @@ void Object::Writeout(Aoutfile *f)
 		((Unit *) elem)->Writeout(f);
 }
 
-void Object::Readin(Ainfile * f,AList * facs,ATL_VER v)
-{
+void Object::Readin(Ainfile * f,AList * facs,ATL_VER v) {
 	num = f->GetInt();
 	type = f->GetInt();
 	incomplete = f->GetInt();
@@ -130,11 +119,10 @@ void Object::Readin(Ainfile * f,AList * facs,ATL_VER v)
 	mages = ObjectDefs[type].maxMages;
 }
 
-void Object::SetName(AString * s)
-{
+void Object::SetName(AString * s) {
 	if (s && (CanModify())) {
 		AString * newname = s->getlegal();
-		if(!newname) {
+		if (!newname) {
 			delete s;
 			return;
 		}
@@ -145,8 +133,7 @@ void Object::SetName(AString * s)
 	}
 }
 
-void Object::SetDescribe(AString * s)
-{
+void Object::SetDescribe(AString * s) {
 	if (CanModify()) {
 		if (describe) delete describe;
 		if (s) {
@@ -157,38 +144,33 @@ void Object::SetDescribe(AString * s)
 	}
 }
 
-int Object::IsBoat()
-{
+int Object::IsBoat() {
 	if (ObjectDefs[type].capacity)
 		return 1;
 	return 0;
 }
 
-int Object::IsBuilding()
-{
+int Object::IsBuilding() {
 	if (ObjectDefs[type].protect)
 		return 1;
 	return 0;
 }
 
-int Object::CanModify()
-{
+int Object::CanModify() {
 	return (ObjectDefs[type].flags & ObjectType::CANMODIFY);
 }
 
-Unit * Object::GetUnit(int num)
-{
+Unit * Object::GetUnit(int num) {
 	forlist((&units))
 		if (((Unit *) elem)->num == num)
 			return ((Unit *) elem);
 	return 0;
 }
 
-Unit * Object::GetUnitAlias(int alias,int faction)
-{
+Unit * Object::GetUnitAlias(int alias,int faction) {
 	// First search for units with the 'formfaction'
 	forlist((&units)) {
-		if(((Unit *)elem)->alias == alias &&
+		if (((Unit *)elem)->alias == alias &&
 				((Unit *)elem)->formfaction->num == faction)
 			return ((Unit *)elem);
 	}
@@ -203,69 +185,58 @@ Unit * Object::GetUnitAlias(int alias,int faction)
 	return 0;
 }
 
-Unit * Object::GetUnitId(UnitId * id,int faction)
-{
+Unit * Object::GetUnitId(UnitId * id,int faction) {
 	if (id == 0) return 0;
 	if (id->unitnum) {
 		return GetUnit(id->unitnum);
 	} else {
-		if (id->faction) {
+		if (id->faction)
 			return GetUnitAlias(id->alias,id->faction);
-		} else {
+		else
 			return GetUnitAlias(id->alias,faction);
-		}
 	}
 }
 
-int Object::CanEnter(ARegion * reg,Unit * u)
-{
-	if(!(ObjectDefs[type].flags & ObjectType::CANENTER) &&
+int Object::CanEnter(ARegion * reg,Unit * u) {
+	if (!(ObjectDefs[type].flags & ObjectType::CANENTER) &&
 			(u->type == U_MAGE || u->type == U_NORMAL ||
-			 u->type == U_APPRENTICE)) {
+			 u->type == U_APPRENTICE))
 		return 0;
-	}
 	return 1;
 }
 
-Unit *Object::ForbiddenBy(ARegion *reg, Unit *u)
-{
+Unit *Object::ForbiddenBy(ARegion *reg, Unit *u) {
 	Unit *owner = GetOwner();
-	if(!owner) {
-		return(0);
-	}
+	if (!owner) return (0);
 
-	if(owner->GetAttitude(reg, u) < A_FRIENDLY) {
-		return owner;
-	}
+	if (owner->GetAttitude(reg, u) < A_FRIENDLY) return owner;
 	return 0;
 }
 
-Unit *Object::GetOwner()
-{
+Unit *Object::GetOwner() {
 	Unit *owner = (Unit *) units.First();
 	while(owner && !owner->GetMen()) {
 		owner = (Unit *) units.Next(owner);
 	}
-	return(owner);
+	return (owner);
 }
 
 void Object::Report(Areport *f, Faction *fac, int obs, int truesight,
-		int detfac, int passobs, int passtrue, int passdetfac, int present)
-{
+		int detfac, int passobs, int passtrue, int passdetfac, int present) {
 	ObjectType *ob = &ObjectDefs[type];
 
-	if((type != O_DUMMY) && !present) {
-		if(IsBuilding() &&
+	if ((type != O_DUMMY) && !present) {
+		if (IsBuilding() &&
 		   !(Globals->TRANSIT_REPORT & GameDefs::REPORT_SHOW_BUILDINGS)) {
 			// This is a building and we don't see buildings in transit
 			return;
 		}
-		if(IsBoat() &&
+		if (IsBoat() &&
 		   !(Globals->TRANSIT_REPORT & GameDefs::REPORT_SHOW_SHIPS)) {
 			// This is a ship and we don't see ships in transit
 			return;
 		}
-		if(IsRoad() &&
+		if (IsRoad() &&
 		   !(Globals->TRANSIT_REPORT & GameDefs::REPORT_SHOW_ROADS)) {
 			// This is a road and we don't see roads in transit
 			return;
@@ -276,26 +247,18 @@ void Object::Report(Areport *f, Faction *fac, int obs, int truesight,
 		AString temp = AString("+ ") + *name + " : " + ob->name;
 		if (incomplete > 0) {
 			temp += AString(", needs ") + incomplete;
-		} else if(Globals->DECAY &&
+		} else if (Globals->DECAY &&
 				!(ob->flags & ObjectType::NEVERDECAY) && incomplete < 1) {
-			if(incomplete > (0 - ob->maxMonthlyDecay)) {
+			if (incomplete > (0 - ob->maxMonthlyDecay)) {
 				temp += ", about to decay";
-			} else if(incomplete > (0 - ob->maxMaintenance/2)) {
+			} else if (incomplete > (0 - ob->maxMaintenance/2)) {
 				temp += ", needs maintenance";
 			}
 		}
-		if (inner != -1) {
-			temp += ", contains an inner location";
-		}
-		if (runes) {
-			temp += ", engraved with Runes of Warding";
-		}
-		if (describe) {
-			temp += AString("; ") + *describe;
-		}
-		if (!(ob->flags & ObjectType::CANENTER)) {
-			temp += ", closed to player units";
-		}
+		if (inner != -1) temp += ", contains an inner location";
+		if (runes) temp += ", engraved with Runes of Warding";
+		if (describe) temp += AString("; ") + *describe;
+		if (!(ob->flags & ObjectType::CANENTER)) temp += ", closed to player units";
 		temp += ".";
 		f->PutStr(temp);
 		f->AddTab();
@@ -306,10 +269,10 @@ void Object::Report(Areport *f, Faction *fac, int obs, int truesight,
 		if (u->faction == fac) {
 			u->WriteReport(f,-1,1,1,1);
 		} else {
-			if(present) {
+			if (present) {
 				u->WriteReport(f,obs,truesight,detfac,type != O_DUMMY);
 			} else {
-				if(((type == O_DUMMY) &&
+				if (((type == O_DUMMY) &&
 					(Globals->TRANSIT_REPORT &
 					 GameDefs::REPORT_SHOW_OUTDOOR_UNITS)) ||
 				   ((type != O_DUMMY) &&
@@ -325,55 +288,49 @@ void Object::Report(Areport *f, Faction *fac, int obs, int truesight,
 		}
 	}
 	f->EndLine();
-	if (type != O_DUMMY) {
-		f->DropTab();
-	}
+	if (type != O_DUMMY) f->DropTab();
 }
 
-void Object::SetPrevDir(int newdir)
-{
+void Object::SetPrevDir(int newdir) {
 	prevdir = newdir;
 }
 
-void Object::MoveObject(ARegion *toreg)
-{
+void Object::MoveObject(ARegion *toreg) {
 	region->objects.Remove(this);
 	region = toreg;
 	toreg->objects.Add(this);
 }
 
-int Object::IsRoad()
-{
+int Object::IsRoad() {
 	if (type >= O_ROADN && type <= O_ROADS) return 1;
 	return 0;
 }
 
-AString *ObjectDescription(int obj)
-{
-	if(ObjectDefs[obj].flags & ObjectType::DISABLED)
+AString *ObjectDescription(int obj) {
+	if (ObjectDefs[obj].flags & ObjectType::DISABLED)
 		return NULL;
 
 	ObjectType *o = &ObjectDefs[obj];
 	AString *temp = new AString;
 	*temp += AString(o->name) + ": ";
-	if(o->capacity) {
+	if (o->capacity) {
 		*temp += "This is a ship.";
 	} else {
 		*temp += "This is a building.";
 	}
 
-	if(Globals->LAIR_MONSTERS_EXIST && (o->monster != -1)) {
+	if (Globals->LAIR_MONSTERS_EXIST && (o->monster != -1)) {
 		*temp += " Monsters can potentially lair in this structure.";
-		if(o->flags & ObjectType::NOMONSTERGROWTH) {
+		if (o->flags & ObjectType::NOMONSTERGROWTH) {
 			*temp += " Monsters in this structures will never regenerate.";
 		}
 	}
 
-	if(o->flags & ObjectType::CANENTER) {
+	if (o->flags & ObjectType::CANENTER) {
 		*temp += " Units may enter this structure.";
 	}
 
-	if(o->protect) {
+	if (o->protect) {
 		*temp += AString(" This structure provides defense to the first ") +
 			o->protect + " men inside it.";
 		*temp += AString(" It provides a bonus of ");
@@ -390,51 +347,51 @@ AString *ObjectDescription(int obj)
 		SpecialType *spd = &SpecialDefs[i];
 		AString effect = "are";
 		int match = 0;
-		if(!(spd->targflags & SpecialType::HIT_BUILDINGIF) &&
+		if (!(spd->targflags & SpecialType::HIT_BUILDINGIF) &&
 				!(spd->targflags & SpecialType::HIT_BUILDINGEXCEPT)) {
 			continue;
 		}
 		for(int j = 0; j < 3; j++)
-			if(spd->buildings[j] == obj) match = 1;
-		if(!match) continue;
-		if(spd->targflags & SpecialType::HIT_BUILDINGEXCEPT) {
+			if (spd->buildings[j] == obj) match = 1;
+		if (!match) continue;
+		if (spd->targflags & SpecialType::HIT_BUILDINGEXCEPT) {
 			effect += " not";
 		}
 		*temp += " Units in this structure ";
 		*temp += effect + " affected by " + spd->specialname + ".";
 	}
 
-	if(o->sailors) {
+	if (o->sailors) {
 		*temp += AString(" This ship requires ") + o->sailors +
 			" total levels of sailing skill to sail.";
 	}
-	if(o->maxMages && Globals->LIMITED_MAGES_PER_BUILDING) {
+	if (o->maxMages && Globals->LIMITED_MAGES_PER_BUILDING) {
 		*temp += AString(" This structure will allow up to ") + o->maxMages +
 			" mages to study above level 2.";
 	}
 	int buildable = 1;
-	if(o->item == -1 || o->skill == -1) buildable = 0;
-	if(SkillDefs[o->skill].flags & SkillType::DISABLED) buildable = 0;
-	if(o->item != I_WOOD_OR_STONE &&
+	if (o->item == -1 || o->skill == -1) buildable = 0;
+	if (SkillDefs[o->skill].flags & SkillType::DISABLED) buildable = 0;
+	if (o->item != I_WOOD_OR_STONE &&
 			(ItemDefs[o->item].flags & ItemType::DISABLED))
 		buildable = 0;
-	if(o->item == I_WOOD_OR_STONE &&
+	if (o->item == I_WOOD_OR_STONE &&
 			(ItemDefs[I_WOOD].flags & ItemType::DISABLED) &&
 			(ItemDefs[I_STONE].flags & ItemType::DISABLED))
 		buildable = 0;
-	if(!buildable) {
+	if (!buildable) {
 		*temp += " This structure cannot be built by players.";
 	} else {
 		*temp += AString(" This structure is built using ") +
 			SkillStrs(o->skill) + " " + o->level + " and requires " +
 			o->cost + " ";
-		if(o->item == I_WOOD_OR_STONE) {
+		if (o->item == I_WOOD_OR_STONE) {
 			*temp += "wood or stone";
 		} else {
 			*temp += ItemDefs[o->item].name;
 		}
 		*temp += " to build.";
-		if((o->mult_item != -1) && !(ItemDefs[o->mult_item].flags & ItemType::DISABLED)) {
+		if ((o->mult_item != -1) && !(ItemDefs[o->mult_item].flags & ItemType::DISABLED)) {
 		  *temp += AString(" Production of this object is increased by ")
 		    + o->mult_val + AString(" when using ")
 		    + ItemDefs[o->mult_item].names + AString(".");
@@ -444,67 +401,67 @@ AString *ObjectDescription(int obj)
 	int maxcount=0;
 	unsigned int index;
 	for (index=0;index<sizeof(o->allowedRegions)/sizeof(int);index++) {
-	  if (o->allowedRegions[index] != -1) {
-	    maxcount++;
-	  }
+		if (o->allowedRegions[index] != -1) {
+			maxcount++;
+		}
 	}
 	int count=0;
 	for (index=0;index<sizeof(o->allowedRegions)/sizeof(int);index++) {
-	  if (o->allowedRegions[index] != -1) {
-	    if (count == 0) {
-	      *temp += " This building can only be built in ";
-	    } else if (count == maxcount-1) {
-	      *temp += ", or ";
-	    } else {
-	      *temp += ", ";
-	    }
-	    *temp += TerrainDefs[o->allowedRegions[index]].name;
-	    if (count == maxcount-1) {
-	      *temp += ".";
-	    }
-	    count++;
-	  }
+		if (o->allowedRegions[index] != -1) {
+			if (count == 0) {
+				*temp += " This building can only be built in ";
+			} else if (count == maxcount-1) {
+				*temp += ", or ";
+			} else {
+				*temp += ", ";
+			}
+			*temp += TerrainDefs[o->allowedRegions[index]].name;
+			if (count == maxcount-1) {
+				*temp += ".";
+			}
+			count++;
+		}
 	}
 
-	if(o->productionAided != -1 &&
+	if (o->productionAided != -1 &&
 			!(ItemDefs[o->productionAided].flags & ItemType::DISABLED)) {
 		*temp += " This trade structure increases the amount of ";
-		if(o->productionAided == I_SILVER) {
+		if (o->productionAided == I_SILVER) {
 			*temp += "entertainment";
 		} else {
 			*temp += ItemDefs[o->productionAided].names;
 		}
 		*temp += " available in the region";
-		if(o->fixedBonus > 0) {
-		  *temp += AString(" by ") + o->fixedBonus;
+		if (o->fixedBonus > 0) {
+			*temp += AString(" by ") + o->fixedBonus;
 		}
 		*temp += ".";
 	}
 	if (o->workersallowed != -1) {
-	  *temp += AString(" This structure allows ") + o->workersallowed + " workers inside.";
+		*temp += AString(" This structure allows ") + o->workersallowed + " workers inside.";
 	}
 
 	if (o->populationbonus != 0) {
-	  *temp += AString(" This structure increases the maximum population of a region to ") + o->populationbonus + AString(" above it's normal level.");
+		*temp += AString(" This structure increases the maximum population of a region to ") + o->populationbonus + AString(" above it's normal level.");
 	}
 
 	if (o->wagebonus != 0) {
-	  *temp += AString(" This structure increases the maximum wages of a region to ") + o->wagebonus + AString(" above it's normal level.");
+		*temp += AString(" This structure increases the maximum wages of a region to ") + o->wagebonus + AString(" above it's normal level.");
 	}
 
-	if(Globals->DECAY) {
-		if(o->flags & ObjectType::NEVERDECAY) {
+	if (Globals->DECAY) {
+		if (o->flags & ObjectType::NEVERDECAY) {
 			*temp += " This structure will never decay.";
 		} else {
 			*temp += AString(" This structure can take ") + o->maxMaintenance +
 				" units of damage before it begins to decay.";
 			*temp += AString(" Damage can occur at a maximum rate of ") +
 				o->maxMonthlyDecay + " units per month.";
-			if(buildable) {
+			if (buildable) {
 				*temp += AString(" Repair of damage is accomplished at ") +
 					"a rate of " + o->maintFactor + " damage units per " +
 					"unit of ";
-				if(o->item == I_WOOD_OR_STONE) {
+				if (o->item == I_WOOD_OR_STONE) {
 					*temp += "wood or stone.";
 				} else {
 					*temp += ItemDefs[o->item].name;
@@ -516,23 +473,22 @@ AString *ObjectDescription(int obj)
 	return temp;
 }
 
-void Object::Notify(AString message)
-{
-  AList flist;
+void Object::Notify(AString message) {
+	AList flist;
 
-  forlist ((&units)) {
-    Unit *u = (Unit *) elem;
-    if (!GetFaction2(&flist,u->faction->num)) {
-      FactionPtr *fp = new FactionPtr;
-      fp->ptr = u->faction;
-      flist.Add(fp);
-    }
-  }
+	forlist ((&units)) {
+		Unit *u = (Unit *) elem;
+		if (!GetFaction2(&flist,u->faction->num)) {
+			FactionPtr *fp = new FactionPtr;
+			fp->ptr = u->faction;
+			flist.Add(fp);
+		}
+	}
 
-  {
-    forlist(&flist) {
-      FactionPtr *fp = (FactionPtr *) elem;
-      fp->ptr->Event(message);
-    }
-  }
+	{
+		forlist(&flist) {
+			FactionPtr *fp = (FactionPtr *) elem;
+			fp->ptr->Event(message);
+		}
+	}
 }

@@ -26,29 +26,25 @@
 #include <string.h>
 #include <stdio.h>
 
-AString::AString()
-{
+AString::AString() {
 	len = 0;
 	str = new char[1];
 	str[0] = '\0';
 }
 
-AString::AString(char *s)
-{
+AString::AString(char *s) {
 	len = strlen(s);
 	str = new char[len + 1];
 	strcpy(str,s);
 }
 
-AString::AString(const char *s)
-{
+AString::AString(const char *s) {
 	len = strlen(s);
 	str = new char[len + 1];
 	strcpy(str,s);
 }
 
-AString::AString(int l)
-{
+AString::AString(int l) {
 	char buf[16];
 	sprintf(buf,"%d",l);
 	len = strlen(buf);
@@ -56,8 +52,7 @@ AString::AString(int l)
 	strcpy(str,buf);
 }
 
-AString::AString(unsigned int l)
-{
+AString::AString(unsigned int l) {
 	char buf[16];
 	sprintf(buf,"%u",l);
 	len = strlen(buf);
@@ -65,28 +60,24 @@ AString::AString(unsigned int l)
 	strcpy(str,buf);
 }
 
-AString::AString(char c)
-{
+AString::AString(char c) {
 	len = 1;
 	str = new char[2];
 	str[0] = c;
 	str[1] = '\0';
 }
 
-AString::~AString()
-{
+AString::~AString() {
 	if (str) delete str;
 }
 
-AString::AString(const AString &s)
-{
+AString::AString(const AString &s) {
 	len = s.len;
 	str = new char[len + 1];
 	strcpy(str,s.str);
 }
 
-AString & AString::operator=(const AString &s)
-{
+AString & AString::operator=(const AString &s) {
 	len = s.len;
 	if (str) delete str;
 	str = new char[len + 1];
@@ -94,8 +85,7 @@ AString & AString::operator=(const AString &s)
 	return *this;
 }
 
-AString & AString::operator=(const char *c)
-{
+AString & AString::operator=(const char *c) {
 	len = strlen(c);
 	if (str) delete str;
 	str = new char[len + 1];
@@ -103,23 +93,19 @@ AString & AString::operator=(const char *c)
 	return *this;
 }
 
-int AString::operator==(char *s)
-{
+int AString::operator==(char *s) {
 	return isEqual(s);
 }
 
-int AString::operator==(const char *s)
-{
+int AString::operator==(const char *s) {
 	return isEqual(s);
 }
 
-int AString::operator==(const AString &s)
-{
+int AString::operator==(const AString &s) {
 	return isEqual(s.str);
 }
 
-int AString::isEqual(const char *temp2)
-{
+int AString::isEqual(const char *temp2) {
 	char *temp1 = str;
 	while ((*temp1) && (*temp2)) {
 		char t1 = *temp1;
@@ -138,8 +124,7 @@ int AString::isEqual(const char *temp2)
 	return 0;
 }
 
-AString AString::operator+(const AString &s)
-{
+AString AString::operator+(const AString &s) {
 	char *temp = new char[len+s.len+1];
 	int i;
 	for (i=0; i<len; i++) {
@@ -153,8 +138,7 @@ AString AString::operator+(const AString &s)
 	return temp2;
 }
 
-AString &AString::operator+=(const AString &s)
-{
+AString &AString::operator+=(const AString &s) {
 	char *temp = new char[len+s.len+1];
 	int i;
 	for (i=0; i<len; i++) {
@@ -170,18 +154,15 @@ AString &AString::operator+=(const AString &s)
 }
 
 
-char *AString::Str()
-{
+char *AString::Str() {
 	return str;
 }
 
-int AString::Len()
-{
+int AString::Len() {
 	return len;
 }
 
-AString *AString::gettoken()
-{
+AString *AString::gettoken() {
 	char buf[1024];
 	int place = 0;
 	int place2 = 0;
@@ -234,8 +215,7 @@ AString *AString::gettoken()
 	return new AString(buf);
 }
 
-AString *AString::StripWhite()
-{
+AString *AString::StripWhite() {
 	int place = 0;
 	while (place < len && (str[place] == ' ' || str[place] == '\t')) {
 		place++;
@@ -243,11 +223,10 @@ AString *AString::StripWhite()
 	if (place >= len) {
 		return 0;
 	}
-	return( new AString( &str[ place ] ));
+	return (new AString(&str[ place ]));
 }
 
-int AString::getat()
-{
+int AString::getat() {
 	int place = 0;
 	while (place < len && (str[place] == ' ' || str[place] == '\t'))
 		place++;
@@ -259,8 +238,7 @@ int AString::getat()
 	return 0;
 }
 
-char islegal(char c)
-{
+char islegal(char c) {
 	if ((c>='a' && c<='z') || (c>='A' && c<='Z') || (c>='0' && c<='9') ||
 			c=='!' ||  c=='[' || c==']' || c==',' || c=='.' || c==' ' ||
 			c=='{' || c=='}' || c=='@' || c=='#' || c=='$' || c=='%' ||
@@ -271,8 +249,7 @@ char islegal(char c)
 	return 0;
 }
 
-AString *AString::getlegal()
-{
+AString *AString::getlegal() {
 	char * temp = new char[len+1];
 	char * temp2 = temp;
 	int j = 0;
@@ -295,8 +272,7 @@ AString *AString::getlegal()
 	return retval;
 }
 
-int AString::CheckPrefix(const AString &s)
-{
+int AString::CheckPrefix(const AString &s) {
 	if (Len() < s.len) return 0;
 
 	AString x = *this;
@@ -306,8 +282,7 @@ int AString::CheckPrefix(const AString &s)
 	return AString(x) == s;
 }
 
-AString *AString::Trunc(int val, int back)
-{
+AString *AString::Trunc(int val, int back) {
 	int l=Len();
 	if (l <= val) return 0;
 	for (int i=val; i>(val-back); i--) {
@@ -321,8 +296,7 @@ AString *AString::Trunc(int val, int back)
 	return temp;
 }
 
-int AString::value()
-{
+int AString::value() {
 	int place = 0;
 	int ret = 0;
 	while ((str[place] >= '0') && (str[place] <= '9')) {
@@ -334,14 +308,12 @@ int AString::value()
 	return ret;
 }
 
-ostream & operator <<(ostream & os,const AString & s)
-{
+ostream & operator <<(ostream & os,const AString & s) {
 	os << s.str;
 	return os;
 }
 
-istream & operator >>(istream & is,AString & s)
-{
+istream & operator >>(istream & is,AString & s) {
 	char * buf = new char[256];
 	is >> buf;
 	s.len = strlen(buf);

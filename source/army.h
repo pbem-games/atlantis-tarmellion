@@ -84,6 +84,7 @@ class Soldier {
 		/* Defense info */
 		int dskill[NUM_ATTACK_TYPES];
 		int armor;
+		int shield;
 		int hits;
 		int maxhits;
 		int damage;
@@ -97,8 +98,7 @@ class Soldier {
 
 typedef Soldier * SoldierPtr;
 
-class Army
-{
+class Army {
 	public:
 		Army(Unit *,AList *,int,int = 0);
 		~Army();

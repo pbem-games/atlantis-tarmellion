@@ -38,25 +38,25 @@
 // the html file containing the rules to correctly reflect the changes!
 //
 
-static int am[] = { 1, 2, 3, 4, 6, 8, 12 };
+static int am[] = { 0, 15, 30, 45, 60, 75, 90 };
 int *allowedMages = am;
 int allowedMagesSize = sizeof(am) / sizeof(am[0]);
 
-static int aa[] = { 1, 3, 5, 7, 11, 15, 20 };
+static int aa[] = { 0, 2, 4, 6, 8, 10, 12 };
 int *allowedApprentices = aa;
 int allowedApprenticesSize = sizeof(aa) / sizeof(aa[0]);
 
-static int aw[] = { 1, 10, 24, 40, 60, 100 };
+static int aw[] = { 0, 10, 24, 40, 60, 100 };
 int *allowedTaxes = aw;
 int allowedTaxesSize = sizeof(aw) / sizeof(aw[0]);
 
-static int at[] = { 1, 10, 24, 40, 60, 100 };
+static int at[] = { 0, 12, 28, 48, 72, 120 };
 int *allowedTrades = at;
 int allowedTradesSize = sizeof(at) / sizeof(at[0]);
 
 static GameDefs g = {
 	"Ceran",				// RULESET_NAME
-	MAKE_ATL_VER( 2, 0, 4 ), // RULESET_VERSION
+	MAKE_ATL_VER(2, 0, 4), // RULESET_VERSION
 
 	2, /* FOOT_SPEED */
 	4, /* HORSE_SPEED */
@@ -65,6 +65,7 @@ static GameDefs g = {
 	8, /* MAX_SPEED */
 
 	10, /* STUDENTS_PER_TEACHER */
+
 	10, /* MAINTENANCE_COST */
 	20, /* LEADER_COST */
 
@@ -97,7 +98,8 @@ static GameDefs g = {
 
 	1, // TOWNS_EXIST
 	GameDefs::RACIAL_LEADERS, // LEADERS_EXIST
-	1, // SKILL_LIMIT_NONLEADERS
+
+	3, // SKILL_LIMIT_NONLEADERS
 	1, // MAGE_NONLEADERS
 	1, // RACES_EXIST
 	1, // GATES_EXIST
@@ -111,6 +113,7 @@ static GameDefs g = {
 	0, // CONQUEST_GAME
 
 	1, // RANDOM_ECONOMY
+
 	1, // VARIABLE_ECONOMY
 
 	50, // CITY_MARKET_NORMAL_AMT
@@ -120,7 +123,9 @@ static GameDefs g = {
 	0,  // MORE_PROFITABLE_TRADE_GOODS
 
 	50,	// BASE_MAN_COST
+
 	0, // LASTORDERS_MAINTAINED_BY_SCRIPTS
+
 	10, // MAX_INACTIVE_TURNS
 
 	0, // EASIER_UNDERWORLD
@@ -136,26 +141,30 @@ static GameDefs g = {
 	1,   // START_CITY_GUARDS_PLATE
 	0,   // START_CITY_MAGES
 	3,   // START_CITY_TACTICS
+
 	0,   // APPRENTICES_EXIST
 
 	"Ceran", // WORLD_NAME
 
 	1,  // NEXUS_GATE_OUT
 	1,  // NEXUS_IS_CITY
+
 	1,	// BATTLE_FACTION_INFO
 	1,	// ALLOW_WITHDRAW
 	1000,	// CITY_RENAME_COST
 	0,	// TAX_PILLAGE_MONTH_LONG
-	0,	// MULTI_HEX_NEXUS
+	1,	// MULTI_HEX_NEXUS
 	4,	// UNDERWORLD_LEVELS
 	4,	// UNDERDEEP_LEVELS
+//	1,	// UNDERWORLD_LEVELS
+//	1,	// UNDERDEEP_LEVELS
 	1,	// ABYSS_LEVEL
-	50,	// TOWN_PROBABILITY
-	50,	// TOWN_SPREAD
+	100,	// TOWN_PROBABILITY
+	0,	// TOWN_SPREAD
 	1,	// TOWNS_NOT_ADJACENT
 	2,	// LESS_ARCTIC_TOWNS
 	10,	// ARCHIPELAGO
-	10,	// LAKES_EXIST
+	0,	// LAKES_EXIST
 	GameDefs::DESERT_ONLY, // LAKE_WAGE_EFFECT
 	1,	// LAKESIDE_IS_COASTAL
 	20,	// ODD_TERRAIN
@@ -180,7 +189,6 @@ static GameDefs g = {
 	1,  // DETECT_GATE_NUMBERS
 	GameDefs::ARMY_ROUT_HITS_FIGURE,  // ARMY_ROUT
 	1,	// FULL_TRUESEEING_BONUS
-	1,	// IMPROVED_AMTS
 	1,	// FULL_INVIS_ON_SELF
 	1,	// MONSTER_BATTLE_REGEN
 	GameDefs::TAX_ME, // WHO_CAN_TAX
@@ -190,7 +198,18 @@ static GameDefs g = {
 	10,	// UPKEEP_FOOD_VALUE
 	1,	// PREVENT_SAIL_THROUGH
 	0,	// ALLOW_TRIVIAL_PORTAGE
-	1,      // AUTOMATIC_FOOD
+	0,      // AUTOMATIC_FOOD
+        // <TODO>
+        4,	// CITY_TAX_COST;
+        3,	// TOWN_TAX_COST;
+        2,	// VILLAGE_TAX_COST;
+        2,	// CITY_TRADE_COST;
+        2,	// TOWN_TRADE_COST;
+        1,	// VILLAGE_TRADE_COST;
+        // </TODO>
+	1,	// UNDERWORLD_STARTING_CITIES
+	1,	// UNDERDEEP_STARTING_CITIES
+
 };
 
 GameDefs * Globals = &g;

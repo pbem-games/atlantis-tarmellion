@@ -190,6 +190,14 @@ static GameDefs g = {
 	0,	// PREVENT_SAIL_THROUGH
 	0,	// ALLOW_TRIVIAL_PORTAGE
 	0,      // AUTOMATIC_FOOD
+	1,      // CITY_TAX_COST;
+	1,      // TOWN_TAX_COST;
+	1,      // VILLAGE_TAX_COST;
+	1,      // CITY_TRADE_COST;
+	1,      // TOWN_TRADE_COST;
+	1,      // VILLAGE_TRADE_COST;
+	0,      // UNDERWORLD_STARTING_CITIES
+	0,      // UNDERDEEP_STARTING_CITIES
 };
 
 GameDefs * Globals = &g;

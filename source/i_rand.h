@@ -42,8 +42,7 @@ MODIFIED:
 #define RANDSIZ    (1<<RANDSIZL)
 
 /* context of random number generator */
-struct randctx
-{
+struct randctx {
   ub4 randcnt;
   ub4 randrsl[RANDSIZ];
   ub4 randmem[RANDSIZ];

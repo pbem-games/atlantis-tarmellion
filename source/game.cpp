@@ -22,12 +22,6 @@
 // http://www.prankster.com/project
 //
 // END A3HEADER
-// MODIFICATIONS
-// Date        Person          Comment
-// ----        ------          -------
-// 2000/MAR/14 Larry Stanbery  Added a unit:faction map capability.
-// 2000/MAR/25 Larry Stanbery  Added support routines for upgrading ruleset.
-// 2001/Feb/18 Joseph Traub    Added apprentice support from Lacandon Conquest
 //
 #ifdef WIN32
 #include <memory.h>  // Needed for memcpy on windows
@@ -42,15 +36,14 @@
 #include "gamedata.h"
 #include "items.h"
 
-Game::Game()
-{
-    gameStatus = GAME_STATUS_UNINIT;
-    ppUnits = 0;
+Game::Game() {
+	gameStatus = GAME_STATUS_UNINIT;
+	ppUnits = 0;
 	maxppunits = 0;
 }
 
 Game::~Game() {
-    delete ppUnits;
+	delete ppUnits;
 	ppUnits = 0;
 	maxppunits = 0;
 }
@@ -62,9 +55,9 @@ int Game::TurnNumber() {
 // ALT, 25-Jul-2000
 // Default work order procedure
 void Game::DefaultWorkOrder() {
-	forlist( &regions ) {
+	forlist(&regions) {
 		ARegion * r = (ARegion *) elem;
-		if(r->type == R_NEXUS) continue;
+		if (r->type == R_NEXUS) continue;
 		forlist(&r->objects) {
 			Object * o = (Object *) elem;
 			forlist(&o->units) {
@@ -73,11 +66,11 @@ void Game::DefaultWorkOrder() {
 						(Globals->TAX_PILLAGE_MONTH_LONG &&
 						 u->taxing != TAX_NONE))
 					continue;
-				if(u->GetFlag(FLAG_AUTOTAX) &&
+				if (u->GetFlag(FLAG_AUTOTAX) &&
 						(Globals->TAX_PILLAGE_MONTH_LONG && u->Taxers())) {
 					u->taxing = TAX_AUTO;
 				} else {
-					if(Globals->DEFAULT_WORK_ORDER) ProcessWorkOrder(u, 0);
+					if (Globals->DEFAULT_WORK_ORDER) ProcessWorkOrder(u, 0);
 				}
 			}
 		}
@@ -86,317 +79,296 @@ void Game::DefaultWorkOrder() {
 
 
 AString Game::GetXtraMap(ARegion * reg,int type) {
-    int i;
-    switch (type) {
-    case 0:
-	return (reg->IsStartingCity() ? "!" : (reg->HasShaft() ? "*" : " "));
-    case 1:
-	i = reg->CountWMons();
-	return (i ? ((AString) i) : (AString(" ")));
-    case 2:
-	forlist(&reg->objects) {
-	    Object * o = (Object *) elem;
-	    if (!(ObjectDefs[o->type].flags & ObjectType::CANENTER)) {
-		if (o->units.First()) {
-		    return "*";
-		} else {
-		    return ".";
+	int i;
+	switch (type) {
+	case 0:
+		return (reg->IsStartingCity() ? "!" : (reg->HasShaft() ? "*" : " "));
+	case 1:
+		i = reg->CountWMons();
+		return (i ? ((AString) i) : (AString(" ")));
+	case 2:
+		forlist(&reg->objects) {
+			Object * o = (Object *) elem;
+			if (!(ObjectDefs[o->type].flags & ObjectType::CANENTER)) {
+				if (o->units.First()) {
+					return "*";
+				} else {
+					return ".";
+				}
+			}
 		}
-	    }
+		return " ";
+	case 3:
+		if (reg->gate) return "*";
+		return " ";
 	}
-	return " ";
-    case 3:
-	if (reg->gate) return "*";
-	return " ";
-    }
-    return( " " );
+	return (" ");
 }
 
-void Game::WriteSurfaceMap( Aoutfile *f, ARegionArray *pArr, int type ) {
-    ARegion *reg;
-    int yy = 0;
-    int xx = 0;
-    {
+void Game::WriteSurfaceMap(Aoutfile *f, ARegionArray *pArr, int type) {
+	ARegion *reg;
+	int yy = 0;
+	int xx = 0;
 	f->PutStr(AString("Map (") + xx*32 + "," + yy*16 + ")");
 	for (int y=0; y < pArr->y; y+=2) {
-	    AString temp;
-	    int x;
-	    for (x=0; x< pArr->x; x+=2) {
-		reg = pArr->GetRegion(x+xx*32,y+yy*16 );
-		temp += AString(GetRChar(reg));
-		temp += GetXtraMap(reg,type);
-		temp += "  ";
-	    }
-	    f->PutStr(temp);
-	    temp = "  ";
-	    for (x=1; x< pArr->x; x+=2) {
-		reg = pArr->GetRegion(x+xx*32,y+yy*16+1 );
-		temp += AString(GetRChar(reg));
-		temp += GetXtraMap(reg,type);
-		temp += "  ";
-	    }
-	    f->PutStr(temp);
+		AString temp;
+		int x;
+		for (x=0; x< pArr->x; x+=2) {
+			reg = pArr->GetRegion(x+xx*32,y+yy*16);
+			temp += AString(GetRChar(reg));
+			temp += GetXtraMap(reg,type);
+			temp += "  ";
+		}
+		f->PutStr(temp);
+		temp = "  ";
+		for (x=1; x< pArr->x; x+=2) {
+			reg = pArr->GetRegion(x+xx*32,y+yy*16+1);
+			temp += AString(GetRChar(reg));
+			temp += GetXtraMap(reg,type);
+			temp += "  ";
+		}
+		f->PutStr(temp);
 	}
 	f->PutStr("");
-    }
 }
 
-void Game::WriteUnderworldMap( Aoutfile *f, ARegionArray *pArr, int type ) {
-    ARegion *reg, *reg2;
-    int xx = 0;
-    int yy = 0;
-    {
+void Game::WriteUnderworldMap(Aoutfile *f, ARegionArray *pArr, int type) {
+	ARegion *reg, *reg2;
+	int xx = 0;
+	int yy = 0;
 	f->PutStr(AString("Map (") + xx*32 + "," + yy*16 + ")");
 	for (int y=0; y< pArr->y; y+=2) {
-	    AString temp = " ";
-	    AString temp2;
-	    int x;
-	    for (x=0; x< pArr->x; x+=2) {
-		reg = pArr->GetRegion(x+xx*32,y+yy*16 );
-		reg2 = pArr->GetRegion(x+xx*32+1,y+yy*16+1 );
+		AString temp = " ";
+		AString temp2;
+		int x;
+		for (x=0; x< pArr->x; x+=2) {
+			reg = pArr->GetRegion(x+xx*32,y+yy*16);
+			reg2 = pArr->GetRegion(x+xx*32+1,y+yy*16+1);
 
-		temp += AString(GetRChar(reg));
-		temp += GetXtraMap(reg,type);
+			temp += AString(GetRChar(reg));
+			temp += GetXtraMap(reg,type);
 
-		if(reg2->neighbors[D_NORTH])
-		    temp += "|";
-		else
-		    temp += " ";
+			if (reg2->neighbors[D_NORTH])
+				temp += "|";
+			else
+				temp += " ";
 
-		temp += " ";
+			temp += " ";
 
-		if (reg->neighbors[D_SOUTHWEST])
-		    temp2 += "/";
-		else
-		    temp2 += " ";
+			if (reg->neighbors[D_SOUTHWEST])
+				temp2 += "/";
+			else
+				temp2 += " ";
 
-		temp2 += " ";
-		if (reg->neighbors[D_SOUTHEAST])
-		    temp2 += "\\";
-		else
-		    temp2 += " ";
+			temp2 += " ";
+			if (reg->neighbors[D_SOUTHEAST])
+				temp2 += "\\";
+			else
+				temp2 += " ";
 
-		temp2 += " ";
-	    }
-	    f->PutStr(temp);
-	    f->PutStr(temp2);
+			temp2 += " ";
+		}
+		f->PutStr(temp);
+		f->PutStr(temp2);
 
-	    temp = " ";
-	    temp2 = "  ";
-	    for (x=1; x< pArr->x; x+=2) {
-		reg = pArr->GetRegion(x+xx*32,y+yy*16+1 );
-		reg2 = pArr->GetRegion(x+xx*32-1,y+yy*16 );
+		temp = " ";
+		temp2 = "  ";
+		for (x=1; x< pArr->x; x+=2) {
+			reg = pArr->GetRegion(x+xx*32,y+yy*16+1);
+			reg2 = pArr->GetRegion(x+xx*32-1,y+yy*16);
 
-		if (reg2->neighbors[D_SOUTH])
-		    temp += "|";
-		else
-		    temp += " ";
+			if (reg2->neighbors[D_SOUTH])
+				temp += "|";
+			else
+				temp += " ";
 
-		temp += AString(" ");
-		temp += AString(GetRChar(reg));
-		temp += GetXtraMap(reg,type);
+			temp += AString(" ");
+			temp += AString(GetRChar(reg));
+			temp += GetXtraMap(reg,type);
 
-		if (reg->neighbors[D_SOUTHWEST])
-		    temp2 += "/";
-		else
-		    temp2 += " ";
+			if (reg->neighbors[D_SOUTHWEST])
+				temp2 += "/";
+			else
+				temp2 += " ";
 
-		temp2 += " ";
-		if (reg->neighbors[D_SOUTHEAST])
-		    temp2 += "\\";
-		else
-		    temp2 += " ";
+			temp2 += " ";
+			if (reg->neighbors[D_SOUTHEAST])
+				temp2 += "\\";
+			else
+				temp2 += " ";
 
-		temp2 += " ";
-	    }
-	    f->PutStr(temp);
-	    f->PutStr(temp2);
+			temp2 += " ";
+		}
+		f->PutStr(temp);
+		f->PutStr(temp2);
 	}
 	f->PutStr("");
-    }
 }
 
-int Game::ViewMap(const AString & typestr,const AString & mapfile)
-{
-    int type = 0;
-    if (AString(typestr) == "wmon") type = 1;
-    if (AString(typestr) == "lair") type = 2;
-    if (AString(typestr) == "gate") type = 3;
+int Game::ViewMap(const AString & typestr,const AString & mapfile) {
+	int type = 0;
+	if (AString(typestr) == "wmon") type = 1;
+	if (AString(typestr) == "lair") type = 2;
+	if (AString(typestr) == "gate") type = 3;
 
-    Aoutfile f;
-    if( f.OpenByName(mapfile) == -1 )
-    {
-	return( 0 );
-    }
+	Aoutfile f;
+	if (f.OpenByName(mapfile) == -1) return 0;
 
-    switch (type) {
-    case 0:
-	f.PutStr("Geographical Map");
-	break;
-    case 1:
-	f.PutStr("Wandering Monster Map");
-	break;
-    case 2:
-	f.PutStr("Lair Map");
-	break;
-    case 3:
-	f.PutStr("Gate Map");
-	break;
-    }
-
-    int i;
-    for( i = 0; i < regions.numLevels; i++ )
-    {
-	f.PutStr( "" );
-	ARegionArray *pArr = regions.pRegionArrays[ i ];
-	switch( pArr->levelType )
-	{
-	case ARegionArray::LEVEL_NEXUS:
-	    f.PutStr( AString( "Level " ) + i + ": Nexus" );
-	    break;
-	case ARegionArray::LEVEL_SURFACE:
-	    f.PutStr( AString( "Level " ) + i + ": Surface" );
-	    WriteSurfaceMap( &f, pArr, type );
-	    break;
-	case ARegionArray::LEVEL_UNDERWORLD:
-	    f.PutStr( AString( "Level " ) + i + ": Underworld" );
-	    WriteUnderworldMap( &f, pArr, type );
-	    break;
-		case ARegionArray::LEVEL_UNDERDEEP:
-			f.PutStr(AString( "Level ") + i + ": Underdeep" );
-			WriteUnderworldMap(&f, pArr, type );
-			break;
+	switch (type) {
+	case 0:
+		f.PutStr("Geographical Map");
+		break;
+	case 1:
+		f.PutStr("Wandering Monster Map");
+		break;
+	case 2:
+		f.PutStr("Lair Map");
+		break;
+	case 3:
+		f.PutStr("Gate Map");
+		break;
 	}
-    }
 
-    f.Close();
+	int i;
+	for(i = 0; i < regions.numLevels; i++) {
+		f.PutStr("");
+		ARegionArray *pArr = regions.pRegionArrays[ i ];
+		switch(pArr->levelType) {
+		case ARegionArray::LEVEL_NEXUS:
+			f.PutStr(AString("Level ") + i + ": Nexus");
+			break;
+		case ARegionArray::LEVEL_SURFACE:
+			f.PutStr(AString("Level ") + i + ": Surface");
+			WriteSurfaceMap(&f, pArr, type);
+			break;
+		case ARegionArray::LEVEL_UNDERWORLD:
+			f.PutStr(AString("Level ") + i + ": Underworld");
+			WriteUnderworldMap(&f, pArr, type);
+			break;
+		case ARegionArray::LEVEL_UNDERDEEP:
+			f.PutStr(AString("Level ") + i + ": Underdeep");
+			WriteUnderworldMap(&f, pArr, type);
+			break;
+		}
+	}
 
-    return( 1 );
+	f.Close();
+
+	return 1;
 }
 
-int Game::NewGame()
-{
-    factionseq = 1;
+int Game::NewGame() {
+	factionseq = 1;
 	guardfaction = 0;
 	monfaction = 0;
-    unitseq = 1;
-    SetupUnitNums();
-    shipseq = 100;
-    year = 1;
-    month = -1;
-    gameStatus = GAME_STATUS_NEW;
+	unitseq = 1;
+	SetupUnitNums();
+	shipseq = 100;
+	year = 1;
+	month = -1;
+	gameStatus = GAME_STATUS_NEW;
 
-    //
-    // Seed the random number generator with a different value each time.
-    //
-    seedrandomrandom();
+	//
+	// Seed the random number generator with a different value each time.
+	//
+	seedrandomrandom();
 
-    CreateWorld();
+	CreateWorld();
 	CreateNPCFactions();
 
-	if(Globals->CITY_MONSTERS_EXIST)
+	if (Globals->CITY_MONSTERS_EXIST)
 		CreateCityMons();
-	if(Globals->WANDERING_MONSTERS_EXIST)
+	if (Globals->WANDERING_MONSTERS_EXIST)
 		CreateWMons();
-	if(Globals->LAIR_MONSTERS_EXIST)
+	if (Globals->LAIR_MONSTERS_EXIST)
 		CreateLMons();
-
-	if( Globals->LAIR_MONSTERS_EXIST)
+	if (Globals->LAIR_MONSTERS_EXIST)
 		CreateVMons();
 
-    return( 1 );
+	return 1;
 }
 
-int Game::OpenGame( )
-{
-	return OpenGame( "game.in" );
+int Game::OpenGame() {
+	return OpenGame("game.in");
 }
 
-int Game::OpenGame( const char * gamefile )
-{
+int Game::OpenGame(const char * gamefile) {
 	//
 	// The order here must match the order in SaveGame
 	//
 	Ainfile f;
-	if( f.OpenByName( gamefile ) == -1 ) {
-		return( 0 );
-	}
+	if (f.OpenByName(gamefile) == -1) return 0;
 
 	//
 	// Read in Globals
 	//
 	AString *s1 = f.GetStr();
-	if( !s1 ) {
-		return( 0 );
-	}
+	if (!s1) return 0;
 	AString *s2 = s1->gettoken();
 	delete s1;
-	if( !s2 ) {
-		return( 0 );
-	}
+	if (!s2) return 0;
 	if (! (*s2 == "atlantis_game")) {
 		delete s2;
 		f.Close();
-		return( 0 );
+		return 0;
 	}
 	delete s2;
 
 	ATL_VER eVersion = f.GetInt();
 	Awrite(AString("Saved Game Engine Version: ") + ATL_VER_STRING(eVersion));
-	if(ATL_VER_MAJOR(eVersion) != ATL_VER_MAJOR(CURRENT_ATL_VER) ||
+	if (ATL_VER_MAJOR(eVersion) != ATL_VER_MAJOR(CURRENT_ATL_VER) ||
 			ATL_VER_MINOR(eVersion) != ATL_VER_MINOR(CURRENT_ATL_VER)) {
-		Awrite( "Incompatible Engine versions!" );
-		return( 0 );
+		Awrite("Incompatible Engine versions!");
+		return 0;
 	}
-	if(ATL_VER_PATCH(eVersion) > ATL_VER_PATCH(CURRENT_ATL_VER)) {
-		Awrite( "This game was created with a more recent Atlantis Engine!" );
-		return( 0 );
+	if (ATL_VER_PATCH(eVersion) > ATL_VER_PATCH(CURRENT_ATL_VER)) {
+		Awrite("This game was created with a more recent Atlantis Engine!");
+		return 0;
 	}
 
 	AString *gameName = f.GetStr();
-	if(!gameName) {
-		return(0);
+	if (!gameName) {
+		return 0;
 	}
-	if(!(*gameName == Globals->RULESET_NAME)) {
+	if (!(*gameName == Globals->RULESET_NAME)) {
 		Awrite("Incompatible rule-set!");
-		return( 0 );
+		return 0;
 	}
 
 	ATL_VER gVersion = f.GetInt();
-	Awrite(AString( "Saved Rule-Set Version: ") + ATL_VER_STRING(gVersion));
+	Awrite(AString("Saved Rule-Set Version: ") + ATL_VER_STRING(gVersion));
 
-    if(ATL_VER_MAJOR(gVersion) < ATL_VER_MAJOR(Globals->RULESET_VERSION)) {
-		Awrite( AString( "Upgrading to " ) +
-				ATL_VER_STRING(MAKE_ATL_VER(
-						ATL_VER_MAJOR(Globals->RULESET_VERSION), 0, 0)));
+	if (ATL_VER_MAJOR(gVersion) < ATL_VER_MAJOR(Globals->RULESET_VERSION)) {
+		Awrite(AString("Upgrading to ") +
+				ATL_VER_STRING(MAKE_ATL_VER(ATL_VER_MAJOR(Globals->RULESET_VERSION), 0, 0)));
 		if (!UpgradeMajorVersion(gVersion)) {
-			Awrite( "Unable to upgrade!  Aborting!" );
-			return( 0 );
+			Awrite("Unable to upgrade!  Aborting!");
+			return 0;
 		}
 		gVersion = MAKE_ATL_VER(ATL_VER_MAJOR(Globals->RULESET_VERSION), 0, 0);
 	}
-	if( ATL_VER_MINOR(gVersion) < ATL_VER_MINOR(Globals->RULESET_VERSION)) {
-		Awrite( AString( "Upgrading to " ) +
+	if (ATL_VER_MINOR(gVersion) < ATL_VER_MINOR(Globals->RULESET_VERSION)) {
+		Awrite(AString("Upgrading to ") +
 				ATL_VER_STRING(MAKE_ATL_VER(
 						ATL_VER_MAJOR(Globals->RULESET_VERSION),
 						ATL_VER_MINOR(Globals->RULESET_VERSION), 0)));
-		if ( ! UpgradeMinorVersion( gVersion ) ) {
-			Awrite( "Unable to upgrade!  Aborting!" );
-			return( 0 );
+		if (! UpgradeMinorVersion(gVersion)) {
+			Awrite("Unable to upgrade!  Aborting!");
+			return 0;
 		}
-		gVersion = MAKE_ATL_VER( ATL_VER_MAJOR( gVersion ),
-				ATL_VER_MINOR( Globals->RULESET_VERSION ), 0);
+		gVersion = MAKE_ATL_VER(ATL_VER_MAJOR(gVersion),
+				ATL_VER_MINOR(Globals->RULESET_VERSION), 0);
 	}
-	if( ATL_VER_PATCH(gVersion) < ATL_VER_PATCH(Globals->RULESET_VERSION)) {
-		Awrite( AString( "Upgrading to " ) +
+	if (ATL_VER_PATCH(gVersion) < ATL_VER_PATCH(Globals->RULESET_VERSION)) {
+		Awrite(AString("Upgrading to ") +
 				ATL_VER_STRING(Globals->RULESET_VERSION));
-		if ( ! UpgradePatchLevel( gVersion ) ) {
-			Awrite( "Unable to upgrade!  Aborting!" );
-			return( 0 );
+		if (! UpgradePatchLevel(gVersion)) {
+			Awrite("Unable to upgrade!  Aborting!");
+			return 0;
 		}
-		gVersion = MAKE_ATL_VER( ATL_VER_MAJOR( gVersion ),
-				ATL_VER_MINOR( gVersion ),
-				ATL_VER_PATCH( Globals->RULESET_VERSION ) );
+		gVersion = MAKE_ATL_VER(ATL_VER_MAJOR(gVersion),
+				ATL_VER_MINOR(gVersion),
+				ATL_VER_PATCH(Globals->RULESET_VERSION));
 	}
 
 	// LLS
@@ -404,11 +376,10 @@ int Game::OpenGame( const char * gamefile )
 	// add a small hack to check to see whether we need to populate
 	// ocean lairs
 	doExtraInit = f.GetInt();
-	if (doExtraInit > 0) {
+	if (doExtraInit > 0)
 		year = doExtraInit;
-	} else {
+	else
 		year = f.GetInt();
-	}
 
 	month = f.GetInt();
 	seedrandom(f.GetInt());
@@ -425,136 +396,111 @@ int Game::OpenGame( const char * gamefile )
 
 	for (int j=0; j<i; j++) {
 		Faction * temp = new Faction;
-		temp->Readin( &f, eVersion );
+		temp->Readin(&f, eVersion);
 		factions.Add(temp);
 	}
 
 	//
 	// Read in the ARegions
 	//
-	i = regions.ReadRegions( &f, &factions, eVersion );
-	if(!i) {
-		return 0;
-	}
+	i = regions.ReadRegions(&f, &factions, eVersion);
+	if (!i) return 0;
 
 	// here we add ocean lairs
-	if (doExtraInit > 0) {
-		CreateOceanLairs();
-	}
+	if (doExtraInit > 0) CreateOceanLairs();
 
 	FixBoatNums();
 	FixGateNums();
 	SetupUnitNums();
 
 	f.Close();
-	return( 1 );
+	return 1;
 }
 
-int Game::SaveGame()
-{
+int Game::SaveGame() {
 	return SaveGame("game.out");
 }
 
-int Game::SaveGame(const char * gamefile)
-{
-    Aoutfile f;
-    if( f.OpenByName( gamefile ) == -1 )
-    {
-	return( 0 );
-    }
+int Game::SaveGame(const char * gamefile) {
+	Aoutfile f;
+	if (f.OpenByName(gamefile) == -1) return 0;
 
-    //
-    // Write out Globals
-    //
-    f.PutStr( "atlantis_game" );
-    f.PutInt( CURRENT_ATL_VER );
-    f.PutStr( Globals->RULESET_NAME );
-    f.PutInt( Globals->RULESET_VERSION );
+	//
+	// Write out Globals
+	//
+	f.PutStr("atlantis_game");
+	f.PutInt(CURRENT_ATL_VER);
+	f.PutStr(Globals->RULESET_NAME);
+	f.PutInt(Globals->RULESET_VERSION);
 
-    // mark the fact that we created ocean lairs
-    f.PutInt(-1);
+	// mark the fact that we created ocean lairs
+	f.PutInt(-1);
 
-    f.PutInt(year);
-    f.PutInt(month);
-    f.PutInt(getrandom(10000));
-    f.PutInt(factionseq);
-    f.PutInt(unitseq);
-    f.PutInt(shipseq);
-    f.PutInt(guardfaction);
-    f.PutInt(monfaction);
+	f.PutInt(year);
+	f.PutInt(month);
+	f.PutInt(getrandom(10000));
+	f.PutInt(factionseq);
+	f.PutInt(unitseq);
+	f.PutInt(shipseq);
+	f.PutInt(guardfaction);
+	f.PutInt(monfaction);
 
-    //
-    // Write out the Factions
-    //
-    f.PutInt(factions.Num());
+	//
+	// Write out the Factions
+	//
+	f.PutInt(factions.Num());
 
-    forlist(&factions) {
-	((Faction *) elem)->Writeout( &f );
-    }
+	forlist(&factions)
+		((Faction *) elem)->Writeout(&f);
 
-    //
-    // Write out the ARegions
-    //
-    regions.WriteRegions( &f );
+	//
+	// Write out the ARegions
+	//
+	regions.WriteRegions(&f);
 
-    f.Close();
-    return( 1 );
+	f.Close();
+	return 1;
 }
 
 void Game::DummyGame() {
-    //
-    // No need to set anything up; we're just syntax checking some orders.
-    //
+	//
+	// No need to set anything up; we're just syntax checking some orders.
+	//
 }
 
 #define PLAYERS_FIRST_LINE "AtlantisPlayerStatus"
 
-int Game::WritePlayers()
-{
-    Aoutfile f;
-    if( f.OpenByName( "players.out" ) == -1 )
-    {
-	return( 0 );
-    }
+int Game::WritePlayers() {
+	Aoutfile f;
+	if (f.OpenByName("players.out") == -1) return 0;
 
-    f.PutStr( PLAYERS_FIRST_LINE );
-    f.PutStr( AString( "Version: " ) + CURRENT_ATL_VER );
-    f.PutStr( AString( "TurnNumber: " ) + TurnNumber() );
+	f.PutStr(PLAYERS_FIRST_LINE);
+	f.PutStr(AString("Version: ") + CURRENT_ATL_VER);
+	f.PutStr(AString("TurnNumber: ") + TurnNumber());
 
-    if( gameStatus == GAME_STATUS_UNINIT )
-    {
-	return( 0 );
-    }
-    else if( gameStatus == GAME_STATUS_NEW )
-    {
-	f.PutStr( AString( "GameStatus: New" ));
-    }
-    else if( gameStatus == GAME_STATUS_RUNNING )
-    {
-	f.PutStr( AString( "GameStatus: Running" ));
-    }
-    else if( gameStatus == GAME_STATUS_FINISHED )
-    {
-	f.PutStr( AString( "GameStatus: Finished" ));
-    }
+	if (gameStatus == GAME_STATUS_UNINIT)
+		return 0;
+	else if (gameStatus == GAME_STATUS_NEW)
+		f.PutStr(AString("GameStatus: New"));
+	else if (gameStatus == GAME_STATUS_RUNNING)
+		f.PutStr(AString("GameStatus: Running"));
+	else if (gameStatus == GAME_STATUS_FINISHED)
+		f.PutStr(AString("GameStatus: Finished"));
 
-    f.PutStr( "" );
+	f.PutStr("");
 
-    forlist( &factions ) {
-	Faction *fac = (Faction *) elem;
-	fac->WriteFacInfo( &f );
-    }
+	forlist(&factions) {
+		Faction *fac = (Faction *) elem;
+		fac->WriteFacInfo(&f);
+	}
 
-    f.Close();
-    return( 1 );
+	f.Close();
+	return 1;
 }
 
-int Game::ReadPlayers()
-{
+int Game::ReadPlayers() {
 	Aorders f;
-	if( f.OpenByName( "players.in" ) == -1 ) {
-		return( 0 );
-	}
+	if (f.OpenByName("players.in") == -1) return 0;
 
 	AString *pLine = 0;
 	AString *pToken = 0;
@@ -569,64 +515,54 @@ int Game::ReadPlayers()
 		// The first line of the file should match.
 		//
 		pLine = f.GetLine();
-		if( !( *pLine == PLAYERS_FIRST_LINE )) {
-			break;
-		}
-		SAFE_DELETE( pLine );
+		if (!(*pLine == PLAYERS_FIRST_LINE)) break;
+		SAFE_DELETE(pLine);
 
 		//
 		// Get the file version number.
 		//
 		pLine = f.GetLine();
 		pToken = pLine->gettoken();
-		if( !pToken || !( *pToken == "Version:" )) {
-			break;
-		}
-		SAFE_DELETE( pToken );
+		if (!pToken || !(*pToken == "Version:")) break;
+		SAFE_DELETE(pToken);
 
 		pToken = pLine->gettoken();
-		if( !pToken ) {
-			break;
-		}
+		if (!pToken) break;
 
 		int nVer = pToken->value();
-		if(ATL_VER_MAJOR(nVer) != ATL_VER_MAJOR(CURRENT_ATL_VER) ||
+		if (ATL_VER_MAJOR(nVer) != ATL_VER_MAJOR(CURRENT_ATL_VER) ||
 				ATL_VER_MINOR(nVer) != ATL_VER_MINOR(CURRENT_ATL_VER) ||
 				ATL_VER_PATCH(nVer) > ATL_VER_PATCH(CURRENT_ATL_VER)) {
 			Awrite("The players.in file is not compatible with this "
-					"version of Atlantis." );
+					"version of Atlantis.");
 			break;
 		}
-		SAFE_DELETE( pToken );
-		SAFE_DELETE( pLine );
+		SAFE_DELETE(pToken);
+		SAFE_DELETE(pLine);
 
 		//
 		// Ignore the turn number line.
 		//
 		pLine = f.GetLine();
-		SAFE_DELETE( pLine );
+		SAFE_DELETE(pLine);
 
 		//
 		// Next, the game status.
 		//
 		pLine = f.GetLine();
 		pToken = pLine->gettoken();
-		if( !pToken || !( *pToken == "GameStatus:" )) {
-			break;
-		}
-		SAFE_DELETE( pToken );
+		if (!pToken || !(*pToken == "GameStatus:")) break;
+		SAFE_DELETE(pToken);
 
 		pToken = pLine->gettoken();
-		if( !pToken ) {
-			break;
-		}
-		if( *pToken == "New" ) {
+		if (!pToken) break;
+		if (*pToken == "New")
 			gameStatus = GAME_STATUS_NEW;
-		} else if( *pToken == "Running" ) {
+		else if (*pToken == "Running")
 			gameStatus = GAME_STATUS_RUNNING;
-		} else if( *pToken == "Finished" ) {
+		else if (*pToken == "Finished")
 			gameStatus = GAME_STATUS_FINISHED;
-		} else {
+		else {
 			//
 			// The status doesn't seem to be valid.
 			//
@@ -648,29 +584,29 @@ int Game::ReadPlayers()
 		//
 		rc = 1;
 
-		while( pLine ) {
+		while(pLine) {
 			pToken = pLine->gettoken();
-			if( !pToken ) {
-				SAFE_DELETE( pLine );
+			if (!pToken) {
+				SAFE_DELETE(pLine);
 				pLine = f.GetLine();
 				continue;
 			}
 
-			if( *pToken == "Faction:" ) {
+			if (*pToken == "Faction:") {
 				//
 				// Get the new faction
 				//
-				SAFE_DELETE( pToken );
+				SAFE_DELETE(pToken);
 				pToken = pLine->gettoken();
-				if( !pToken ) {
+				if (!pToken) {
 					rc = 0;
 					break;
 				}
 
-				if( *pToken == "new" ) {
+				if (*pToken == "new") {
 					pFac = AddFaction(1);
-					if( !pFac ) {
-						Awrite( "Failed to add a new faction!" );
+					if (!pFac) {
+						Awrite("Failed to add a new faction!");
 						rc = 0;
 						break;
 					}
@@ -678,47 +614,44 @@ int Game::ReadPlayers()
 					lastWasNew = 1;
 				} else if (*pToken == "newNoLeader") {
 					pFac = AddFaction(0);
-					if(!pFac) {
+					if (!pFac) {
 						Awrite("Failed to add a new faction!");
 						rc = 0;
 						break;
 					}
 					lastWasNew = 1;
 				} else {
-					if( pFac && lastWasNew ) {
-						WriteNewFac( pFac );
+					if (pFac && lastWasNew) {
+						WriteNewFac(pFac);
 					}
 					int nFacNum = pToken->value();
-					pFac = GetFaction( &factions, nFacNum );
+					pFac = GetFaction(&factions, nFacNum);
 					lastWasNew = 0;
 				}
-			} else if( pFac ) {
-				if( !ReadPlayersLine( pToken, pLine, pFac, lastWasNew )) {
+			} else if (pFac) {
+				if (!ReadPlayersLine(pToken, pLine, pFac, lastWasNew)) {
 					rc = 0;
 					break;
 				}
 			}
 
-			SAFE_DELETE( pToken );
-			SAFE_DELETE( pLine );
+			SAFE_DELETE(pToken);
+			SAFE_DELETE(pLine);
 			pLine = f.GetLine();
 		}
-		if( pFac && lastWasNew ) {
-			WriteNewFac( pFac );
-		}
-	} while( 0 );
+		if (pFac && lastWasNew) WriteNewFac(pFac);
+	} while(0);
 
 	SAFE_DELETE(pLine);
 	SAFE_DELETE(pToken);
 	f.Close();
 
-	return( rc );
+	return rc;
 }
 
-Unit *Game::ParseGMUnit(AString *tag, Faction *pFac)
-{
+Unit *Game::ParseGMUnit(AString *tag, Faction *pFac) {
 	char *str = tag->Str();
-	if(*str == 'g' && *(str+1) == 'm') {
+	if (*str == 'g' && *(str+1) == 'm') {
 		AString p = AString(str+2);
 		int gma = p.value();
 		forlist(&regions) {
@@ -727,85 +660,77 @@ Unit *Game::ParseGMUnit(AString *tag, Faction *pFac)
 				Object *obj = (Object *)elem;
 				forlist(&obj->units) {
 					Unit *u = (Unit *)elem;
-					if(u->faction->num == pFac->num && u->gm_alias == gma) {
+					if (u->faction->num == pFac->num && u->gm_alias == gma)
 						return u;
-					}
 				}
 			}
 		}
 	} else {
 		int v = tag->value();
-		if((unsigned int)v >= maxppunits) {
-			return NULL;
-		}
+		if ((unsigned int)v >= maxppunits) return NULL;
 		return GetUnit(v);
 	}
 	return NULL;
 }
 
 int Game::ReadPlayersLine(AString *pToken, AString *pLine, Faction *pFac,
-		int newPlayer)
-{
+		int newPlayer) {
 	AString *pTemp = 0;
 
-	if( *pToken == "Name:" ) {
+	if (*pToken == "Name:") {
 		pTemp = pLine->StripWhite();
-		if( pTemp ) {
-			if( newPlayer ) {
-				*pTemp += AString(" (") + (pFac->num) + ")";
-			}
-			pFac->SetNameNoChange( pTemp );
+		if (pTemp) {
+			if (newPlayer) *pTemp += AString(" (") + (pFac->num) + ")";
+			pFac->SetNameNoChange(pTemp);
 		}
-	} else if( *pToken == "RewardTimes" ) {
+	} else if (*pToken == "RewardTimes")
 		pFac->TimesReward();
-	} else if( *pToken == "Email:" ) {
+	else if (*pToken == "Email:") {
 		pTemp = pLine->gettoken();
-		if( pTemp ) {
+		if (pTemp) {
 			delete pFac->address;
 			pFac->address = pTemp;
 			pTemp = 0;
 		}
-	} else if( *pToken == "Password:" ) {
+	} else if (*pToken == "Password:") {
 		pTemp = pLine->StripWhite();
 		delete pFac->password;
-		if( pTemp ) {
+		if (pTemp) {
 			pFac->password = pTemp;
 			pTemp = 0;
-		} else {
+		} else
 			pFac->password = 0;
-		}
-	} else if( *pToken == "Reward:" ) {
+	} else if (*pToken == "Reward:") {
 		pTemp = pLine->gettoken();
 		int nAmt = pTemp->value();
-		pFac->Event( AString( "Reward of " ) + nAmt + " silver." );
+		pFac->Event(AString("Reward of ") + nAmt + " silver.");
 		pFac->unclaimed += nAmt;
-	} else if( *pToken == "SendTimes:" ) {
-                // get the token, but otherwise ignore it
+	} else if (*pToken == "SendTimes:") {
+		// get the token, but otherwise ignore it
 		pTemp = pLine->gettoken();
 		pFac->times = pTemp->value();
-	} else if (*pToken == "LastOrders:" ) {
+	} else if (*pToken == "LastOrders:") {
 		// Read this line and correctly set the lastorders for this
 		// faction if the game itself isn't maintaining them.
 		pTemp = pLine->gettoken();
-		if(Globals->LASTORDERS_MAINTAINED_BY_SCRIPTS)
+		if (Globals->LASTORDERS_MAINTAINED_BY_SCRIPTS)
 			pFac->lastorders = pTemp->value();
-	} else if(*pToken == "Loc:") {
+	} else if (*pToken == "Loc:") {
 		int x, y, z;
 		pTemp = pLine->gettoken();
-		if(pTemp) {
+		if (pTemp) {
 			x = pTemp->value();
 			delete pTemp;
 			pTemp = pLine->gettoken();
-			if(pTemp) {
+			if (pTemp) {
 				y = pTemp->value();
 				delete pTemp;
 				pTemp = pLine->gettoken();
-				if(pTemp) {
+				if (pTemp) {
 					z = pTemp->value();
-					ARegion *pReg = regions.GetRegion( x, y, z );
-					if(pReg) {
-						pFac->pReg = pReg;
-					} else {
+					ARegion *pReg = regions.GetRegion(x, y, z);
+					if (pReg) pFac->pReg = pReg;
+					else {
 						Awrite(AString("Invalid Loc:")+x+","+y+","+z+
 								" in faction " + pFac->num);
 						pFac->pReg = NULL;
@@ -813,23 +738,23 @@ int Game::ReadPlayersLine(AString *pToken, AString *pLine, Faction *pFac,
 				}
 			}
 		}
-	} else if(*pToken == "StartLoc:") {
+	} else if (*pToken == "StartLoc:") {
 		int x, y, z;
 		pTemp = pLine->gettoken();
-		if(pTemp) {
+		if (pTemp) {
 			x = pTemp->value();
 			delete pTemp;
 			pTemp = pLine->gettoken();
-			if(pTemp) {
+			if (pTemp) {
 				y = pTemp->value();
 				delete pTemp;
 				pTemp = pLine->gettoken();
-				if(pTemp) {
+				if (pTemp) {
 					z = pTemp->value();
-					ARegion *pReg = regions.GetRegion( x, y, z );
-					if(pReg) {
+					ARegion *pReg = regions.GetRegion(x, y, z);
+					if (pReg) {
 						pFac->pStartLoc = pReg;
-						if(!pFac->pReg) pFac->pReg = pReg;
+						if (!pFac->pReg) pFac->pReg = pReg;
 					} else {
 						Awrite(AString("Invalid StartLoc:")+x+","+y+","+z+
 								" in faction " + pFac->num);
@@ -838,20 +763,20 @@ int Game::ReadPlayersLine(AString *pToken, AString *pLine, Faction *pFac,
 				}
 			}
 		}
-	} else if(*pToken == "NewUnit:") {
+	} else if (*pToken == "NewUnit:") {
 		// Creates a new unit in the location specified by a Loc: line
 		// with a gm_alias of whatever is after the NewUnit: tag.
-		if(!pFac->pReg) {
+		if (!pFac->pReg) {
 			Awrite(AString("NewUnit is not valid without a Loc: ") +
 					"for faction "+ pFac->num);
 		} else {
 			pTemp = pLine->gettoken();
-			if(!pTemp) {
+			if (!pTemp) {
 				Awrite(AString("NewUnit: must be followed by an alias ") +
 						"in faction "+pFac->num);
 			} else {
 				int val = pTemp->value();
-				if(!val) {
+				if (!val) {
 					Awrite(AString("NewUnit: must be followed by an alias ") +
 							"in faction "+pFac->num);
 				} else {
@@ -862,65 +787,64 @@ int Game::ReadPlayersLine(AString *pToken, AString *pLine, Faction *pFac,
 				}
 			}
 		}
-	} else if(*pToken == "Race:") {
-	  pTemp = pLine->gettoken();
-	  if(!pTemp) {
-	    Awrite(AString("Race: needs to specify a race."));
-	  } else {
-	    if (*pTemp == "none") {
-	      pFac->race = -1;
-	    } else {
-	      int it = ParseAllItems(pTemp);
-	      if (ItemDefs[it].type == IT_MAN) {
-		pFac->race = it;
-	      } else {
-		Awrite(AString("Race: needs to specify a race."));
-	      }
-	    }
-	  }
-	} else if(*pToken == "Item:") {
+	} else if (*pToken == "Race:") {
 		pTemp = pLine->gettoken();
-		if(!pTemp) {
+		if (!pTemp)
+	  		Awrite(AString("Race: needs to specify a race."));
+		else {
+			if (*pTemp == "none")
+				pFac->race = -1;
+			else {
+				int it = ParseAllItems(pTemp);
+				if (ItemDefs[it].type == IT_MAN)
+					pFac->race = it;
+				else
+					Awrite(AString("Race: needs to specify a race."));
+			}
+		}
+	} else if (*pToken == "Item:") {
+		pTemp = pLine->gettoken();
+		if (!pTemp) {
 			Awrite(AString("Item: needs to specify a unit in faction ") +
 					pFac->num);
 		} else {
 			Unit *u = ParseGMUnit(pTemp, pFac);
-			if(!u) {
+			if (!u) {
 				Awrite(AString("Item: needs to specify a unit in faction ") +
 						pFac->num);
 			} else {
-				if(u->faction->num != pFac->num) {
+				if (u->faction->num != pFac->num) {
 					Awrite(AString("Item: unit ")+ u->num +
 							" doesn't belong to " + "faction " + pFac->num);
 				} else {
 					delete pTemp;
 					pTemp = pLine->gettoken();
-					if(!pTemp) {
+					if (!pTemp) {
 						Awrite(AString("Must specify a number of items to ") +
 								"give for Item: in faction " + pFac->num);
 					} else {
 						int v = pTemp->value();
-						if(!v) {
+						if (!v) {
 							Awrite(AString("Must specify a number of ") +
 										"items to give for Item: in " +
 										"faction " + pFac->num);
 						} else {
 							delete pTemp;
 							pTemp = pLine->gettoken();
-							if(!pTemp) {
+							if (!pTemp) {
 								Awrite(AString("Must specify a valid item ") +
 										"to give for Item: in faction " +
 										pFac->num);
 							} else {
 								int it = ParseAllItems(pTemp);
-								if(it == -1) {
+								if (it == -1) {
 									Awrite(AString("Must specify a valid ") +
 											"item to give for Item: in " +
 											"faction " + pFac->num);
 								} else {
 									int has = u->items.GetNum(it);
 									u->items.SetNum(it, has + v);
-									if(!u->gm_alias) {
+									if (!u->gm_alias) {
 										u->Event(AString("Is given ") +
 												ItemString(it, v) +
 												" by the gods.");
@@ -933,40 +857,40 @@ int Game::ReadPlayersLine(AString *pToken, AString *pLine, Faction *pFac,
 				}
 			}
 		}
-	} else if(*pToken == "Skill:") {
+	} else if (*pToken == "Skill:") {
 		pTemp = pLine->gettoken();
-		if(!pTemp) {
+		if (!pTemp) {
 			Awrite(AString("Skill: needs to specify a unit in faction ") +
 					pFac->num);
 		} else {
 			Unit *u = ParseGMUnit(pTemp, pFac);
-			if(!u) {
+			if (!u) {
 				Awrite(AString("Skill: needs to specify a unit in faction ") +
 						pFac->num);
 			} else {
-				if(u->faction->num != pFac->num) {
+				if (u->faction->num != pFac->num) {
 					Awrite(AString("Skill: unit ")+ u->num +
 							" doesn't belong to " + "faction " + pFac->num);
 				} else {
 					delete pTemp;
 					pTemp = pLine->gettoken();
-					if(!pTemp) {
+					if (!pTemp) {
 						Awrite(AString("Must specify a valid skill for ") +
 								"Skill: in faction " + pFac->num);
 					} else {
 						int sk = ParseSkill(pTemp);
-						if(sk == -1) {
+						if (sk == -1) {
 							Awrite(AString("Must specify a valid skill for ")+
 									"Skill: in faction " + pFac->num);
 						} else {
 							delete pTemp;
 							pTemp = pLine->gettoken();
-							if(!pTemp) {
+							if (!pTemp) {
 								Awrite(AString("Must specify a days for ") +
 										"Skill: in faction " + pFac->num);
 							} else {
 								int days = pTemp->value() * u->GetMen();
-								if(!days) {
+								if (!days) {
 									Awrite(AString("Must specify a days for ")+
 											"Skill: in faction " + pFac->num);
 								} else {
@@ -974,11 +898,11 @@ int Game::ReadPlayersLine(AString *pToken, AString *pLine, Faction *pFac,
 									u->skills.SetDays(sk, odays + days);
 									u->AdjustSkills();
 									int lvl = u->GetRealSkill(sk);
-									if(lvl > pFac->skills.GetDays(sk)) {
+									if (lvl > pFac->skills.GetDays(sk)) {
 										pFac->skills.SetDays(sk, lvl);
 										pFac->shows.Add(new ShowSkill(sk,lvl));
 									}
-									if(!u->gm_alias) {
+									if (!u->gm_alias) {
 										u->Event(AString("Is taught ") +
 												days + " days of " +
 												SkillStrs(sk) +
@@ -992,10 +916,10 @@ int Game::ReadPlayersLine(AString *pToken, AString *pLine, Faction *pFac,
 											SkillType::MAGIC);
 									int app = (SkillDefs[sk].flags &
 											SkillType::APPRENTICE);
-									if(mage) {
+									if (mage) {
 										u->type = U_MAGE;
 									}
-									if(app && u->type == U_NORMAL) {
+									if (app && u->type == U_NORMAL) {
 										u->type = U_APPRENTICE;
 									}
 								}
@@ -1005,24 +929,24 @@ int Game::ReadPlayersLine(AString *pToken, AString *pLine, Faction *pFac,
 				}
 			}
 		}
-	} else if( *pToken == "Order:" ) {
+	} else if (*pToken == "Order:") {
 		pTemp = pLine->StripWhite();
-		if( *pTemp == "quit" ) {
+		if (*pTemp == "quit") {
 			pFac->quit = QUIT_BY_GM;
 		} else {
 			// handle this as a unit order
 			delete pTemp;
 			pTemp = pLine->gettoken();
-			if(!pTemp) {
+			if (!pTemp) {
 				Awrite(AString("Order: needs to specify a unit in faction ") +
 						pFac->num);
 			} else {
 				Unit *u = ParseGMUnit(pTemp, pFac);
-				if(!u) {
+				if (!u) {
 					Awrite(AString("Order: needs to specify a unit in ")+
 							"faction " + pFac->num);
 				} else {
-					if(u->faction->num != pFac->num) {
+					if (u->faction->num != pFac->num) {
 						Awrite(AString("Order: unit ")+ u->num +
 								" doesn't belong to " + "faction " +
 								pFac->num);
@@ -1031,18 +955,18 @@ int Game::ReadPlayersLine(AString *pToken, AString *pLine, Faction *pFac,
 						AString saveorder = *pLine;
 						int getatsign = pLine->getat();
 						pTemp = pLine->gettoken();
-						if(!pTemp) {
+						if (!pTemp) {
 							Awrite(AString("Order: must provide unit order ")+
 									"for faction "+pFac->num);
 						} else {
 							int o = Parse1Order(pTemp);
-							if(o == -1 || o == O_ATLANTIS || o == O_END ||
+							if (o == -1 || o == O_ATLANTIS || o == O_END ||
 									o == O_UNIT || o == O_FORM ||
 									o == O_ENDFORM) {
 								Awrite(AString("Order: invalid order given ")+
 										"for faction "+pFac->num);
 							} else {
-								if(getatsign) {
+								if (getatsign) {
 									u->oldorders.Add(new AString(saveorder));
 								}
 								ProcessOrder(o, u, pLine, NULL);
@@ -1053,456 +977,523 @@ int Game::ReadPlayersLine(AString *pToken, AString *pLine, Faction *pFac,
 			}
 		}
 	} else {
-		pTemp = new AString( *pToken + *pLine );
-		pFac->extraPlayers.Add( pTemp );
+		pTemp = new AString(*pToken + *pLine);
+		pFac->extraPlayers.Add(pTemp);
 		pTemp = 0;
 	}
 
-	if(pTemp) delete pTemp;
-	return( 1 );
+	if (pTemp) delete pTemp;
+	return 1;
 }
 
-void Game::WriteNewFac( Faction *pFac ) {
-    AString *strFac = new AString( AString( "Adding " ) +
-		                   *( pFac->address ) + "." );
-    newfactions.Add( strFac );
+void Game::WriteNewFac(Faction *pFac) {
+	AString *strFac = new AString(AString("Adding ") +
+		   *(pFac->address) + ".");
+	newfactions.Add(strFac);
 }
 
-int Game::DoOrdersCheck( const AString &strOrders, const AString &strCheck )
-{
-    Aorders ordersFile;
-    if( ordersFile.OpenByName( strOrders ) == -1 )
-    {
-	Awrite( "No such orders file!" );
-	return( 0 );
-    }
+int Game::DoOrdersCheck(const AString &strOrders, const AString &strCheck) {
+	Aorders ordersFile;
+	if (ordersFile.OpenByName(strOrders) == -1) {
+		Awrite("No such orders file!");
+		return 0;
+	}
 
-    Aoutfile checkFile;
-    if( checkFile.OpenByName( strCheck ) == -1 )
-    {
-	Awrite( "Couldn't open the orders check file!" );
-	return( 0 );
-    }
+	Aoutfile checkFile;
+	if (checkFile.OpenByName(strCheck) == -1) {
+		Awrite("Couldn't open the orders check file!");
+		return 0;
+	}
 
-    OrdersCheck check;
-    check.pCheckFile = &checkFile;
+	OrdersCheck check;
+	check.pCheckFile = &checkFile;
 
-    ParseOrders( 0, &ordersFile, &check );
+	ParseOrders(0, &ordersFile, &check);
 
-    ordersFile.Close();
-    checkFile.Close();
+	ordersFile.Close();
+	checkFile.Close();
 
-    return( 1 );
+	return 1;
 }
 
-int Game::RunGame()
-{
-    Awrite("Setting Up Turn...");
-    PreProcessTurn();
+int Game::RunGame() {
+	Awrite("Setting Up Turn...");
+	PreProcessTurn();
 
-    Awrite("Reading the Gamemaster File...");
-    if( !ReadPlayers() )
-    {
-	return( 0 );
-    }
+	Awrite("Reading the Gamemaster File...");
+	if (!ReadPlayers()) return 0;
 
-    if( gameStatus == GAME_STATUS_FINISHED )
-    {
-	Awrite( "This game is finished!" );
-	return( 0 );
-    }
-    gameStatus = GAME_STATUS_RUNNING;
+	if (gameStatus == GAME_STATUS_FINISHED) {
+		Awrite("This game is finished!");
+		return 0;
+	}
+	gameStatus = GAME_STATUS_RUNNING;
 
-    Awrite("Reading the Orders File...");
-    ReadOrders();
+	Awrite("Reading the Orders File...");
+	ReadOrders();
 
-	if(Globals->MAX_INACTIVE_TURNS != -1) {
+	if (Globals->MAX_INACTIVE_TURNS != -1) {
 		Awrite("QUITting Inactive Factions...");
 		RemoveInactiveFactions();
 	}
 
-    Awrite("Running the Turn...");
-    RunOrders();
+	Awrite("Running the Turn...");
+	RunOrders();
 
-    Awrite("Writing the Report File...");
-    WriteReport();
+	Awrite("Writing the Report File...");
+	WriteReport();
 	Awrite("");
-    battles.DeleteAll();
+	battles.DeleteAll();
 
-    Awrite("Writing Playerinfo File...");
-    WritePlayers();
+	Awrite("Writing Playerinfo File...");
+	WritePlayers();
 
-    Awrite("Removing Dead Factions...");
-    DeleteDeadFactions();
-    Awrite("done");
+	Awrite("Removing Dead Factions...");
+	DeleteDeadFactions();
+	Awrite("done");
 
-    return( 1 );
+	return 1;
 }
 
-int Game::EditGame( int *pSaveGame )
-{
-    *pSaveGame = 0;
+int Game::EditGame(int *pSaveGame) {
+	*pSaveGame = 0;
 
-    Awrite( "Editing an Atlantis Game: ");
-    do
-    {
-	int exit = 0;
+	Awrite("Editing an Atlantis Game: ");
+	do {
+		int exit = 0;
 
-	Awrite( "Main Menu" );
-	Awrite( "  1) Find a region..." );
-	Awrite( "  2) Find a unit..." );
-	Awrite( "  q) Quit without saving." );
-	Awrite( "  x) Exit and save." );
-	Awrite( "> " );
+		Awrite("Main Menu");
+		Awrite("  1) Find a region...");
+		Awrite("  2) Find a unit...");
+		Awrite("  q) Quit without saving.");
+		Awrite("  x) Exit and save.");
+		Awrite("> ");
 
-	AString *pStr = AGetString();
-	Awrite( "" );
+		AString *pStr = AGetString();
+		Awrite("");
 
-	if( *pStr == "q" )
-	{
-	    exit = 1;
-	    Awrite( "Quiting without saving." );
-	}
-	else if( *pStr == "x" )
-	{
-	    exit = 1;
-	    *pSaveGame = 1;
-	    Awrite( "Exit and save." );
-	}
-	else if( *pStr == "1" )
-	{
-	    ARegion *pReg = EditGameFindRegion();
-	    if( pReg )
-	    {
-		EditGameRegion( pReg );
-	    }
-	}
-	else if( *pStr == "2" )
-	{
-	    EditGameFindUnit();
-	}
-	else
-	{
-	    Awrite( "Select from the menu." );
-	}
+		if (*pStr == "q") {
+			exit = 1;
+			Awrite("Quiting without saving.");
+		} else if (*pStr == "x") {
+			exit = 1;
+			*pSaveGame = 1;
+			Awrite("Exit and save.");
+		} else if (*pStr == "1") {
+			ARegion *pReg = EditGameFindRegion();
+			if (pReg) EditGameRegion(pReg);
+		} else if (*pStr == "2")
+			EditGameFindUnit();
+		else
+			Awrite("Select from the menu.");
 
-	delete pStr;
-	if( exit )
-	{
-	    break;
-	}
-    }
-    while( 1 );
+		delete pStr;
+		if (exit) break;
+	} while (1);
 
-    return( 1 );
+	return 1;
 }
 
-ARegion *Game::EditGameFindRegion()
-{
+ARegion *Game::EditGameFindRegion() {
 	ARegion *ret = 0;
 	int x, y, z;
 	AString *pStr = 0, *pToken = 0;
-	Awrite( "Region coords (x y z):" );
+	Awrite("Region coords (x y z):");
 	do {
 		pStr = AGetString();
 
 		pToken = pStr->gettoken();
-		if( !pToken ) {
-			Awrite( "No such region." );
+		if (!pToken) {
+			Awrite("No such region.");
 			break;
 		}
 		x = pToken->value();
-		SAFE_DELETE( pToken );
+		SAFE_DELETE(pToken);
 
 		pToken = pStr->gettoken();
-		if( !pToken ) {
-			Awrite( "No such region." );
+		if (!pToken) {
+			Awrite("No such region.");
 			break;
 		}
 		y = pToken->value();
-		SAFE_DELETE( pToken );
+		SAFE_DELETE(pToken);
 
 		pToken = pStr->gettoken();
-		if( pToken ) {
+		if (pToken) {
 			z = pToken->value();
-			SAFE_DELETE( pToken );
-		} else {
+			SAFE_DELETE(pToken);
+		} else
 			z = 0;
-		}
 
-		ARegion *pReg = regions.GetRegion( x, y, z );
-		if( !pReg ) {
-			Awrite( "No such region." );
+		ARegion *pReg = regions.GetRegion(x, y, z);
+		if (!pReg) {
+			Awrite("No such region.");
 			break;
 		}
 
 		ret = pReg;
-	} while( 0 );
+	} while (0);
 
-	if(pStr) delete pStr;
-	if(pToken) delete pToken;
+	if (pStr) delete pStr;
+	if (pToken) delete pToken;
 
-	return( ret );
+	return ret;
 }
 
 void Game::EditGameFindUnit() {
-    AString *pStr;
-    Awrite( "Which unit number?" );
-    pStr = AGetString();
-    int num = pStr->value();
-    delete pStr;
-    Unit *pUnit = GetUnit( num );
-    if( !pUnit )
-    {
-	Awrite( "No such unit!" );
-	return;
-    }
-    EditGameUnit( pUnit );
-}
-
-void Game::EditGameRegion( ARegion *pReg ) {
-    // XXX -- Implement region editor
-    Awrite( "Not implemented yet." );
-}
-
-void Game::EditGameUnit( Unit *pUnit ) {
-    do
-    {
-	Awrite( AString( "Unit: " ) + *( pUnit->name ));
-	Awrite( AString( "  in " ) +
-		pUnit->object->region->ShortPrint( &regions ));
-	Awrite( "  1) Edit items..." );
-	Awrite( "  2) Edit skills..." );
-	Awrite( "  3) Move unit..." );
-	Awrite( "  q) Stop editing this unit." );
-
-	int exit = 0;
-	AString *pStr = AGetString();
-	if( *pStr == "1" )
-	{
-	    EditGameUnitItems( pUnit );
-	}
-	else if( *pStr == "2" )
-	{
-	    EditGameUnitSkills( pUnit );
-	}
-	else if( *pStr == "3" )
-	{
-	    EditGameUnitMove( pUnit );
-	}
-	else if( *pStr == "q" )
-	{
-	    exit = 1;
-	}
-	else
-	{
-	    Awrite( "Select from the menu." );
-	}
+	AString *pStr;
+	Awrite("Which unit number?");
+	pStr = AGetString();
+	int num = pStr->value();
 	delete pStr;
-
-	if( exit )
-	{
-	    break;
+	Unit *pUnit = GetUnit(num);
+	if (!pUnit) {
+		Awrite("No such unit!");
+		return;
 	}
-    }
-    while( 1 );
+	EditGameUnit(pUnit);
 }
 
-void Game::EditGameUnitItems( Unit *pUnit ) {
+void Game::EditGameRegion( ARegion *pReg ) { 
+	do { 
+		Awrite( AString( "Region: " ) + pReg->ShortPrint( &regions ) ); 
+		Awrite( " 1) Edit objects..." ); 
+		Awrite( " q) Return to previous menu." ); 
+
+		int exit = 0; 
+		AString *pStr = AGetString(); 
+		if( *pStr == "1" )
+			EditGameRegionObjects( pReg ); 
+		else if( *pStr == "q" ) 
+			exit = 1; 
+		else 
+			Awrite( "Select from the menu." ); 
+		delete pStr; 
+
+		if (exit) 
+			break; 
+	} while( 1 ); 
+}
+
+void Game::EditGameRegionObjects( ARegion *pReg ) { 
+	do { 
+		Awrite( AString("Region: ") + pReg->ShortPrint(&regions)); 
+		Awrite(""); 
+		int i = 0; 
+		forlist (&(pReg->objects)) { 
+			Object * obj = (Object *)elem; 
+			Awrite(AString(i) + ". " + *obj->name + " : " + 
+			ObjectDefs[obj->type].name); 
+			i++; 
+		} 
+		Awrite(""); 
+
+		Awrite(" [a] [object type] to add object"); 
+		Awrite(" [d] [index] to delete object"); 
+		Awrite(" [n] [index] [name] to rename object"); 
+		Awrite(" q) Return to previous menu."); 
+
+		int exit = 0; 
+		AString *pStr = AGetString(); 
+		if (*pStr == "q")
+			exit = 1; 
+		else { 
+			AString *pToken = 0; 
+			do { 
+				pToken = pStr->gettoken(); 
+				if (!pToken) { 
+					Awrite("Try again."); 
+					break; 
+				} 
+
+				if (*pToken == "a") { // add object 
+					SAFE_DELETE(pToken); 
+	
+					pToken = pStr->gettoken(); 
+					if (!pToken) { 
+						Awrite("Try again."); 
+						break; 
+					} 
+
+					int objType = ParseObject(pToken); 
+					if ((objType == -1) || (ObjectDefs[objType].flags & ObjectType::DISABLED)) { 
+						Awrite("No such object."); 
+						break; 
+					} 
+					SAFE_DELETE(pToken); 
+	
+					Object *o = new Object(pReg); 
+					o->type = objType; 
+					o->incomplete = 0; 
+					o->inner = -1; 
+					if (o->IsBoat()) { 
+						o->num = shipseq++; 
+						o->name = new AString(AString("Ship") + " [" + o->num + "]"); 
+					} else { 
+						o->num = pReg->buildingseq++; 
+						o->name = new AString(AString("Building") + " [" + o->num + "]"); 
+					} 
+					pReg->objects.Add(o); 
+				}
+	
+				else if (*pToken == "d") { // delete object 
+					SAFE_DELETE(pToken); 
+	
+					pToken = pStr->gettoken(); 
+					if (!pToken) { 
+						Awrite("Try again."); 
+						break; 
+					} 
+	
+					int index = pToken->value(); 
+					if ((index < 1) || (index >= pReg->objects.Num())) { 
+						Awrite( "Incorrect index." ); 
+						break; 
+					} 
+					SAFE_DELETE(pToken); 
+	
+					int i = 0; 
+					AListElem *tmp = pReg->objects.First(); 
+					for (i = 0; i < index; i++) tmp = pReg->objects.Next(tmp); 
+					pReg->objects.Remove(tmp); 
+				}
+	
+				else if (*pToken == "n") { // rename object 
+					SAFE_DELETE( pToken ); 
+
+					pToken = pStr->gettoken(); 
+					if (!pToken) { 
+						Awrite( "Try again." ); 
+						break; 
+					} 
+
+					int index = pToken->value(); 
+					if ((index < 1) || (index >= pReg->objects.Num())) { 
+						Awrite("Incorrect index."); 
+						break; 
+					} 
+					SAFE_DELETE(pToken); 
+
+					pToken = pStr->gettoken(); 
+					if (!pToken) { 
+						Awrite("No name given."); 
+						break; 
+					} 
+
+					int i = 0; 
+					Object *tmp = (Object *)pReg->objects.First(); 
+					for (i = 0; i < index; i++)
+						tmp = (Object *)pReg->objects.Next(tmp); 
+
+					AString * newname = pToken->getlegal(); 
+					SAFE_DELETE(pToken); 
+					if (newname) { 
+						delete tmp->name; 
+						*newname += AString(" [") + tmp->num + "]"; 
+						tmp->name = newname; 
+					} 
+				} 
+
+			} while (0); 
+			if (pToken) delete pToken; 
+		}
+		if(pStr) delete pStr; 
+	
+		if (exit) break; 
+	} while (1); 
+}
+
+void Game::EditGameUnit(Unit *pUnit) {
+	do {
+		Awrite(AString("Unit: ") + *(pUnit->name));
+		Awrite(AString("  in ") +
+			pUnit->object->region->ShortPrint(&regions));
+		Awrite("  1) Edit items...");
+		Awrite("  2) Edit skills...");
+		Awrite("  3) Move unit...");
+		Awrite("  q) Stop editing this unit.");
+
+		int exit = 0;
+		AString *pStr = AGetString();
+		if (*pStr == "1")
+			EditGameUnitItems(pUnit);
+		else if (*pStr == "2")
+			EditGameUnitSkills(pUnit);
+		else if (*pStr == "3")
+			EditGameUnitMove(pUnit);
+		else if (*pStr == "q")
+			exit = 1;
+		else
+			Awrite("Select from the menu.");
+
+		delete pStr;
+
+		if (exit) break;
+	} while (1);
+}
+
+void Game::EditGameUnitItems(Unit *pUnit) {
 	do {
 		int exit = 0;
-		Awrite( AString( "Unit items: " ) + pUnit->items.Report( 2, 1, 1 ));
-		Awrite( "  [item] [number] to update an item." );
-		Awrite( "  q) Stop editing the items." );
+		Awrite(AString("Unit items: ") + pUnit->items.Report(2, 1, 1));
+		Awrite("  [item] [number] to update an item.");
+		Awrite("  q) Stop editing the items.");
 		AString *pStr = AGetString();
-		if( *pStr == "q" ) {
+		if (*pStr == "q")
 			exit = 1;
-		} else {
+		else {
 			AString *pToken = 0;
 			do {
 				pToken = pStr->gettoken();
-				if( !pToken ) {
-					Awrite( "Try again." );
+				if (!pToken) {
+					Awrite("Try again.");
 					break;
 				}
 
-				int itemNum = ParseAllItems( pToken );
-				if( itemNum == -1 ) {
-					Awrite( "No such item." );
-					break;
-				}
-				if(ItemDefs[itemNum].flags & ItemType::DISABLED) {
+				int itemNum = ParseAllItems(pToken);
+				if (itemNum == -1) {
 					Awrite("No such item.");
 					break;
 				}
-				SAFE_DELETE( pToken );
+				if (ItemDefs[itemNum].flags & ItemType::DISABLED) {
+					Awrite("No such item.");
+					break;
+				}
+				SAFE_DELETE(pToken);
 
 				int num;
 				pToken = pStr->gettoken();
-				if( !pToken ) {
-					num = 0;
-				} else {
-					num = pToken->value();
-				}
+				if (!pToken) num = 0;
+				else num = pToken->value();
 
-				pUnit->items.SetNum( itemNum, num );
+				pUnit->items.SetNum(itemNum, num);
 				/* Mark it as known about for 'shows' */
 				pUnit->faction->items.SetNum(itemNum, 1);
-			} while( 0 );
-			if(pToken) delete pToken;
+			} while (0);
+			if (pToken) delete pToken;
 		}
-	if(pStr) delete pStr;
+		if (pStr) delete pStr;
 
-	if( exit ) {
-			break;
-		}
-	} while( 1 );
+		if (exit) break;
+	} while (1);
 }
 
-void Game::EditGameUnitSkills( Unit *pUnit ) {
-    do
-    {
-	int exit = 0;
-	Awrite( AString( "Unit skills: " ) +
-		pUnit->skills.Report( pUnit->GetMen()));
-	Awrite( "  [skill] [days] to update a skill." );
-	Awrite( "  q) Stop editing the skills." );
-	AString *pStr = AGetString();
-	if( *pStr == "q" )
-	{
-	    exit = 1;
-	}
-	else
-	{
-	    AString *pToken = 0;
-	    do
-	    {
-		pToken = pStr->gettoken();
-		if( !pToken )
-		{
-		    Awrite( "Try again." );
-		    break;
-		}
+void Game::EditGameUnitSkills(Unit *pUnit) {
+	do {
+		int exit = 0;
+		Awrite(AString("Unit skills: ") +
+			pUnit->skills.Report(pUnit->GetMen()));
+		Awrite("  [skill] [days] to update a skill.");
+		Awrite("  q) Stop editing the skills.");
+		AString *pStr = AGetString();
+		if (*pStr == "q") exit = 1;
+		else {
+			AString *pToken = 0;
+			do {
+				pToken = pStr->gettoken();
+				if (!pToken) {
+					Awrite("Try again.");
+					break;
+				}
 
-		int skillNum = ParseSkill( pToken );
-		if( skillNum == -1 )
-		{
-		    Awrite( "No such skill." );
-		    break;
-		}
-				if(SkillDefs[skillNum].flags & SkillType::DISABLED) {
+				int skillNum = ParseSkill(pToken);
+				if (skillNum == -1) {
 					Awrite("No such skill.");
 					break;
 				}
-		SAFE_DELETE( pToken );
+				if (SkillDefs[skillNum].flags & SkillType::DISABLED) {
+					Awrite("No such skill.");
+					break;
+				}
+				SAFE_DELETE(pToken);
 
-		int days;
-		pToken = pStr->gettoken();
-		if( !pToken )
-		{
-		    days = 0;
-		}
-		else
-		{
-		    days = pToken->value();
-		}
+				int days;
+				pToken = pStr->gettoken();
+				if (!pToken) {
+					days = 0;
+				} else {
+					days = pToken->value();
+				}
 
-				if((SkillDefs[skillNum].flags & SkillType::MAGIC) &&
+				if ((SkillDefs[skillNum].flags & SkillType::MAGIC) &&
 						(pUnit->type != U_MAGE)) {
 					pUnit->type = U_MAGE;
 				}
-				if((SkillDefs[skillNum].flags & SkillType::APPRENTICE) &&
+				if ((SkillDefs[skillNum].flags & SkillType::APPRENTICE) &&
 						(pUnit->type == U_NORMAL)) {
 					pUnit->type = U_APPRENTICE;
 				}
-		pUnit->skills.SetDays( skillNum, days * pUnit->GetMen() );
+				pUnit->skills.SetDays(skillNum, days * pUnit->GetMen());
 				int lvl = pUnit->GetRealSkill(skillNum);
-				if(lvl > pUnit->faction->skills.GetDays(skillNum)) {
+				if (lvl > pUnit->faction->skills.GetDays(skillNum)) {
 					pUnit->faction->skills.SetDays(skillNum, lvl);
 				}
-	    }
-	    while( 0 );
-	    delete pToken;
-	}
-	delete pStr;
+			} while (0);
+			delete pToken;
+		}
+		delete pStr;
 
-	if( exit )
-	{
-	    break;
-	}
-    }
-    while( 1 );
+		if (exit) break;
+	} while (1);
 }
 
-void Game::EditGameUnitMove( Unit *pUnit ) {
-    ARegion *pReg = EditGameFindRegion();
-    if( !pReg )
-    {
-	return;
-    }
+void Game::EditGameUnitMove(Unit *pUnit) {
+	ARegion *pReg = EditGameFindRegion();
+	if (!pReg) return;
 
-    pUnit->MoveUnit( pReg->GetDummy() );
+	pUnit->MoveUnit(pReg->GetDummy());
 }
 
 void Game::PreProcessTurn() {
-    month++;
-    if (month>11)
-    {
-	month = 0;
-	year++;
-    }
-    SetupUnitNums();
-    {
-	forlist(&factions) {
-	    ((Faction *) elem)->DefaultOrders();
-//            ((Faction *) elem)->TimesReward();
+	month++;
+	if (month>11) {
+		month = 0;
+		year++;
 	}
-    }
-    {
-	forlist(&regions) {
-	    ARegion *pReg = (ARegion *) elem;
-	    if( Globals->WEATHER_EXISTS )
-	    {
-		pReg->SetWeather( regions.GetWeather( pReg, month ));
-	    }
-	    pReg->DefaultOrders();
+	SetupUnitNums();
+	{
+		forlist(&factions) {
+			((Faction *) elem)->DefaultOrders();
+			//((Faction *) elem)->TimesReward();
+		}
 	}
-    }
+	{
+		forlist(&regions) {
+			ARegion *pReg = (ARegion *) elem;
+			if (Globals->WEATHER_EXISTS) pReg->SetWeather(regions.GetWeather(pReg, month));
+			pReg->DefaultOrders();
+		}
+	}
 }
 
 void Game::ClearOrders(Faction * f) {
-    forlist(&regions) {
-	ARegion * r = (ARegion *) elem;
-	forlist(&r->objects) {
-	    Object * o = (Object *) elem;
-	    forlist(&o->units) {
-		Unit * u = (Unit *) elem;
-		if (u->faction == f)
-		{
-		    u->ClearOrders();
+	forlist(&regions) {
+		ARegion * r = (ARegion *) elem;
+		forlist(&r->objects) {
+			Object * o = (Object *) elem;
+			forlist(&o->units) {
+				Unit * u = (Unit *) elem;
+				if (u->faction == f) u->ClearOrders();
+			}
 		}
-	    }
 	}
-    }
 }
 
 void Game::ReadOrders() {
-    forlist( &factions ) {
-	Faction *fac = (Faction *) elem;
-	if( !fac->IsNPC() )
-	{
-	    AString str = "orders.";
-	    str += fac->num;
+	forlist(&factions) {
+		Faction *fac = (Faction *) elem;
+		if (!fac->IsNPC()) {
+			AString str = "orders.";
+			str += fac->num;
 
-	    Aorders file;
-	    if( file.OpenByName( str ) != -1 )
-	    {
-		ParseOrders( fac->num, &file, 0 );
-		file.Close();
-	    }
+				Aorders file;
+			if (file.OpenByName(str) != -1) {
+				ParseOrders(fac->num, &file, 0);
+				file.Close();
+			}
 			DefaultWorkOrder();
+		}
 	}
-    }
 }
 
 void Game::MakeFactionReportLists() {
@@ -1544,69 +1535,64 @@ void Game::MakeFactionReportLists() {
 }
 
 void Game::WriteReport() {
-    Areport f;
+	Areport f;
 
-    MakeFactionReportLists();
-    CountAllMages();
-	if(Globals->APPRENTICES_EXIST)
-		CountAllApprentices();
+	MakeFactionReportLists();
+	CountAllMages();
+	if (Globals->APPRENTICES_EXIST) CountAllApprentices();
 
-    forlist(&factions) {
+	forlist(&factions) {
 	Faction * fac = (Faction *) elem;
 	AString str = "report.";
 	str = str + fac->num;
 
-		if(!fac->IsNPC() ||
+		if (!fac->IsNPC() ||
 		   ((((month == 0) && (year == 1)) || Globals->GM_REPORT) &&
 			(fac->num == 1))) {
-			int i = f.OpenByName( str );
-			if(i != -1) {
-				fac->WriteReport( &f, this );
+			int i = f.OpenByName(str);
+			if (i != -1) {
+				fac->WriteReport(&f, this);
 				f.Close();
 			}
 		}
 	Adot();
-    }
+	}
 }
 
 void Game::DeleteDeadFactions() {
-    forlist(&factions) {
-	Faction * fac = (Faction *) elem;
-	if (!fac->IsNPC() && !fac->exists)
-	{
-	    factions.Remove(fac);
-	    forlist((&factions))
-		((Faction *) elem)->RemoveAttitude(fac->num);
-	    delete fac;
+	forlist(&factions) {
+		Faction * fac = (Faction *) elem;
+		if (!fac->IsNPC() && !fac->exists) {
+			factions.Remove(fac);
+			forlist((&factions))
+				((Faction *) elem)->RemoveAttitude(fac->num);
+	   		 delete fac;
+		}
 	}
-    }
 }
 
-Faction *Game::AddFaction(int newleader)
-{
+Faction *Game::AddFaction(int newleader) {
 	//
 	// set up faction
 	//
 	Faction *temp = new Faction(factionseq);
-	if (!newleader) {
-	  temp->noStartLeader = 1;
-	}
+	if (!newleader) temp->noStartLeader = 1;
 	AString x("NoAddress");
 	temp->SetAddress(x);
 	temp->lastorders = TurnNumber();
 
-	if(SetupFaction(temp)) {
+	if (SetupFaction(temp)) {
 		factions.Add(temp);
 		factionseq++;
-		return(temp);
+		return (temp);
 	} else {
 		delete temp;
-		return(0);
+		return 0;
 	}
 }
 
 void Game::ViewFactions() {
-    forlist((&factions))
+	forlist((&factions))
 	((Faction *) elem)->View();
 }
 
@@ -1618,7 +1604,7 @@ void Game::SetupUnitSeq() {
 			Object *o = (Object *)elem;
 			forlist(&o->units) {
 				Unit *u = (Unit *)elem;
-				if(u && u->num > max) max = u->num;
+				if (u && u->num > max) max = u->num;
 			}
 		}
 	}
@@ -1628,7 +1614,7 @@ void Game::SetupUnitSeq() {
 void Game::FixGateNums() {
 	for(int i=1; i <= regions.numberofgates; i++) {
 		ARegion *tar = regions.FindGate(i);
-		if(tar) continue; // This gate exists, continue
+		if (tar) continue; // This gate exists, continue
 		int done = 0;
 		while(!done) {
 			// We have a missing gate, add it
@@ -1636,16 +1622,16 @@ void Game::FixGateNums() {
 			// Get the z coord, exclude the nexus (and the abyss as well)
 			int z = getrandom(regions.numLevels);
 			ARegionArray *arr = regions.GetRegionArray(z);
-			if(arr->levelType == ARegionArray::LEVEL_NEXUS) continue;
+			if (arr->levelType == ARegionArray::LEVEL_NEXUS) continue;
 
 			// Get a random hex within that level
 			int x = getrandom(arr->x);
 			int y = getrandom(arr->y);
 			tar = arr->GetRegion(x, y);
-			if(!tar) continue;
+			if (!tar) continue;
 
 			// Make sure the hex can have a gate and doesn't already
-			if((TerrainDefs[tar->type].similar_type==R_OCEAN) || tar->gate)
+			if ((TerrainDefs[tar->type].similar_type==R_OCEAN) || tar->gate)
 				continue;
 			tar->gate = i;
 			done = 1;
@@ -1658,7 +1644,7 @@ void Game::FixBoatNums() {
 		ARegion *r = (ARegion *)elem;
 		forlist(&r->objects) {
 			Object *o = (Object *)elem;
-			if(ObjectIsShip(o->type) && (o->num < 100)) {
+			if (ObjectIsShip(o->type) && (o->num < 100)) {
 				o->num = shipseq++;
 				o->SetName(new AString("Ship"));
 			}
@@ -1667,31 +1653,30 @@ void Game::FixBoatNums() {
 }
 
 void Game::SetupUnitNums() {
-    if(ppUnits) delete ppUnits;
+	if (ppUnits) delete ppUnits;
 
 	SetupUnitSeq();
 
 	maxppunits = unitseq+10000;
 
-    ppUnits = new Unit *[ maxppunits ];
+	ppUnits = new Unit *[ maxppunits ];
 
-    unsigned int i;
-    for( i = 0; i < maxppunits ; i++ ) ppUnits[ i ] = 0;
+	unsigned int i;
+	for(i = 0; i < maxppunits ; i++) ppUnits[ i ] = 0;
 
-    forlist(&regions) {
-	ARegion * r = (ARegion *) elem;
-	forlist(&r->objects) {
-	    Object * o = (Object *) elem;
-	    forlist(&o->units) {
-		Unit *u = (Unit *) elem;
+	forlist(&regions) {
+		ARegion * r = (ARegion *) elem;
+		forlist(&r->objects) {
+			Object * o = (Object *) elem;
+			forlist(&o->units) {
+				Unit *u = (Unit *) elem;
 				i = u->num;
-				if((i > 0) && (i < maxppunits)) {
-					if(!ppUnits[i])
-						ppUnits[ u->num ] = u;
+				if ((i > 0) && (i < maxppunits)) {
+					if (!ppUnits[i]) ppUnits[ u->num ] = u;
 					else {
 						Awrite(AString("Error: Unit number ") + i +
-								" multiply defined.");
-						if((unitseq > 0) && (unitseq < maxppunits)) {
+							" multiply defined.");
+						if ((unitseq > 0) && (unitseq < maxppunits)) {
 							u->num = unitseq;
 							ppUnits[unitseq++] = u;
 						}
@@ -1699,7 +1684,7 @@ void Game::SetupUnitNums() {
 				} else {
 					Awrite(AString("Error: Unit number ")+i+
 							" out of range.");
-					if((unitseq > 0) && (unitseq < maxppunits)) {
+					if ((unitseq > 0) && (unitseq < maxppunits)) {
 						u->num = unitseq;
 						ppUnits[unitseq++] = u;
 					}
@@ -1709,23 +1694,20 @@ void Game::SetupUnitNums() {
 	}
 }
 
-Unit *Game::GetNewUnit( Faction *fac, int an )
-{
-    unsigned int i;
-    for( i = 1; i < unitseq; i++ )
-    {
-	if( !ppUnits[ i ] )
-	{
-	    Unit *pUnit = new Unit( i, fac, an );
-	    ppUnits[ i ] = pUnit;
-	    return( pUnit );
+Unit *Game::GetNewUnit(Faction *fac, int an) {
+	unsigned int i;
+	for(i = 1; i < unitseq; i++) {
+		if (!ppUnits[ i ]) {
+			Unit *pUnit = new Unit(i, fac, an);
+			ppUnits[ i ] = pUnit;
+			return (pUnit);
+		}
 	}
-    }
 
-    Unit *pUnit = new Unit( unitseq, fac, an );
-    ppUnits[ unitseq ] = pUnit;
-    unitseq++;
-	if(unitseq >= maxppunits) {
+	Unit *pUnit = new Unit(unitseq, fac, an);
+	ppUnits[ unitseq ] = pUnit;
+	unitseq++;
+	if (unitseq >= maxppunits) {
 		Unit **temp = new Unit*[maxppunits+10000];
 		memcpy(temp, ppUnits, maxppunits*sizeof(Unit *));
 		maxppunits += 10000;
@@ -1733,81 +1715,72 @@ Unit *Game::GetNewUnit( Faction *fac, int an )
 		ppUnits = temp;
 	}
 
-    return( pUnit );
+	return pUnit;
 }
 
-Unit *Game::GetUnit( int num )
-{
-	if(num < 0 || (unsigned int)num >= maxppunits) return NULL;
-    return( ppUnits[ num ] );
+Unit *Game::GetUnit(int num) {
+	if (num < 0 || (unsigned int)num >= maxppunits) return NULL;
+	return ppUnits[ num ];
 }
 
 void Game::CountAllMages() {
-    forlist(&factions) {
-	((Faction *) elem)->nummages = 0;
-    }
-
-    {
-	forlist(&regions) {
-	    ARegion * r = (ARegion *) elem;
-	    forlist(&r->objects) {
-		Object * o = (Object *) elem;
-		forlist(&o->units) {
-		    Unit * u = (Unit *) elem;
-		    if (u->type == U_MAGE) u->faction->nummages++;
+	forlist(&factions) 
+		((Faction *) elem)->nummages = 0;
+	{
+		forlist(&regions) {
+			ARegion * r = (ARegion *) elem;
+			forlist(&r->objects) {
+				Object * o = (Object *) elem;
+				forlist(&o->units) {
+					Unit * u = (Unit *) elem;
+					if (u->type == U_MAGE) u->faction->nummages++;
+				}
+			}
 		}
-	    }
 	}
-    }
 }
 
 // LLS
 void Game::UnitFactionMap() {
-    Aoutfile f;
-    unsigned int i;
-    Unit *u;
+	Aoutfile f;
+	unsigned int i;
+	Unit *u;
 
-    Awrite("Opening units.txt");
-    if (f.OpenByName("units.txt") == -1)
-    {
-	Awrite("Couldn't open file!");
-    } else {
-	Awrite(AString("Writing ") + unitseq + " units");
-	for (i = 1; i < unitseq; i++)
-	{
-	    u = GetUnit(i);
-	    if (!u)
-	    {
-	      Awrite("doesn't exist");
-	    } else {
-	      Awrite(AString(i) + ":" + u->faction->num);
-	      f.PutStr(AString(i) + ":" + u->faction->num);
-	    }
+	Awrite("Opening units.txt");
+	if (f.OpenByName("units.txt") == -1) {
+		Awrite("Couldn't open file!");
+	} else {
+		Awrite(AString("Writing ") + unitseq + " units");
+		for (i = 1; i < unitseq; i++) {
+			u = GetUnit(i);
+			if (!u) {
+				Awrite("doesn't exist");
+			} else {
+				Awrite(AString(i) + ":" + u->faction->num);
+				f.PutStr(AString(i) + ":" + u->faction->num);
+			}
+		}
 	}
-    }
-    f.Close();
+	f.Close();
 }
 
 
 //The following function added by Creative PBM February 2000
 void Game::RemoveInactiveFactions() {
-	if(Globals->MAX_INACTIVE_TURNS == -1)
-		return;
+	if (Globals->MAX_INACTIVE_TURNS == -1) return;
 
 	int cturn;
 	cturn = TurnNumber();
 	forlist(&factions) {
 		Faction *fac = (Faction *) elem;
-		if ((cturn - fac->lastorders) >= Globals->MAX_INACTIVE_TURNS &&
-				!fac->IsNPC()) {
+		if ((cturn - fac->lastorders) >= Globals->MAX_INACTIVE_TURNS && !fac->IsNPC()) {
 			fac->quit = QUIT_BY_GM;
 		}
 	}
 }
 
 void Game::CountAllApprentices() {
-	if(!Globals->APPRENTICES_EXIST)
-		return;
+	if (!Globals->APPRENTICES_EXIST) return;
 
 	forlist(&factions) {
 		((Faction *)elem)->numapprentices = 0;
@@ -1819,7 +1792,7 @@ void Game::CountAllApprentices() {
 				Object *o = (Object *)elem;
 				forlist(&o->units) {
 					Unit *u = (Unit *)elem;
-					if(u->type == U_APPRENTICE)
+					if (u->type == U_APPRENTICE)
 						u->faction->numapprentices++;
 				}
 			}
@@ -1827,8 +1800,7 @@ void Game::CountAllApprentices() {
 	}
 }
 
-int Game::CountApprentices(Faction *pFac)
-{
+int Game::CountApprentices(Faction *pFac) {
 	int i = 0;
 	forlist(&regions) {
 		ARegion *r = (ARegion *)elem;
@@ -1836,15 +1808,14 @@ int Game::CountApprentices(Faction *pFac)
 			Object *o = (Object *)elem;
 			forlist(&o->units) {
 				Unit *u = (Unit *)elem;
-				if(u->faction == pFac && u->type == U_APPRENTICE) i++;
+				if (u->faction == pFac && u->type == U_APPRENTICE) i++;
 			}
 		}
 	}
 	return i;
 }
 
-int Game::AllowedMages( Faction *pFac )
-{
+int Game::AllowedMages(Faction *pFac) {
 	int points = pFac->type[F_MAGIC];
 
 	if (points < 0) points = 0;
@@ -1853,8 +1824,7 @@ int Game::AllowedMages( Faction *pFac )
 	return allowedMages[points];
 }
 
-int Game::AllowedApprentices( Faction *pFac )
-{
+int Game::AllowedApprentices(Faction *pFac) {
 	int points = pFac->type[F_MAGIC];
 
 	if (points < 0) points = 0;
@@ -1864,8 +1834,7 @@ int Game::AllowedApprentices( Faction *pFac )
 	return allowedApprentices[points];
 }
 
-int Game::AllowedTaxes( Faction *pFac )
-{
+int Game::AllowedTaxes(Faction *pFac) {
 	int points = pFac->type[F_WAR];
 
 	if (points < 0) points = 0;
@@ -1874,8 +1843,7 @@ int Game::AllowedTaxes( Faction *pFac )
 	return allowedTaxes[points];
 }
 
-int Game::AllowedTrades( Faction *pFac )
-{
+int Game::AllowedTrades(Faction *pFac) {
 	int points = pFac->type[F_TRADE];
 
 	if (points < 0) points = 0;
@@ -1884,18 +1852,15 @@ int Game::AllowedTrades( Faction *pFac )
 	return allowedTrades[points];
 }
 
-int Game::UpgradeMajorVersion(int savedVersion)
-{
+int Game::UpgradeMajorVersion(int savedVersion) {
 	return 1;
 }
 
-int Game::UpgradeMinorVersion(int savedVersion)
-{
+int Game::UpgradeMinorVersion(int savedVersion) {
 	return 1;
 }
 
-int Game::UpgradePatchLevel(int savedVersion)
-{
+int Game::UpgradePatchLevel(int savedVersion) {
 	return 1;
 }
 
@@ -1912,12 +1877,12 @@ void Game::CreateOceanLairs() {
 }
 
 void Game::MidProcessUnitExtra(ARegion *r, Unit *u) {
-	if(Globals->CHECK_MONSTER_CONTROL_MID_TURN)
+	if (Globals->CHECK_MONSTER_CONTROL_MID_TURN)
 		MonsterCheck(r, u);
 }
 
 void Game::PostProcessUnitExtra(ARegion *r, Unit *u) {
-	if(!Globals->CHECK_MONSTER_CONTROL_MID_TURN)
+	if (!Globals->CHECK_MONSTER_CONTROL_MID_TURN)
 		MonsterCheck(r, u);
 }
 
@@ -1928,30 +1893,32 @@ void Game::MonsterCheck(ARegion *r, Unit *u) {
 		int level;
 		int skill;
 		int top;
+		int dragons = 0; // number of good dragons found in unit // not used yet
+		int wyrms = 0; // number of evil dragons found in unit // not used yet
 
 		forlist (&u->items) {
 			Item *i = (Item *) elem;
-			if(!i->num) continue;
+			if (!i->num) continue;
 			/* XXX -- This should be genericized -- heavily! */
 			/* GGO: how about the new monsters? */
 			level = 1;
-			if(i->type == I_IMP || i->type == I_DEMON || i->type == I_BALROG) {
+			if (i->type == I_IMP || i->type == I_DEMON || i->type == I_BALROG) {
 				top = i->num * i->num;
-				if(i->type == I_IMP) skill = S_SUMMON_IMPS;
-				if(i->type == I_DEMON) skill = S_SUMMON_DEMON;
-				if(i->type == I_BALROG) skill = S_SUMMON_BALROG;
+				if (i->type == I_IMP) skill = S_SUMMON_IMPS;
+				if (i->type == I_DEMON) skill = S_SUMMON_DEMON;
+				if (i->type == I_BALROG) skill = S_SUMMON_BALROG;
 				level = u->GetSkill(skill);
-				if(!level) {
+				if (!level) {
 					/* Something does escape */
 					escape = 10000;
 				} else {
 					int bottom = level * level;
-					if(i->type == I_IMP) bottom *= 4;
+					if (i->type == I_IMP) bottom *= 4;
 					bottom = bottom * bottom;
-					if(i->type != I_BALROG) bottom *= 20;
+					if (i->type != I_BALROG) bottom *= 20;
 					else bottom *= 4;
 					int chance = (top * 10000)/bottom;
-					if(chance > escape) escape = chance;
+					if (chance > escape) escape = chance;
 				}
 			}
 
@@ -1961,15 +1928,25 @@ void Game::MonsterCheck(ARegion *r, Unit *u) {
 				totlosses += losses;
 			}
 
-			// GGO: giant eagle must be replaced by bird lore monster
-			if (i->type==I_WOLF || i->type==I_GIANTEAGLE || i->type==I_REDDRAGON) {
-				if(i->type == I_WOLF) skill = S_WOLF_LORE;
-				if(i->type == I_GIANTEAGLE) skill = S_BIRD_LORE;
-				if(i->type == I_REDDRAGON) skill = S_SUMMON_DRAGON;
-				if(i->type == I_REDDRAGON) skill = S_SUMMON_WYRM;
+			if (i->type==I_WOLF || i->type==I_EAGLE || 
+                            i->type==I_STEELDRAGON || i->type==I_COPPERDRAGON || i->type==I_BRONZEDRAGON || i->type==I_SILVERDRAGON || i->type==I_GOLDENDRAGON ||
+                            i->type==I_GREENDRAGON || i->type==I_BROWNDRAGON || i->type==I_BLUEDRAGON || i->type==I_REDDRAGON || i->type==I_WHITEDRAGON || i->type==I_BLACKDRAGON ) {
+				if (i->type == I_WOLF) skill = S_WOLF_LORE;
+				if (i->type == I_GIANTEAGLE) skill = S_BIRD_LORE;
+				if (i->type == I_STEELDRAGON) skill = S_SUMMON_DRAGON;
+				if (i->type == I_COPPERDRAGON) skill = S_SUMMON_DRAGON;
+				if (i->type == I_BRONZEDRAGON) skill = S_SUMMON_DRAGON;
+				if (i->type == I_SILVERDRAGON) skill = S_SUMMON_DRAGON;
+				if (i->type == I_GOLDENDRAGON) skill = S_SUMMON_DRAGON;
+				if (i->type == I_GREENDRAGON) skill = S_SUMMON_WYRM;
+				if (i->type == I_BROWNDRAGON) skill = S_SUMMON_WYRM;
+				if (i->type == I_BLUEDRAGON) skill = S_SUMMON_WYRM;
+				if (i->type == I_REDDRAGON) skill = S_SUMMON_WYRM;
+				if (i->type == I_WHITEDRAGON) skill = S_SUMMON_WYRM;
+				if (i->type == I_BLACKDRAGON) skill = S_SUMMON_WYRM;
 				level = u->GetSkill(skill);
-				if(!level) {
-					if(Globals->WANDERING_MONSTERS_EXIST &&
+				if (!level) {
+					if (Globals->WANDERING_MONSTERS_EXIST &&
 							Globals->RELEASE_MONSTERS) {
 						Faction *mfac = GetFaction(&factions, monfaction);
 						Unit *mon = GetNewUnit(mfac, 0);
@@ -1993,7 +1970,7 @@ void Game::MonsterCheck(ARegion *r, Unit *u) {
 		}
 
 		if (escape > getrandom(10000)) {
-			if(!Globals->WANDERING_MONSTERS_EXIST) {
+			if (!Globals->WANDERING_MONSTERS_EXIST) {
 				u->items.SetNum(I_IMP, 0);
 				u->items.SetNum(I_DEMON, 0);
 				u->items.SetNum(I_BALROG, 0);
@@ -2001,10 +1978,10 @@ void Game::MonsterCheck(ARegion *r, Unit *u) {
 			} else {
 				Faction *mfac = GetFaction(&factions,monfaction);
 				if (u->items.GetNum(I_IMP)) {
-					Unit *mon = GetNewUnit( mfac, 0 );
+					Unit *mon = GetNewUnit(mfac, 0);
 					mon->MakeWMon(MonDefs[MONSTER_IMPS].name,I_IMP,
 							u->items.GetNum(I_IMP));
-					mon->MoveUnit( r->GetDummy() );
+					mon->MoveUnit(r->GetDummy());
 					u->items.SetNum(I_IMP,0);
 					// This will be zero unless these are set. (0 means
 					// full spoils)
@@ -2012,10 +1989,10 @@ void Game::MonsterCheck(ARegion *r, Unit *u) {
 						Globals->MONSTER_SPOILS_RECOVERY;
 				}
 				if (u->items.GetNum(I_DEMON)) {
-					Unit *mon = GetNewUnit( mfac, 0 );
+					Unit *mon = GetNewUnit(mfac, 0);
 					mon->MakeWMon(MonDefs[MONSTER_DEMONS].name,I_DEMON,
 							u->items.GetNum(I_DEMON));
-					mon->MoveUnit( r->GetDummy() );
+					mon->MoveUnit(r->GetDummy());
 					u->items.SetNum(I_DEMON,0);
 					// This will be zero unless these are set. (0 means
 					// full spoils)
@@ -2023,10 +2000,10 @@ void Game::MonsterCheck(ARegion *r, Unit *u) {
 						Globals->MONSTER_SPOILS_RECOVERY;
 				}
 				if (u->items.GetNum(I_BALROG)) {
-					Unit *mon = GetNewUnit( mfac, 0 );
+					Unit *mon = GetNewUnit(mfac, 0);
 					mon->MakeWMon(MonDefs[MONSTER_BALROG].name,I_BALROG,
 							u->items.GetNum(I_BALROG));
-					mon->MoveUnit( r->GetDummy() );
+					mon->MoveUnit(r->GetDummy());
 					u->items.SetNum(I_BALROG,0);
 					// This will be zero unless these are set. (0 means
 					// full spoils)
@@ -2040,187 +2017,163 @@ void Game::MonsterCheck(ARegion *r, Unit *u) {
 }
 
 void Game::CheckUnitMaintenance(int consume) {
-  int max = -1;
-  int lastmax = -1;
-  // Find maximum priority.
-  for (int it=0;it<NITEMS;it++) {
-    if (ItemDefs[it].attributes & ItemType::CAN_CONSUME) {
-      if (max < 0 || ItemDefs[it].pValue > max) {
-	max = ItemDefs[it].pValue;
-      }
-    }
-  }
-  // While priority found
-  while (max >= 0) {
-    lastmax = max;
-    max = -1;
-    for (int it=0;it<NITEMS;it++) {
-      if (ItemDefs[it].attributes & ItemType::CAN_CONSUME) {
-	// Consume items of present priority.
-	if (ItemDefs[it].pValue == lastmax) {
-	  CheckUnitMaintenanceItem(it, Globals->UPKEEP_FOOD_VALUE, consume);
+	int max = -1;
+	int lastmax = -1;
+	// Find maximum priority.
+	for (int it=0;it<NITEMS;it++) {
+		if (ItemDefs[it].attributes & ItemType::CAN_CONSUME) {
+			if (max < 0 || ItemDefs[it].pValue > max) max = ItemDefs[it].pValue;
+		}
 	}
-	// Find next priority.
-	if (ItemDefs[it].pValue > max && ItemDefs[it].pValue < lastmax) {
-	  max = ItemDefs[it].pValue;
+	// While priority found
+	while (max >= 0) {
+		lastmax = max;
+		max = -1;
+		for (int it=0;it<NITEMS;it++) {
+			if (ItemDefs[it].attributes & ItemType::CAN_CONSUME) {
+				// Consume items of present priority.
+				if (ItemDefs[it].pValue == lastmax)
+					CheckUnitMaintenanceItem(it, Globals->UPKEEP_FOOD_VALUE, consume);
+				// Find next priority.
+				if (ItemDefs[it].pValue > max && ItemDefs[it].pValue < lastmax) 
+					max = ItemDefs[it].pValue;
+			}
+		}
 	}
-      }
-    }
-  }
 }
 
 void Game::CheckFactionMaintenance(int con) {
-  int max = -1;
-  int lastmax = -1;
-  // Find maximum priority.
-  for (int it=0;it<NITEMS;it++) {
-    if (ItemDefs[it].attributes & ItemType::CAN_CONSUME) {
-      if (max < 0 || ItemDefs[it].pValue > max) {
-	max = ItemDefs[it].pValue;
-      }
-    }
-  }
-  // While priority found
-  while (max >= 0) {
-    lastmax = max;
-    max = -1;
-    for (int it=0;it<NITEMS;it++) {
-      if (ItemDefs[it].attributes & ItemType::CAN_CONSUME) {
-	// Consume items of present priority.
-	if (ItemDefs[it].pValue == lastmax) {
-	  CheckFactionMaintenanceItem(it, Globals->UPKEEP_FOOD_VALUE, con);
+	int max = -1;
+	int lastmax = -1;
+	// Find maximum priority.
+	for (int it=0;it<NITEMS;it++) {
+		if (ItemDefs[it].attributes & ItemType::CAN_CONSUME) {
+			if (max < 0 || ItemDefs[it].pValue > max)
+				max = ItemDefs[it].pValue;
+		}
 	}
-	// Find next priority.
-	if (ItemDefs[it].pValue > max && ItemDefs[it].pValue < lastmax) {
-	  max = ItemDefs[it].pValue;
+	// While priority found
+	while (max >= 0) {
+		lastmax = max;
+		max = -1;
+		for (int it=0;it<NITEMS;it++) {
+			if (ItemDefs[it].attributes & ItemType::CAN_CONSUME) {
+				// Consume items of present priority.
+				if (ItemDefs[it].pValue == lastmax)
+					CheckFactionMaintenanceItem(it, Globals->UPKEEP_FOOD_VALUE, con);
+				// Find next priority.
+				if (ItemDefs[it].pValue > max && ItemDefs[it].pValue < lastmax)
+					max = ItemDefs[it].pValue;
+			}
+		}
 	}
-      }
-    }
-  }
 }
 
 void Game::CheckAllyMaintenance() {
-  int max = -1;
-  int lastmax = -1;
-  // Find maximum priority.
-  for (int it=0;it<NITEMS;it++) {
-    if (ItemDefs[it].attributes & ItemType::CAN_CONSUME) {
-      if (max < 0 || ItemDefs[it].pValue > max) {
-	max = ItemDefs[it].pValue;
-      }
-    }
-  }
-  // While priority found
-  while (max >= 0) {
-    lastmax = max;
-    max = -1;
-    for (int it=0;it<NITEMS;it++) {
-      if (ItemDefs[it].attributes & ItemType::CAN_CONSUME) {
-	// Consume items of present priority.
-	if (ItemDefs[it].pValue == lastmax) {
-	CheckAllyMaintenanceItem(it, Globals->UPKEEP_FOOD_VALUE);
+	int max = -1;
+	int lastmax = -1;
+	// Find maximum priority.
+	for (int it=0;it<NITEMS;it++) {
+		if (ItemDefs[it].attributes & ItemType::CAN_CONSUME)
+			if (max < 0 || ItemDefs[it].pValue > max) max = ItemDefs[it].pValue;
 	}
-	// Find next priority.
-	if (ItemDefs[it].pValue > max && ItemDefs[it].pValue < lastmax) {
-	  max = ItemDefs[it].pValue;
+	// While priority found
+	while (max >= 0) {
+		lastmax = max;
+		max = -1;
+		for (int it=0;it<NITEMS;it++) {
+			if (ItemDefs[it].attributes & ItemType::CAN_CONSUME) {
+				// Consume items of present priority.
+				if (ItemDefs[it].pValue == lastmax)
+					CheckAllyMaintenanceItem(it, Globals->UPKEEP_FOOD_VALUE);
+				// Find next priority.
+				if (ItemDefs[it].pValue > max && ItemDefs[it].pValue < lastmax)
+					max = ItemDefs[it].pValue;
+			}
+		}
 	}
-      }
-    }
-  }
 }
 
 void Game::CheckUnitHunger() {
-  int max = -1;
-  int lastmax = -1;
-  // Find maximum priority.
-  for (int it=0;it<NITEMS;it++) {
-    if (ItemDefs[it].attributes & ItemType::CAN_CONSUME) {
-      if (max < 0 || ItemDefs[it].pValue > max) {
-	max = ItemDefs[it].pValue;
-      }
-    }
-  }
-  // While priority found
-  while (max >= 0) {
-    lastmax = max;
-    max = -1;
-    for (int it=0;it<NITEMS;it++) {
-      if (ItemDefs[it].attributes & ItemType::CAN_CONSUME) {
-	// Consume items of present priority.
-	if (ItemDefs[it].pValue == lastmax) {
-	  CheckUnitHungerItem(it, Globals->UPKEEP_FOOD_VALUE);
+	int max = -1;
+	int lastmax = -1;
+	// Find maximum priority.
+	for (int it=0;it<NITEMS;it++) {
+		if (ItemDefs[it].attributes & ItemType::CAN_CONSUME) {
+			if (max < 0 || ItemDefs[it].pValue > max)
+				max = ItemDefs[it].pValue;
+		}
 	}
-	// Find next priority.
-	if (ItemDefs[it].pValue > max && ItemDefs[it].pValue < lastmax) {
-	  max = ItemDefs[it].pValue;
+	// While priority found
+	while (max >= 0) {
+		lastmax = max;
+		max = -1;
+		for (int it=0;it<NITEMS;it++) {
+			if (ItemDefs[it].attributes & ItemType::CAN_CONSUME) {
+				// Consume items of present priority.
+				if (ItemDefs[it].pValue == lastmax)
+					CheckUnitHungerItem(it, Globals->UPKEEP_FOOD_VALUE);
+				// Find next priority.
+				if (ItemDefs[it].pValue > max && ItemDefs[it].pValue < lastmax)
+					max = ItemDefs[it].pValue;
+			}
+		}
 	}
-      }
-    }
-  }
 }
 
 void Game::CheckFactionHunger() {
-  int max = -1;
-  int lastmax = -1;
-  // Find maximum priority.
-  for (int it=0;it<NITEMS;it++) {
-    if (ItemDefs[it].attributes & ItemType::CAN_CONSUME) {
-      if (max < 0 || ItemDefs[it].pValue > max) {
-	max = ItemDefs[it].pValue;
-      }
-    }
-  }
-  // While priority found
-  while (max >= 0) {
-    lastmax = max;
-    max = -1;
-    for (int it=0;it<NITEMS;it++) {
-      if (ItemDefs[it].attributes & ItemType::CAN_CONSUME) {
-	// Consume items of present priority.
-	if (ItemDefs[it].pValue == lastmax) {
-	CheckFactionHungerItem(it, Globals->UPKEEP_FOOD_VALUE);
+	int max = -1;
+	int lastmax = -1;
+	// Find maximum priority.
+	for (int it=0;it<NITEMS;it++) {
+		if (ItemDefs[it].attributes & ItemType::CAN_CONSUME)
+			if (max < 0 || ItemDefs[it].pValue > max)
+				max = ItemDefs[it].pValue;
 	}
-	// Find next priority.
-	if (ItemDefs[it].pValue > max && ItemDefs[it].pValue < lastmax) {
-	  max = ItemDefs[it].pValue;
+	// While priority found
+	while (max >= 0) {
+		lastmax = max;
+		max = -1;
+		for (int it=0;it<NITEMS;it++) {
+			if (ItemDefs[it].attributes & ItemType::CAN_CONSUME) {
+				// Consume items of present priority.
+				if (ItemDefs[it].pValue == lastmax)
+					CheckFactionHungerItem(it, Globals->UPKEEP_FOOD_VALUE);
+				// Find next priority.
+				if (ItemDefs[it].pValue > max && ItemDefs[it].pValue < lastmax)
+					max = ItemDefs[it].pValue;
+			}
+		}
 	}
-      }
-    }
-  }
 }
 
 void Game::CheckAllyHunger() {
-  int max = -1;
-  int lastmax = -1;
-  // Find maximum priority.
-  for (int it=0;it<NITEMS;it++) {
-    if (ItemDefs[it].attributes & ItemType::CAN_CONSUME) {
-      if (max < 0 || ItemDefs[it].pValue > max) {
-	max = ItemDefs[it].pValue;
-      }
-    }
-  }
-  // While priority found
-  while (max >= 0) {
-    lastmax = max;
-    max = -1;
-    for (int it=0;it<NITEMS;it++) {
-      if (ItemDefs[it].attributes & ItemType::CAN_CONSUME) {
-	// Consume items of present priority.
-	if (ItemDefs[it].pValue == lastmax) {
-	  CheckAllyHungerItem(it, Globals->UPKEEP_FOOD_VALUE);
+	int max = -1;
+	int lastmax = -1;
+	// Find maximum priority.
+	for (int it=0;it<NITEMS;it++) {
+		if (ItemDefs[it].attributes & ItemType::CAN_CONSUME)
+			if (max < 0 || ItemDefs[it].pValue > max)
+				max = ItemDefs[it].pValue;
 	}
-	// Find next priority.
-	if (ItemDefs[it].pValue > max && ItemDefs[it].pValue < lastmax) {
-	  max = ItemDefs[it].pValue;
+	// While priority found
+	while (max >= 0) {
+		lastmax = max;
+		max = -1;
+		for (int it=0;it<NITEMS;it++) {
+			if (ItemDefs[it].attributes & ItemType::CAN_CONSUME) {
+				// Consume items of present priority.
+				if (ItemDefs[it].pValue == lastmax)
+					CheckAllyHungerItem(it, Globals->UPKEEP_FOOD_VALUE);
+				// Find next priority.
+				if (ItemDefs[it].pValue > max && ItemDefs[it].pValue < lastmax)
+					max = ItemDefs[it].pValue;
+			}
+		}
 	}
-      }
-    }
-  }
 }
 
-char Game::GetRChar(ARegion * r)
-{
+char Game::GetRChar(ARegion * r) {
 	int t = r->type;
 	char c;
 	switch (t) {
@@ -2230,106 +2183,138 @@ char Game::GetRChar(ARegion * r)
 		case R_T_LAKE3:
 		case R_CE_OCEAN:
 		case R_CE_OCEAN1:
-			 return '-';
+			 return 'w';
 		case R_PLAIN:
 		case R_ISLAND_PLAIN:
 		case R_T_PLAIN1:
 		case R_T_PLAIN2:
 		case R_T_PLAIN3:
+		case R_CE_GDPLAIN:
+		case R_CE_GDPLAIN1:
+			c = 'p'; break;
 		case R_T_PLAIN4:
 		case R_T_PLAIN5:
 		case R_T_PLAIN6:
-		case R_CE_GDPLAIN:
-		case R_CE_GDPLAIN1:
 		case R_CE_EVPLAIN:
 		case R_CE_EVPLAIN1:
-			c = 'p'; break;
+			c = 'q'; break;
 		case R_CE_GDGRASSLAND:
 		case R_CE_GDGRASSLAND1:
+			c = 'g'; break;
 		case R_CE_EVGRASSLAND:
 		case R_CE_EVGRASSLAND1:
-			c = 'g'; break;
+			c = 'a'; break;
 		case R_FOREST:
 		case R_T_FOREST1:
 		case R_T_FOREST2:
 		case R_T_FOREST3:
+		case R_CE_GDFOREST:
+		case R_CE_GDFOREST1:
+			c = 'f'; break;
 		case R_T_FOREST4:
 		case R_T_FOREST5:
 		case R_T_FOREST6:
-		case R_CE_GDFOREST:
-		case R_CE_GDFOREST1:
 		case R_CE_EVFOREST:
 		case R_CE_EVFOREST1:
+			c = 'e'; break;
+		case R_UFOREST:
+		case R_T_UNDERFOREST1:
+		case R_T_UNDERFOREST2:
+		case R_T_UNDERFOREST3:
+		case R_CE_GDUFOREST:
+		case R_CE_GDDFOREST:
+		case R_CE_GDDFOREST1:
+		case R_CE_GDUFOREST1:
 			c = 'f'; break;
+		case R_T_DEEPFOREST1:
+		case R_T_DEEPFOREST2:
+		case R_T_DEEPFOREST3:
+		case R_CE_EVUFOREST:
+		case R_CE_EVUFOREST1:
+		case R_CE_EVDFOREST:
+		case R_CE_EVDFOREST1:
+			c = 'e'; break;
 		case R_T_MYSTFOREST1:
-		case R_T_MYSTFOREST2:
 		case R_CE_MYSTFOREST:
 		case R_CE_MYSTFOREST1:
+			c = 'y'; break;
+		case R_T_MYSTFOREST2:
 			c = 'y'; break;
 		case R_MOUNTAIN:
 		case R_ISLAND_MOUNTAIN:
 		case R_T_MOUNTAIN1:
 		case R_T_MOUNTAIN2:
 		case R_T_MOUNTAIN3:
+		case R_CE_GDMOUNTAIN:
+		case R_CE_GDMOUNTAIN1:
+		case R_T_MINES1:
+		case R_T_MINES2:
+		case R_T_MINES3:
+			c = 'm'; break;
 		case R_T_MOUNTAIN4:
 		case R_T_MOUNTAIN5:
 		case R_T_MOUNTAIN6:
-		case R_CE_GDMOUNTAIN:
-		case R_CE_GDMOUNTAIN1:
 		case R_CE_EVMOUNTAIN:
 		case R_CE_EVMOUNTAIN1:
-			c = 'm'; break;
+		case R_T_MINES4:
+		case R_T_MINES5:
+		case R_T_MINES6:
+			c = 'n'; break;
 		case R_T_HILL1:
 		case R_T_HILL2:
 		case R_T_HILL3:
+		case R_CE_GDHILL:
+		case R_CE_GDHILL1:
+			c = 'h'; break;
 		case R_T_HILL4:
 		case R_T_HILL5:
 		case R_T_HILL6:
-		case R_CE_GDHILL:
-		case R_CE_GDHILL1:
 		case R_CE_EVHILL:
 		case R_CE_EVHILL1:
-			c = 'h'; break;
+			c = 'k'; break;
 		case R_SWAMP:
 		case R_ISLAND_SWAMP:
 		case R_T_SWAMP1:
 		case R_T_SWAMP2:
 		case R_T_SWAMP3:
+		case R_CE_GDSWAMP:
+		case R_CE_GDSWAMP1:
+			c = 's'; break;
 		case R_T_SWAMP4:
 		case R_T_SWAMP5:
 		case R_T_SWAMP6:
-		case R_CE_GDSWAMP:
-		case R_CE_GDSWAMP1:
 		case R_CE_EVSWAMP:
 		case R_CE_EVSWAMP1:
-			c = 's'; break;
+			c = 'r'; break;
 		case R_JUNGLE:
 		case R_T_JUNGLE1:
 		case R_T_JUNGLE2:
 		case R_T_JUNGLE3:
+		case R_CE_GDJUNGLE:
+		case R_CE_GDJUNGLE1:
+			c = 'j'; break;
 		case R_T_JUNGLE4:
 		case R_T_JUNGLE5:
 		case R_T_JUNGLE6:
-		case R_CE_GDJUNGLE:
-		case R_CE_GDJUNGLE1:
 		case R_CE_EVJUNGLE:
 		case R_CE_EVJUNGLE1:
-			c = 'j'; break;
+			c = 'o'; break;
 		case R_DESERT:
 		case R_T_DESERT1:
 		case R_T_DESERT2:
 		case R_T_DESERT3:
+		case R_CE_GDDESERT:
+		case R_CE_GDDESERT1:
+			c = 'd'; break;
 		case R_T_DESERT4:
 		case R_T_DESERT5:
 		case R_T_DESERT6:
-		case R_CE_GDDESERT:
-		case R_CE_GDDESERT1:
 		case R_CE_EVDESERT:
 		case R_CE_EVDESERT1:
-			c = 'd'; break;
+			c = 'b'; break;
 		case R_CE_WASTELAND:
 		case R_CE_WASTELAND1:
-			c = 'w'; break;
+			c = 'z'; break;
 		case R_T_LAKE1:
 		case R_T_LAKE2:
 		case R_CE_GDLAKE:
@@ -2343,39 +2328,35 @@ char Game::GetRChar(ARegion * r)
 		case R_T_TUNDRA1:
 		case R_T_TUNDRA2:
 		case R_T_TUNDRA3:
+		case R_CE_GDTUNDRA:
+		case R_CE_GDTUNDRA1:
+			c = 't'; break;
 		case R_T_TUNDRA4:
 		case R_T_TUNDRA5:
 		case R_T_TUNDRA6:
-		case R_CE_GDTUNDRA:
-		case R_CE_GDTUNDRA1:
 		case R_CE_EVTUNDRA:
 		case R_CE_EVTUNDRA1:
-			c = 't'; break;
+		case R_T_CHAMBER1:
+		case R_T_CHAMBER2:
+		case R_T_CHAMBER3:
+			c = 'u'; break;
 		case R_CAVERN:
 		case R_T_CAVERN1:
 		case R_T_CAVERN2:
 		case R_T_CAVERN3:
+		case R_CE_GDCAVERN:
+		case R_CE_GDCAVERN1:
+		case R_CE_GDDCAVERN:
+		case R_CE_GDDCAVERN1:
+			c = 'c'; break;
 		case R_T_CAVERN4:
 		case R_T_CAVERN5:
 		case R_T_CAVERN6:
-		case R_CE_GDCAVERN:
-		case R_CE_GDCAVERN1:
 		case R_CE_EVCAVERN:
 		case R_CE_EVCAVERN1:
-		case R_CE_GDDCAVERN:
-		case R_CE_GDDCAVERN1:
 		case R_CE_EVDCAVERN:
 		case R_CE_EVDCAVERN1:
-			c = 'c'; break;
-		case R_UFOREST:
-		case R_T_UNDERFOREST1:
-		case R_T_UNDERFOREST2:
-		case R_T_UNDERFOREST3:
-		case R_CE_GDUFOREST:
-		case R_CE_GDUFOREST1:
-		case R_CE_EVUFOREST:
-		case R_CE_EVUFOREST1:
-			c = 'u'; break;
+			c = 'h'; break;
 		case R_TUNNELS:
 		case R_T_TUNNELS1:
 		case R_T_TUNNELS2:
@@ -2388,33 +2369,40 @@ char Game::GetRChar(ARegion * r)
 		case R_CE_DTUNNELS:
 		case R_CE_DTUNNELS1:
 			c = 't'; break;
-		case R_T_DEEPFOREST1:
-		case R_T_DEEPFOREST2:
-		case R_T_DEEPFOREST3:
-		case R_CE_GDDFOREST:
-		case R_CE_GDDFOREST1:
-		case R_CE_EVDFOREST:
-		case R_CE_EVDFOREST1:
-			c = 'e'; break;
 		case R_VOLCANO:
 		case R_T_VOLCANO1:
 		case R_T_VOLCANO2:
+		case R_T_CHAMBER4:
+		case R_T_CHAMBER5:
+		case R_T_CHAMBER6:
 			return 'v';
 		case R_T_GROTTO1:
 		case R_T_GROTTO2:
 			c = 'g'; break;
+		case R_CE_ICE:
+			c = 'i'; break;
+		case R_CE_GLACIER:
+		case R_CE_CRYSTALCAVERN:
+		case R_CE_BLUECAVERN:
+		case R_CE_REDCAVERN:
+		case R_CE_YELLOWCAVERN:
+		case R_CE_ORANGECAVERN:
+		case R_CE_GREENCAVERN:
+		case R_CE_VIOLETCAVERN:
+		case R_CE_BLACKCAVERN:
+		case R_CE_WHITECAVERN:
+			c = 'x'; break;
+
 		default: return '?';
 	}
-	if (r->town) {
-		c = (c - 'a') + 'A';
-	}
+	if (r->town) c = (c - 'a') + 'A';
 	return c;
 }
 
 void Game::CreateNPCFactions() {
 	Faction *f;
 	AString *temp;
-	if(Globals->CITY_MONSTERS_EXIST) {
+	if (Globals->CITY_MONSTERS_EXIST) {
 		f = new Faction(factionseq++);
 		guardfaction = f->num;
 		temp = new AString("The Guardsmen");
@@ -2425,7 +2413,7 @@ void Game::CreateNPCFactions() {
 	}
 	// Only create the monster faction if wandering monsters or lair
 	// monsters exist.
-	if(Globals->LAIR_MONSTERS_EXIST || Globals->WANDERING_MONSTERS_EXIST) {
+	if (Globals->LAIR_MONSTERS_EXIST || Globals->WANDERING_MONSTERS_EXIST) {
 		f = new Faction(factionseq++);
 		monfaction = f->num;
 		temp = new AString("Creatures");
@@ -2436,14 +2424,14 @@ void Game::CreateNPCFactions() {
 	}
 }
 
-void Game::CreateCityMon( ARegion *pReg, int percent, int needmage ) {
+void Game::CreateCityMon(ARegion *pReg, int percent, int needmage) {
 	int skilllevel;
 	int AC = 0;
 	int IV = 0;
 	int num;
-	if( pReg->type == R_NEXUS || pReg->IsStartingCity() ) {
+	if (pReg->type == R_NEXUS || pReg->IsStartingCity()) {
 		skilllevel = TOWN_CITY + 1;
-		if(Globals->SAFE_START_CITIES || (pReg->type == R_NEXUS))
+		if (Globals->SAFE_START_CITIES || (pReg->type == R_NEXUS))
 			IV = 1;
 		AC = 1;
 		num = Globals->AMT_START_CITY_GUARDS;
@@ -2453,10 +2441,10 @@ void Game::CreateCityMon( ARegion *pReg, int percent, int needmage ) {
 	}
 	if (pReg->race != -1) {
 		num = num * percent / 100;
-		Faction *pFac = GetFaction( &factions, guardfaction );
-		Unit *u = GetNewUnit( pFac );
+		Faction *pFac = GetFaction(&factions, guardfaction);
+		Unit *u = GetNewUnit(pFac);
 		AString *s = new AString("City Guard");
-		u->SetName( s );
+		u->SetName(s);
 		u->type = U_GUARD;
 		u->guard = GUARD_GUARD;
 		int race;
@@ -2465,17 +2453,11 @@ void Game::CreateCityMon( ARegion *pReg, int percent, int needmage ) {
 			race = pReg->race;
 			int leader = ManDefs[ItemDefs[race].index].minority;
 			race = (leader == -1 ? race : leader);
-		} else if (Globals->LEADERS_EXIST == GameDefs::NORMAL_LEADERS) {
+		} else if (Globals->LEADERS_EXIST == GameDefs::NORMAL_LEADERS)
 			race = I_LEADERS;
-		} else {
+		else
 			race = pReg->race;
-		}
 		gitems = ManDefs[ItemDefs[race].index].guarditems;
-		//Awrite("Equipping city guards");
-		//int iii;
-		//for (iii=0; iii<7;iii++) {
-		//	Awrite(gitems[iii]);
-		//}
 		u->SetMen(race,num);
 		if (IV) u->items.SetNum(I_AMULETOFI,num);
 		u->SetMoney(num * Globals->GUARD_MONEY);
@@ -2483,11 +2465,11 @@ void Game::CreateCityMon( ARegion *pReg, int percent, int needmage ) {
 		if (AC) {
 			// weapons
 			if (gitems[5]!=-1) {
-			        u->items.SetNum(gitems[5],num);
+				u->items.SetNum(gitems[5],num);
 				//Awrite("setting weapon: gitems[5]");
 				//Awrite(gitems[5]);
 			} else if (gitems[0]!=-1) {
-			        u->items.SetNum(gitems[0],num);
+				u->items.SetNum(gitems[0],num);
 				//Awrite("setting weapon: gitems[0]");
 				//Awrite(gitems[0]);
 			} else { 
@@ -2495,13 +2477,13 @@ void Game::CreateCityMon( ARegion *pReg, int percent, int needmage ) {
 				//Awrite("setting weapon: I_SWORD");
 			}
 			// armor
-			if(Globals->START_CITY_GUARDS_PLATE) {
-			        if (gitems[6]!=-1) {
-			                u->items.SetNum(gitems[6],num);
+			if (Globals->START_CITY_GUARDS_PLATE) {
+				if (gitems[6]!=-1) {
+					u->items.SetNum(gitems[6],num);
 					//Awrite("setting armor: gitems[6]");
 					//Awrite(gitems[6]);
 				} else if (gitems[1]!=-1) {
-			                u->items.SetNum(gitems[1],num);
+					u->items.SetNum(gitems[1],num);
 					//Awrite("setting armor: gitems[1]");
 					//Awrite(gitems[1]);
 				} else {
@@ -2511,17 +2493,17 @@ void Game::CreateCityMon( ARegion *pReg, int percent, int needmage ) {
 			}
 			// equiptment 3 (starting city guards only)
 			if (gitems[4]!=-1) {
-			        u->items.SetNum(gitems[4],num);
+				u->items.SetNum(gitems[4],num);
 				//Awrite("setting city guard equiptment: gitems[4]");
 				//Awrite(gitems[4]);
 			}
 			u->SetSkill(S_OBSERVATION,10);
-			if(Globals->START_CITY_TACTICS)
-			        u->SetSkill(S_TACTICS, Globals->START_CITY_TACTICS);
+			if (Globals->START_CITY_TACTICS)
+				u->SetSkill(S_TACTICS, Globals->START_CITY_TACTICS);
 		} else {
 			// weapon
 			if (gitems[0]!=-1) {
-			        u->items.SetNum(gitems[0],num);
+				u->items.SetNum(gitems[0],num);
 				//Awrite("setting weapon: gitems[0]");
 				//Awrite(gitems[0]);
 			} else {
@@ -2529,9 +2511,9 @@ void Game::CreateCityMon( ARegion *pReg, int percent, int needmage ) {
 				//Awrite("setting weapon: I_SWORD");
 			}
 			// armor
-			if(Globals->START_CITY_GUARDS_PLATE)
-			        if (gitems[1]!=-1) {
-			                u->items.SetNum(gitems[1],num);
+			if (Globals->START_CITY_GUARDS_PLATE)
+				if (gitems[1]!=-1) {
+					u->items.SetNum(gitems[1],num);
 					//Awrite("setting armor: gitems[1]");
 					//Awrite(gitems[1]);
 				}
@@ -2550,20 +2532,20 @@ void Game::CreateCityMon( ARegion *pReg, int percent, int needmage ) {
 			//Awrite(gitems[3]);
 		}
 		u->SetFlag(FLAG_HOLDING,1);
-		u->MoveUnit( pReg->GetDummy() );
+		u->MoveUnit(pReg->GetDummy());
 
-		if(AC && Globals->START_CITY_MAGES && needmage) {
-			u = GetNewUnit( pFac );
+		if (AC && Globals->START_CITY_MAGES && needmage) {
+			u = GetNewUnit(pFac);
 			s = new AString("City Mage");
 			u->SetName(s);
 			u->type = U_GUARDMAGE;
 			u->SetMen(I_LEADERS,1);
-			if(IV) u->items.SetNum(I_AMULETOFI,1);
+			if (IV) u->items.SetNum(I_AMULETOFI,1);
 			u->SetMoney(Globals->GUARD_MONEY);
 			u->SetSkill(S_FORCE,Globals->START_CITY_MAGES);
 			u->SetSkill(S_FIRE,Globals->START_CITY_MAGES);
-			if(Globals->START_CITY_TACTICS)
-			        u->SetSkill(S_TACTICS, Globals->START_CITY_TACTICS);
+			if (Globals->START_CITY_TACTICS)
+				u->SetSkill(S_TACTICS, Globals->START_CITY_TACTICS);
 			u->combat = S_FIRE;
 			u->SetFlag(FLAG_BEHIND, 1);
 			u->SetFlag(FLAG_HOLDING, 1);
@@ -2572,7 +2554,7 @@ void Game::CreateCityMon( ARegion *pReg, int percent, int needmage ) {
 	}
 }
 
-void Game::AdjustCityMons( ARegion *r ) {
+void Game::AdjustCityMons(ARegion *r) {
 	int needguard = 1;
 	int needmage = 1;
 	forlist(&r->objects) {
@@ -2580,68 +2562,61 @@ void Game::AdjustCityMons( ARegion *r ) {
 		forlist(&o->units) {
 			Unit * u = (Unit *) elem;
 			if (u->type == U_GUARD || u->type == U_GUARDMAGE) {
-				AdjustCityMon( r, u );
+				AdjustCityMon(r, u);
 				/* Don't create new city guards if we have some */
 				needguard = 0;
-				if(u->type == U_GUARDMAGE)
+				if (u->type == U_GUARDMAGE)
 					needmage = 0;
 			}
-			if(u->guard == GUARD_GUARD) needguard = 0;
+			if (u->guard == GUARD_GUARD) needguard = 0;
 		}
 	}
 
-    if (needguard && (getrandom(100) < Globals->GUARD_REGEN)) {
-		CreateCityMon( r, 10, needmage );
-	}
+	if (needguard && (getrandom(100) < Globals->GUARD_REGEN))
+		CreateCityMon(r, 10, needmage);
 }
 
-void Game::AdjustCityMon( ARegion *r, Unit *u ) {
+void Game::AdjustCityMon(ARegion *r, Unit *u) {
 	int towntype;
 	int AC = 0;
 	int men;
 	int IV = 0;
-	if( r->type == R_NEXUS || r->IsStartingCity() ) {
+	if (r->type == R_NEXUS || r->IsStartingCity()) {
 		towntype = TOWN_CITY;
 		AC = 1;
-		if(Globals->SAFE_START_CITIES || (r->type == R_NEXUS))
+		if (Globals->SAFE_START_CITIES || (r->type == R_NEXUS))
 			IV = 1;
-		if(u->type == U_GUARDMAGE) {
+		if (u->type == U_GUARDMAGE)
 			men = 1;
-		} else {
+		else {
 			men = u->GetMen() + (Globals->AMT_START_CITY_GUARDS/10);
-			if(men > Globals->AMT_START_CITY_GUARDS)
+			if (men > Globals->AMT_START_CITY_GUARDS)
 				men = Globals->AMT_START_CITY_GUARDS;
 		}
 	} else {
 		towntype = r->town->TownType();
 		men = u->GetMen() + (Globals->CITY_GUARD/10)*(towntype+1);
-		if(men > Globals->CITY_GUARD * (towntype+1))
+		if (men > Globals->CITY_GUARD * (towntype+1))
 			men = Globals->CITY_GUARD * (towntype+1);
 	}
 
 	int race;
 	int *gitems;
 	if (Globals->LEADERS_EXIST == GameDefs::RACIAL_LEADERS) {
-	  race = r->race;
-	  int leader = ManDefs[ItemDefs[race].index].minority;
-	  race = (leader == -1 ? race : leader);
-	} else if (Globals->LEADERS_EXIST == GameDefs::NORMAL_LEADERS) {
-	  race = I_LEADERS;
-	} else {
-	  race = r->race;
-	}
+		race = r->race;
+		int leader = ManDefs[ItemDefs[race].index].minority;
+		race = (leader == -1 ? race : leader);
+	} else if (Globals->LEADERS_EXIST == GameDefs::NORMAL_LEADERS)
+		race = I_LEADERS;
+	else
+		race = r->race;
 	gitems = ManDefs[ItemDefs[race].index].guarditems;
-	//Awrite("Re-equipping city guards");
-	//int iii;
-	//for (iii=0; iii<7;iii++) {
-	//       Awrite(gitems[iii]);
-	//}
 	u->SetMen(race,men);
 
 	if (IV) u->items.SetNum(I_AMULETOFI,men);
 
-	if(u->type == U_GUARDMAGE) {
-		if(Globals->START_CITY_TACTICS)
+	if (u->type == U_GUARDMAGE) {
+		if (Globals->START_CITY_TACTICS)
 			u->SetSkill(S_TACTICS, Globals->START_CITY_TACTICS);
 		u->SetSkill(S_FORCE, Globals->START_CITY_MAGES);
 		u->SetSkill(S_FIRE, Globals->START_CITY_MAGES);
@@ -2666,15 +2641,15 @@ void Game::AdjustCityMon( ARegion *r, Unit *u ) {
 				//Awrite("setting weapon: I_SWORD");
 			}
 			// armor
-			if(Globals->START_CITY_GUARDS_PLATE) {
+			if (Globals->START_CITY_GUARDS_PLATE) {
 				if (gitems[6]!=-1) {
-				        u->items.SetNum(gitems[6],men);
-				        //Awrite("setting armor: gitems[6]");
-				        //Awrite(gitems[6]);
+					u->items.SetNum(gitems[6],men);
+					//Awrite("setting armor: gitems[6]");
+					//Awrite(gitems[6]);
 				} else if (gitems[1]!=-1) {
-				        u->items.SetNum(gitems[1],men);
-				        //Awrite("setting armor: gitems[1]");
-				        //Awrite(gitems[1]);
+					u->items.SetNum(gitems[1],men);
+					//Awrite("setting armor: gitems[1]");
+					//Awrite(gitems[1]);
 				} else {
 					u->items.SetNum(I_IRONPLATEARMOR, men);
 					//Awrite("setting armor: I_IRONPLATEARMOR");
@@ -2687,7 +2662,7 @@ void Game::AdjustCityMon( ARegion *r, Unit *u ) {
 				//Awrite(gitems[4]);
 			}
 			u->SetSkill(S_OBSERVATION,10);
-			if(Globals->START_CITY_TACTICS)
+			if (Globals->START_CITY_TACTICS)
 				u->SetSkill(S_TACTICS, Globals->START_CITY_TACTICS);
 
 		} else {
@@ -2701,9 +2676,9 @@ void Game::AdjustCityMon( ARegion *r, Unit *u ) {
 				//Awrite("setting weapon: I_SWORD");
 			}
 			// armor
-			if(Globals->START_CITY_GUARDS_PLATE)
+			if (Globals->START_CITY_GUARDS_PLATE)
 				if (gitems[1]!=-1) {
-				        u->items.SetNum(gitems[1],men);
+					u->items.SetNum(gitems[1],men);
 					//Awrite("setting armor: gitems[1]");
 					//Awrite(gitems[1]);
 				}

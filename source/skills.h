@@ -22,11 +22,6 @@
 // http://www.prankster.com/project
 //
 // END A3HEADER
-// MODIFICATIONS
-// Date        Person          Comment
-// ----        ------          -------
-// 2001/Feb/18 Joseph Traub    Added apprentice support from Lacandon Conquest
-// 2001/Feb/18 Joseph Traub    Added support for conquest
 //
 #ifndef SKILL_CLASS
 #define SKILL_CLASS
@@ -57,14 +52,12 @@ class SkillList;
   SANDLE 5    SHOE 5
 */
 
-struct SkillDepend
-{
+struct SkillDepend {
 	int skill;
 	int level;
 };
 
-class SkillType
-{
+class SkillType {
 	public:
 		char * name;
 		char * abbr;

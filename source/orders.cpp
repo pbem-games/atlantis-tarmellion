@@ -89,245 +89,193 @@ char * od[] = {
 
 char ** OrderStrs = od;
 
-int Parse1Order(AString * token)
-{
+int Parse1Order(AString * token) {
 	for (int i=0; i<NORDERS; i++)
 		if (*token == OrderStrs[i]) return i;
 	return -1;
 }
 
-Order::Order()
-{
+Order::Order() {
 	type = NORDERS;
 }
 
 Order::~Order() {
 }
 
-ExchangeOrder::ExchangeOrder()
-{
+ExchangeOrder::ExchangeOrder() {
 	type = O_EXCHANGE;
 	exchangeStatus = -1;
 }
 
-ExchangeOrder::~ExchangeOrder()
-{
-	if(target) delete target;
+ExchangeOrder::~ExchangeOrder() {
+	if (target) delete target;
 }
 
-TurnOrder::TurnOrder()
-{
+TurnOrder::TurnOrder() {
 	type = O_TURN;
 	repeating = 0;
 }
 
-TurnOrder::~TurnOrder()
-{
+TurnOrder::~TurnOrder() {
 }
 
-MoveOrder::MoveOrder()
-{
+MoveOrder::MoveOrder() {
 	type = O_MOVE;
 }
 
-MoveOrder::~MoveOrder()
-{
+MoveOrder::~MoveOrder() {
 }
 
-ForgetOrder::ForgetOrder()
-{
+ForgetOrder::ForgetOrder() {
 	type = O_FORGET;
 }
 
-ForgetOrder::~ForgetOrder()
-{
+ForgetOrder::~ForgetOrder() {
 }
 
-WithdrawOrder::WithdrawOrder()
-{
+WithdrawOrder::WithdrawOrder() {
 	type = O_WITHDRAW;
 }
 
-WithdrawOrder::~WithdrawOrder()
-{
+WithdrawOrder::~WithdrawOrder() {
 }
 
-GiveOrder::GiveOrder()
-{
+GiveOrder::GiveOrder() {
 	type = O_GIVE;
 }
 
-GiveOrder::~GiveOrder()
-{
-	if(target) delete target;
+GiveOrder::~GiveOrder() {
+	if (target) delete target;
 }
 
-StudyOrder::StudyOrder()
-{
+StudyOrder::StudyOrder() {
 	type = O_STUDY;
 }
 
-StudyOrder::~StudyOrder()
-{
+StudyOrder::~StudyOrder() {
 }
 
-TeachOrder::TeachOrder()
-{
+TeachOrder::TeachOrder() {
 	type = O_TEACH;
 }
 
-TeachOrder::~TeachOrder()
-{
+TeachOrder::~TeachOrder() {
 }
 
-ProduceOrder::ProduceOrder()
-{
+ProduceOrder::ProduceOrder() {
 	type = O_PRODUCE;
 }
 
-ProduceOrder::~ProduceOrder()
-{
+ProduceOrder::~ProduceOrder() {
 }
 
-BuyOrder::BuyOrder()
-{
+BuyOrder::BuyOrder() {
 	type = O_BUY;
 }
 
-BuyOrder::~BuyOrder()
-{
+BuyOrder::~BuyOrder() {
 }
 
-SellOrder::SellOrder()
-{
+SellOrder::SellOrder() {
 	type = O_SELL;
 }
 
-SellOrder::~SellOrder()
-{
+SellOrder::~SellOrder() {
 }
 
-AttackOrder::AttackOrder()
-{
+AttackOrder::AttackOrder() {
 	type = O_ATTACK;
 }
 
-AttackOrder::~AttackOrder()
-{
+AttackOrder::~AttackOrder() {
 }
 
-BuildOrder::BuildOrder()
-{
+BuildOrder::BuildOrder() {
 	type = O_BUILD;
 }
 
-BuildOrder::~BuildOrder()
-{
-	if(target) delete target;
+BuildOrder::~BuildOrder() {
+	if (target) delete target;
 }
 
-SailOrder::SailOrder()
-{
+SailOrder::SailOrder() {
 	type = O_SAIL;
 }
 
-SailOrder::~SailOrder()
-{
+SailOrder::~SailOrder() {
 }
 
-FindOrder::FindOrder()
-{
+FindOrder::FindOrder() {
 	type = O_FIND;
 }
 
-FindOrder::~FindOrder()
-{
+FindOrder::~FindOrder() {
 }
 
-StealOrder::StealOrder()
-{
+StealOrder::StealOrder() {
 	type = O_STEAL;
 }
 
-StealOrder::~StealOrder()
-{
+StealOrder::~StealOrder() {
 	if (target) delete target;
 }
 
-AssassinateOrder::AssassinateOrder()
-{
+AssassinateOrder::AssassinateOrder() {
 	type = O_ASSASSINATE;
 }
 
-AssassinateOrder::~AssassinateOrder()
-{
+AssassinateOrder::~AssassinateOrder() {
 	if (target) delete target;
 }
 
-CastOrder::CastOrder()
-{
+CastOrder::CastOrder() {
 	type = O_CAST;
 }
 
-CastOrder::~CastOrder()
-{
+CastOrder::~CastOrder() {
 }
 
-CastMindOrder::CastMindOrder()
-{
+CastMindOrder::CastMindOrder() {
 	id = 0;
 }
 
-CastMindOrder::~CastMindOrder()
-{
+CastMindOrder::~CastMindOrder() {
 	delete id;
 }
 
-CastItemOrder::CastItemOrder()
-{
+CastItemOrder::CastItemOrder() {
 }
 
-CastItemOrder::~CastItemOrder()
-{
+CastItemOrder::~CastItemOrder() {
 }
 
-TeleportOrder::TeleportOrder()
-{
+TeleportOrder::TeleportOrder() {
 }
 
-TeleportOrder::~TeleportOrder()
-{
+TeleportOrder::~TeleportOrder() {
 }
 
-CastRegionOrder::CastRegionOrder()
-{
+CastRegionOrder::CastRegionOrder() {
 }
 
-CastRegionOrder::~CastRegionOrder()
-{
+CastRegionOrder::~CastRegionOrder() {
 }
 
-CastIntOrder::CastIntOrder()
-{
+CastIntOrder::CastIntOrder() {
 }
 
-CastIntOrder::~CastIntOrder()
-{
+CastIntOrder::~CastIntOrder() {
 }
 
-CastUnitsOrder::CastUnitsOrder()
-{
+CastUnitsOrder::CastUnitsOrder() {
 }
 
-CastUnitsOrder::~CastUnitsOrder()
-{
+CastUnitsOrder::~CastUnitsOrder() {
 }
 
-EvictOrder::EvictOrder()
-{
+EvictOrder::EvictOrder() {
 	type = O_EVICT;
 }
 
-EvictOrder::~EvictOrder()
-{
+EvictOrder::~EvictOrder() {
 }

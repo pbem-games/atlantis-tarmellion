@@ -24,8 +24,7 @@
 // END A3HEADER
 #include "shields.h"
 
-Shield * ShieldList::GetHighShield(int type)
-{
+Shield * ShieldList::GetHighShield(int type) {
 	Shield * hi = 0;
 	forlist(this) {
 		Shield * sh = (Shield *) elem;

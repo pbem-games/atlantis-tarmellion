@@ -22,11 +22,7 @@
 // http://www.prankster.com/project
 //
 // END A3HEADER
-// MODIFICATIONS
-// Date		Person			Comments
-// ----		------			--------
-// 2000/MAR/16 Davis Kulis	   Added a new reporting Template.
-// 2000/MAR/21 Azthar Septragen  Added roads.
+//
 #ifndef REGION_CLASS
 #define REGION_CLASS
 
@@ -51,15 +47,13 @@ enum {
 	W_BLIZZARD
 };
 
-struct Product
-{
+struct Product {
 	int product;
 	int chance;
 	int amount;
 };
 
-class TerrainType
-{
+class TerrainType {
 	public:
 		char * name;
 		int similar_type;
@@ -91,8 +85,7 @@ class TerrainType
 
 extern TerrainType *TerrainDefs;
 
-class Location : public AListElem
-{
+class Location : public AListElem {
 	public:
 		Unit * unit;
 		Object * obj;
@@ -104,16 +97,14 @@ Location *GetUnit(AList *,int);
 int AGetName(int town);
 char *AGetNameString(int name);
 
-class ARegionPtr : public AListElem
-{
+class ARegionPtr : public AListElem {
 	public:
 		ARegion * ptr;
 };
 
 ARegionPtr *GetRegion(AList *,int);
 
-class Farsight : public AListElem
-{
+class Farsight : public AListElem {
 	public:
 		Farsight();
 
@@ -132,8 +123,7 @@ enum {
 	NTOWNS
 };
 
-class TownInfo
-{
+class TownInfo {
 	public:
 		TownInfo();
 		~TownInfo();
@@ -148,8 +138,7 @@ class TownInfo
 		int activity;
 };
 
-class ARegion : public AListElem
-{
+class ARegion : public AListElem {
 	friend class Game;
 	friend class ARegionArray;
 
@@ -283,8 +272,7 @@ class ARegion : public AListElem
 		void LairCheck();
 };
 
-class ARegionArray
-{
+class ARegionArray {
 	public:
 		ARegionArray(int,int);
 		~ARegionArray();
@@ -307,8 +295,7 @@ class ARegionArray
 		int levelType;
 };
 
-class ARegionFlatArray
-{
+class ARegionFlatArray {
 	public:
 		ARegionFlatArray(int);
 		~ARegionFlatArray();
@@ -320,8 +307,7 @@ class ARegionFlatArray
 		ARegion ** regions;
 };
 
-class ARegionList : public AList
-{
+class ARegionList : public AList {
 	public:
 		ARegionList();
 		~ARegionList();

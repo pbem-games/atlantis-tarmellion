@@ -22,10 +22,7 @@
 // http://www.prankster.com/project
 //
 // END A3HEADER
-// MODIFICATIONS
-// Date        Person          Comments
-// ----        ------          --------
-// 2000/MAR/14 Larry Stanbery  Added enhanced production capability.
+//
 #ifndef ITEMS_CLASS
 #define ITEMS_CLASS
 
@@ -62,16 +59,16 @@ enum {
 	IT_TOOL = 0x0800,
 	IT_FOOD = 0x1000,
 	IT_ABSTRACT = 0x2000,
+	IT_QUEST = 0x4000,
+	IT_MONKEEP = 0x8000,
 };
 
-struct Materials
-{
+struct Materials {
 	int item;
 	int amt;
 };
 
-class ItemType
-{
+class ItemType {
 	public:
 		char *name;
 		char *names;
@@ -145,8 +142,7 @@ class ItemType
 
 extern ItemType * ItemDefs;
 
-class ManType
-{
+class ManType {
 	public:
 
   enum {
@@ -171,8 +167,7 @@ class ManType
 
 extern ManType * ManDefs;
 
-class MonType
-{
+class MonType {
 	public:
 		int attackLevel;
 		int defense[NUM_ATTACK_TYPES];
@@ -211,8 +206,7 @@ enum {
 };
 
 
-class WeaponType
-{
+class WeaponType {
 	public:
 		enum {
 			NEEDSKILL = 0x1, // No bonus or use unless skilled
@@ -227,6 +221,7 @@ class WeaponType
 			RIDINGBONUS = 0x200, // Unit gets riding bonus on att and def.
 			RIDINGBONUSDEFENSE = 0x400, // Unit gets riding bonus on def only.
 			USEINASSASSINATE = 0x800, // weapon can be used in assination.
+			TWOHANDED = 0x1000, // Unit cannot use a shield with weapon.
 		};
 		int flags;
 
@@ -261,11 +256,11 @@ class WeaponType
 
 extern WeaponType *WeaponDefs;
 
-class ArmorType
-{
+class ArmorType {
 	public:
 		enum {
 			USEINASSASSINATE = 0x1,
+			SHIELD = 0x2,
 		};
 
 		int flags;
@@ -279,8 +274,7 @@ class ArmorType
 
 extern ArmorType *ArmorDefs;
 
-class MountType
-{
+class MountType {
 	public:
 		//
 		// This is the skill needed to use this mount.
@@ -310,8 +304,7 @@ class MountType
 
 extern MountType *MountDefs;
 
-class BattleItemType
-{
+class BattleItemType {
 	public:
 		enum {
 			MAGEONLY = 0x1,
@@ -337,8 +330,7 @@ AString *ItemDescription(int item, int full);
 
 int IsSoldier(int);
 
-class Item : public AListElem
-{
+class Item : public AListElem {
 	public:
 		Item();
 		~Item();
@@ -353,8 +345,7 @@ class Item : public AListElem
 		int selling;
 };
 
-class ItemList : public AList
-{
+class ItemList : public AList {
 	public:
 		void Readin(Ainfile *);
 		void Writeout(Aoutfile *);

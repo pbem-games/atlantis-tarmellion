@@ -24,24 +24,20 @@
 // END A3HEADER
 #include "alist.h"
 
-AListElem::~AListElem()
-{
+AListElem::~AListElem() {
 }
 
-AList::AList()
-{
+AList::AList() {
 	list = 0;
 	lastelem = 0;
 	num = 0;
 }
 
-AList::~AList()
-{
+AList::~AList() {
 	DeleteAll();
 }
 
-void AList::DeleteAll()
-{
+void AList::DeleteAll() {
 	AListElem * temp;
 	while (list) {
 		temp = list->next;
@@ -52,8 +48,7 @@ void AList::DeleteAll()
 	num = 0;
 }
 
-void AList::Empty()
-{
+void AList::Empty() {
 	AListElem * temp;
 	while (list) {
 		temp = list->next;
@@ -64,16 +59,14 @@ void AList::Empty()
 	num = 0;
 }
 
-void AList::Insert(AListElem * e)
-{
+void AList::Insert(AListElem * e) {
 	num ++;
 	e->next = list;
 	list = e;
 	if (!lastelem) lastelem = list;
 }
 
-void AList::Add(AListElem * e)
-{
+void AList::Add(AListElem * e) {
 	num ++;
 	if (list) {
 		lastelem->next = e;
@@ -86,19 +79,16 @@ void AList::Add(AListElem * e)
 	}
 }
 
-AListElem * AList::Next(AListElem * e)
-{
+AListElem * AList::Next(AListElem * e) {
 	if (!e) return 0;
 	return e->next;
 }
 
-AListElem * AList::First()
-{
+AListElem * AList::First() {
 	return list;
 }
 
-AListElem * AList::Get(AListElem * e)
-{
+AListElem * AList::Get(AListElem * e) {
 	AListElem * temp = list;
 	while (temp) {
 		if (temp == e) return temp;
@@ -107,8 +97,7 @@ AListElem * AList::Get(AListElem * e)
 	return 0;
 }
 
-char AList::Remove(AListElem * e)
-{
+char AList::Remove(AListElem * e) {
 	if (!e) return 0;
 	if (!e->next) lastelem = 0;
 
@@ -123,13 +112,11 @@ char AList::Remove(AListElem * e)
 	return 0;
 }
 
-int AList::Num()
-{
+int AList::Num() {
 	return num;
 }
 
-int AList::NextLive(AListElem **copy, int size, int pos)
-{
+int AList::NextLive(AListElem **copy, int size, int pos) {
 	while (++pos < size) {
 		for (AListElem *elem = First(); elem; elem = elem->next) {
 			if (elem == copy[pos]) return pos;

@@ -22,25 +22,6 @@
 // http://www.prankster.com/project
 //
 // END A3HEADER
-// MODIFICATONS
-// Date	    Person            Comments
-// ----	    ------            --------
-// 2000/SEP/06 Joseph Traub	  Added base man cost to allow races to have
-//	                           different base costs
-// 2001/FEB/01 Joseph Traub	  Added options for flying over water and
-//	                           easier underworld viewing and farseeing
-// 2001/FEB/07 Joseph Traub	  Added option to make starting cities safe
-//	                           or not and to control the guard numbers
-//	                           and to make them slightly tougher.
-//	                           Added option to give starting city guards
-//	                           mage support.
-// 2001/Feb/18 Joseph Traub	  Added Apprentices idea from Lacandon Conquest
-// 2001/Feb/18 Joseph Traub	  Added back in support for Conquest
-// 2001/Feb/19 Joseph Traub	  Removed the ENGINE_VERSION from the gamedef
-//	                           since it wasn't being used.
-// 2001/Feb/21 Joseph Traub	  Added a FACLIM_UNLIMITED option
-// 2001/Apr/08 Joseph Traub	  Added WORLD_NAME option
-// 2001/Apr/28 Joseph Traub	  Added MORE_PROFITABLE_TRADE_GOODS option
 //
 
 #ifndef GAME_DEFS
@@ -588,6 +569,16 @@ public:
 
 	// Decide whether food stuffs will be added;
 	int AUTOMATIC_FOOD;
+
+	int CITY_TAX_COST;
+	int TOWN_TAX_COST;
+	int VILLAGE_TAX_COST;
+	int CITY_TRADE_COST;
+	int TOWN_TRADE_COST;
+	int VILLAGE_TRADE_COST;
+	int UNDERWORLD_STARTING_CITIES;
+	int UNDERDEEP_STARTING_CITIES;
+
 };
 
 extern GameDefs * Globals;

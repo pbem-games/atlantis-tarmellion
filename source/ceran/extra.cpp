@@ -56,7 +56,7 @@ int Game::SetupFaction( Faction *pFac )
 
 	temp2->type = U_NORMAL;
 	temp2->Study(S_COMBAT, 30);
-	temp2->Study(S_LONGBOW, 30);
+	temp2->Study(S_ARCHERY, 30);
 	temp2->Study(S_CROSSBOW, 30);
 	temp2->Study(S_RIDING, 30);
 	temp2->Study(S_TACTICS, 30);
@@ -66,7 +66,7 @@ int Game::SetupFaction( Faction *pFac )
 
 	if (TurnNumber() >= 12) {
 			temp2->Study(S_COMBAT, 60);
-			temp2->Study(S_LONGBOW, 60);
+			temp2->Study(S_ARCHERY, 60);
 			temp2->Study(S_CROSSBOW, 60);
 			temp2->Study(S_RIDING, 60);
 			temp2->Study(S_TACTICS, 60);
@@ -75,7 +75,7 @@ int Game::SetupFaction( Faction *pFac )
 	}
 	if(TurnNumber() >= 24) {
 			temp2->Study(S_COMBAT, 90);
-			temp2->Study(S_LONGBOW, 90);
+			temp2->Study(S_ARCHERY, 90);
 			temp2->Study(S_CROSSBOW, 90);
 			temp2->Study(S_RIDING, 90);
 			temp2->Study(S_TACTICS, 90);
@@ -84,7 +84,7 @@ int Game::SetupFaction( Faction *pFac )
 	}
 	if(TurnNumber() >= 36) {
 			temp2->Study(S_COMBAT, 120);
-			temp2->Study(S_LONGBOW, 120);
+			temp2->Study(S_ARCHERY, 120);
 			temp2->Study(S_CROSSBOW, 120);
 			temp2->Study(S_RIDING, 120);
 			temp2->Study(S_TACTICS, 120);
@@ -93,7 +93,7 @@ int Game::SetupFaction( Faction *pFac )
 	}
 	if(TurnNumber() >= 48) {
 			temp2->Study(S_COMBAT, 150);
-			temp2->Study(S_LONGBOW, 150);
+			temp2->Study(S_ARCHERY, 150);
 			temp2->Study(S_CROSSBOW, 150);
 			temp2->Study(S_RIDING, 150);
 			temp2->Study(S_TACTICS, 150);
@@ -229,8 +229,6 @@ void Game::ModifyTablesPerRuleset(void)
 	DisableItem(I_TLDUERGAR);
 	DisableItem(I_TRDUERGAR);
 
-//	ModifyObjectFlags(O_BKEEP, ObjectType::NEVERDECAY);
-
 	// Make GateLore, ConstructGate and PortalLore take twice as long to study.
 	//ModifySkillFlags(S_GATE_LORE,
 	//		SkillType::MAGIC | SkillType::CAST | SkillType::SLOWSTUDY);
@@ -246,6 +244,43 @@ void Game::ModifyTablesPerRuleset(void)
 		ModifyRangeFlags(RANGE_CLEAR_SKIES, RangeType::RNG_CROSS_LEVELS);
 		ModifyRangeFlags(RANGE_WEATHER_LORE, RangeType::RNG_CROSS_LEVELS);
 	}
+
+	ModifyItemProductionInput(I_FLAMINGSWORD,1,I_REDPOWERCRYSTAL,1);
+	ModifyItemProductionInput(I_MAGESTAFF,1,I_VIOLETPOWERCRYSTAL,1);
+        ModifyItemProductionSkill(I_RINGOFI,S_ARTIFACT_LORE,5);
+        ModifyItemProductionInput(I_RINGOFI,0,I_RING,1);
+        ModifyItemProductionInput(I_RINGOFI,1,I_GREENPOWERCRYSTAL,1);
+        ModifyItemProductionInput(I_RINGOFI,2,I_SILVER,3800);
+        ModifyItemProductionOutput(I_RINGOFI,5,1);
+        ModifyItemProductionSkill(I_STAFFOFF,S_ARTIFACT_LORE,5);
+        ModifyItemProductionInput(I_STAFFOFF,0,I_QUARTERSTAFF,1);
+        ModifyItemProductionInput(I_STAFFOFF,1,I_REDPOWERCRYSTAL,1);
+        ModifyItemProductionInput(I_STAFFOFF,2,I_SILVER,3800);
+        ModifyItemProductionOutput(I_STAFFOFF,5,1);
+        ModifyItemProductionSkill(I_STAFFOFL,S_ARTIFACT_LORE,5);
+	ModifyItemProductionInput(I_STAFFOFL,0,I_QUARTERSTAFF,1);
+        ModifyItemProductionInput(I_STAFFOFL,1,I_YELLOWPOWERCRYSTAL,1);
+        ModifyItemProductionInput(I_STAFFOFL,2,I_SILVER,165000);
+        ModifyItemProductionOutput(I_STAFFOFL,5,1);
+        ModifyItemProductionSkill(I_AMULETOFTS,S_ARTIFACT_LORE,5);
+        ModifyItemProductionInput(I_AMULETOFTS,0,I_JEWELRY,1);
+        ModifyItemProductionInput(I_AMULETOFTS,1,I_NECKLACE,1);
+        ModifyItemProductionInput(I_AMULETOFTS,2,I_GREENPOWERCRYSTAL,1);
+        ModifyItemProductionInput(I_AMULETOFTS,3,I_SILVER,3800);
+        ModifyItemProductionOutput(I_AMULETOFTS,5,1);
+        ModifyItemProductionSkill(I_AMULETOFP,S_ARTIFACT_LORE,5);
+        ModifyItemProductionInput(I_AMULETOFP,0,I_JEWELRY,1);
+        ModifyItemProductionInput(I_AMULETOFP,1,I_NECKLACE,1);
+        ModifyItemProductionInput(I_AMULETOFP,2,I_ORANGEPOWERCRYSTAL,1);
+        ModifyItemProductionInput(I_AMULETOFP,3,I_SILVER,1200);
+        ModifyItemProductionOutput(I_AMULETOFP,5,1);
+        ModifyItemProductionSkill(I_SHIELDSTONE,S_ARTIFACT_LORE,5);
+        ModifyItemProductionInput(I_SHIELDSTONE,0,I_CORESTONE,1);
+        ModifyItemProductionInput(I_SHIELDSTONE,1,I_GEM,1);
+        ModifyItemProductionInput(I_SHIELDSTONE,2,I_ORANGEPOWERCRYSTAL,1);
+        ModifyItemProductionInput(I_SHIELDSTONE,3,I_SILVER,1700);
+        ModifyItemProductionOutput(I_SHIELDSTONE,5,1);
+
 
 	return;
 }

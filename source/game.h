@@ -22,13 +22,7 @@
 // http://www.prankster.com/project
 //
 // END A3HEADER
-// MODIFICATIONS
-// Date        Person          Comment
-// ----        ------          -------
-// 2000/MAR/14 Larry Stanbery  Added a unit:faction list capability.
-// 2000/MAR/25 Larry Stanbery  Added support for ruleset changes.
-// 2001/Feb/18 Joseph Traub    Added support for Apprentices
-// 2001/Feb/19 Joseph Traub    Upped version to 4.0.5
+//
 #ifndef GAME_CLASS
 #define GAME_CLASS
 
@@ -41,9 +35,10 @@ class Game;
 #include "object.h"
 
 #define CURRENT_ATL_VER MAKE_ATL_VER( 4, 0, 11 )
+// change atlantisversion after reorganizing items after testgames
+//#define CURRENT_ATL_VER MAKE_ATL_VER( 4, 1, 0 )
 
-class OrdersCheck
-{
+class OrdersCheck {
 public:
     OrdersCheck();
 
@@ -56,8 +51,7 @@ public:
     void Error( const AString &error );
 };
 
-class Game
-{
+class Game {
     friend class Faction;
 public:
     Game();
@@ -132,6 +126,7 @@ public:
     ARegion *EditGameFindRegion();
     void EditGameFindUnit();
     void EditGameRegion( ARegion *pReg );
+    void EditGameRegionObjects( ARegion *pReg );
     void EditGameUnit( Unit *pUnit );
     void EditGameUnitItems( Unit *pUnit );
     void EditGameUnitSkills( Unit *pUnit );
