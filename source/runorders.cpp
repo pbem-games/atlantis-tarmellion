@@ -2475,6 +2475,11 @@ int Game::DoGiveOrder(ARegion * r,Unit * u,GiveOrder * o) {
 		return notallied;
 	}
 
+	if (ItemDefs[ o->item ].flags & ItemType::CANTGIVE) {
+		u->Error(AString("GIVE: Can't give ") + ItemDefs[o->item].names + ".");
+		return 0;
+	}
+
 	/* If the item to be given is a man, combine skills */
 	if (ItemDefs[o->item].type & IT_MAN) {
 		if ((u->type == U_MAGE || u->type == U_APPRENTICE ||
@@ -2509,11 +2514,6 @@ int Game::DoGiveOrder(ARegion * r,Unit * u,GiveOrder * o) {
 		SkillList * temp = u->skills.Split(u->GetMen(),amt);
 		t->skills.Combine(temp);
 		delete temp;
-	}
-
-	if (ItemDefs[ o->item ].flags & ItemType::CANTGIVE) {
-		u->Error(AString("GIVE: Can't give ") + ItemDefs[o->item].names + ".");
-		return 0;
 	}
 
 	u->Event(AString("Gives ") + ItemString(o->item,amt) + " to " +

@@ -1175,6 +1175,24 @@ void Unit::AdjustSkills() {
 			}
 		}
 	     	}
+
+	// Check if unit type changes
+	if( type == U_NORMAL || type == U_MAGE || type == U_APPRENTICE ) {
+		int newType = U_NORMAL;
+		forlist(&skills) {
+			Skill * sk = ( Skill * ) elem;
+			if( SkillDefs[sk->type].flags & SkillType::MAGIC ) {
+				newType = U_MAGE;
+				break;
+			}
+			if( SkillDefs[sk->type].flags & SkillType::APPRENTICE ) {
+				newType = U_APPRENTICE;
+				break;
+			}
+		}
+		type = newType;
+	}
+
 }
 
 int Unit::MaintCost() {
