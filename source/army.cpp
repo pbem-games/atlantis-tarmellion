@@ -194,8 +194,9 @@ Soldier::Soldier(Unit * u,Object * o,int regtype,int r,int ass) {
 			if( MountDefs[ItemDefs[riding].index].monster != -1 ) {
 				mount = new Soldier( u, o, regtype, riding, ass );
 				mount->rider = this;
-				break;
 			}
+
+			break;
 		}
 	}
 	// If no mount available that can be used for this terrain type, find
@@ -205,9 +206,11 @@ Soldier::Soldier(Unit * u,Object * o,int regtype,int r,int ass) {
 			item = unit->GetMount(mountType, -1, -1, ridingBonus);
 			if (item == -1) continue;
 			riding = item;
-			if( MountDefs[ItemDefs[riding].index].monster != -1 )
+			if( MountDefs[ItemDefs[riding].index].monster != -1 ) {
 				mount = new Soldier( u, o, regtype, riding, ass );
-			mount->rider = this;
+				mount->rider = this;
+			}
+
 			break;
 		}
 	}
@@ -1278,8 +1281,9 @@ int Army::DoAnAttack(int special, int numAttacks, int attackType,
 			if( tar->rider ) {
 				if (!tar->amuletofi) {
 					int hitsTaken = 1;
-					if( attackType == ATTACK_DISPEL )
+					if( attackType == ATTACK_DISPEL ) {
 						hitsTaken = tar->hits;
+					}
 					tar->damage += hitsTaken;
 					tar->hits -= hitsTaken;
 					if( tar->hits <= 0 ) {
