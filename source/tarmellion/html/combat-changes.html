@@ -1,0 +1,60 @@
+<html>
+<head>
+<title>Tarmellion</title>
+<base target=Datei>
+</head>
+<body background="images/background.jpg">
+<h2>Combat Changes</h2>
+
+<p>Combat is a part of the game that also got changed in Tarmellion.
+
+<ol>
+
+<li>
+<b>Combat Reporting</b>
+<p>The way battles are listed in the turn report has been changed. Instead of only giving a message how much damage the special attack types of each unit with special attacks has made and telling the total damage done the battle report now has a line for each type of attack (energy, fire, slashing, crushing, and so on) for each side of the battle and for each battle round. In this line the total number of attacks and the number of hits for this type of attack are given. There is also an extra line for the deeds of each single leader/hero unit. The normal combat report information is also still present and I hope this is enough to satisfy the needs of all client programs.
+<br>
+</li>
+
+<p>
+<li>
+<b>New Mustering</b>
+<p>The way how ATTACK and the following mustering of both sides work has been completely changed. There are several flags that can be set to influence if a unit joins a fight and several ways for an attacker to issue his ATTACK command. The new way this works allows "limited warfare" or executions. A single unit set to noaid can be attacked by an attacker without at the same time attacking all other units of that faction that he can see. If he wants to attack everyone he either has to attack all units seperately or in one big command line or he can set the whole faction to hostile.  
+<ul>
+<li>ATTACK 123 - Attacker (and units helping him) fights against Defender (and units helping him) if the attacking forces can see (observation) and catch (riding) the unit 123</li>
+<li>ATTACK 123 456 - Attacker (and units helping him) fights against both Defenders (and units helping them)</li>
+<li>NOAID - a unit set to noaid will get no help if he is attacked or if he is attacking<li>
+<li>HOLD - a unit set to hold will fight only in its own hex and not help in other fights in neighbouring hexes</li>
+<li>AVOID - a unit set to avoid will not fight unless it is directly attacked. The Attacker has to type "ATTACK 123" if unit 123 is set to avoid or he will not fight against it.</li>
+</ul>
+<br>
+</li>
+
+<p>
+<li>
+<b>Overwhelming</b>
+<p>Tarmellion has a new feature in combat called overwhelming. It limits the BEHIND flag as too few front line troops won' t be able to defend the combatants in the back line if the attacker is remarkably larger. There will be a message in the battle report teeling you if one side is overwhelmed. After this has happened all units of the overwhelmed side fight as if they were in the front line. 
+<br>
+</li>
+
+<p>
+<li>
+<b>Mounts, Monstermounts and Monsters</b>
+<p>There are quite a lot of creatures available in Tarmellion that can be used as mounts in combat. Some of them may be even able to fight for themselves. And then there are some who can fight, but can' t be ridden.
+<br>A mount will allow its rider to use his riding skill as a bonus for his combat skill up to the limit the mount allows (a winged horse allows up to 5 bonus points because it is flying, while a horse allows only 3) or the terrain allows (certain terrains allow more or less bonus). How much skill points a mount allows is listed with the description of the mount. How much bonus a certain terrain allows will be listed with the geography description on this homepage. In addition to that each mount may even safe the life of its rider by becoming the target of an attack. If a rider is hit in combat it is determined by chance if he or his mount is damaged.
+<br>A monstermount will fight with the combat statistics listed in its description for its rider. However only monstermounts with a rider do fight. During combat Rider and monstermount are seen as a pair. If one attacks both do, if one gets hit it is determined by chance who is damaged. 
+<br>A monster will fight in the front line of battle for his owner. It will give him no riding bonus, but it will fight and get hit of its own accord. Thus a one man unit can control lots of monsters in battle.
+<br>
+</li>
+
+<p>
+<li>
+<b>Shields</b>
+<p>A special type of armour has been created for Tarmellion - the shield. It gives its protection on top of the protection of other armour. If a unit has both plate armour and shield and gets hit, first the saving chance of the plate armour is checked and then the saving chance of the shield.
+<br>
+</li>
+
+
+</ol>
+</body>
+</html>

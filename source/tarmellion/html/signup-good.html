@@ -1,0 +1,88 @@
+<HTML>
+<HEAD>
+   <TITLE>Tarmellion Signup</TITLE>
+</HEAD>
+<body background=images/background.jpg>
+<h2>Signup for the game of Tarmellion - step 2</h2>
+
+<p>Now you have to create your starting character, who will be a real hero and your alter ego in the world of Tarmellion.
+<p>You have to choose his race and his profession and you have to fill in some administrative details in the following form.
+<br>The faction name will be the name under which you will be known to the game community, so choose carefully. You will also be registered to the forum of this game under with this name as user name. Please use only letters (A-Z, a-z) for the name because some processes could be faulty otherwise.
+<br>The email address you type in here will be the address the game reports are sent to and the address all players should use to contact your game characters. It will also be used in the forum. I advise to create a new mailing account with some free mail probider for the game.
+<br>The password must be given each time you send in orders, download reports or log in to the forum.
+<br>The profession will determine the career your hero has in mind. It will also define which skills your hero has already learned. And this choice will also have an effect on the available starting locations.
+<br>The race will define the appearance of your hero, the race skill specializations, the normal habits of his people and it will limit the choice of starting locations to areas where this race is commonly found.
+<p>After filling in all the necessary things just click the send-button.
+
+<p>
+<table border=0 size=80%>
+<form action=/cgi-bin/tarmellion/signup.pl method="POST">
+<tr><td valign=top>FACTION:</td><td colspan=3><input name=factionname size=35></td></tr>
+<tr><td valign=top>EMAIL:</td><td colspan=3><input name=youremail size=35></td></tr>
+<tr><td valign=top>PASSWORD:</td><td colspan=3><input name=yourpassword size=35></td></tr>
+<tr><td colspan=4>PROFESSIONS:</td></tr>
+<tr>
+<td valign=top>
+<input type=radio name=profession value=noble><a href=noble.html target=_blank>noble</a>
+<br><input type=radio name=profession value=officer><a href=officer.html target=_blank>officer</a>
+</td>
+<td valign=top>
+<input type=radio name=profession value=warrior><a href=warrior.html target=_blank>warrior</a>
+<br><input type=radio name=profession value=seaman><a href=seaman.html target=_blank>seaman</a>
+</td>
+<td valign=top>
+<input type=radio name=profession value=merchant><a href=merchant.html target=_blank>merchant</a>
+<br><input type=radio name=profession value=artificer><a href=artificer.html target=_blank>artificer</a>
+</td>
+<td valign=top>
+<input type=radio name=profession value=mage><a href=mage.html target=_blank>mage</a>
+<br><input type=radio name=profession value=assassin><a href=assassin.html target=_blank>assassin</a>
+</td>
+</tr>
+<tr><td colspan=4>RACES:</td></tr>
+<tr>
+<td valign=top>humans:</td>
+<td valign=top>
+<input type=radio name=startingrace value=human> <a href=/cgi-bin/tarmellion/races-desc.pl/Human target=_blank>human</a>
+<br><input type=radio name=startingrace value=viking> <a href=/cgi-bin/tarmellion/races-desc.pl/Vikings target=_blank>viking</a>
+<br><input type=radio name=startingrace value=dervish> <a href=/cgi-bin/tarmellion/races-desc.pl/Nomads_and_Dervishes target=_blank>dervish</a>
+<br><input type=radio name=startingrace value=nomad> <a href=/cgi-bin/tarmellion/races-desc.pl/Nomads_and_Dervishes target=_blank>nomad</a>
+<br><input type=radio name=startingrace value=darkman> <a href=/cgi-bin/tarmellion/races-desc.pl/Darkmen target=_blank>darkman</a>
+</td>
+<td valign=top>
+<input type=radio name=startingrace value=barbarian> <a href=/cgi-bin/tarmellion/races-desc.pl/Barbarians target=_blank>barbarian</a>
+<br><input type=radio name=startingrace value=imperial> <a href=/cgi-bin/tarmellion/races-desc.pl/Imperials target=_blank>imperial</a>
+<br><input type=radio name=startingrace value=clansman> <a href=/cgi-bin/tarmellion/races-desc.pl/Clansmen_and_Highlanders target=_blank>clansman</a>
+<br><input type=radio name=startingrace value=highlander> <a href=/cgi-bin/tarmellion/races-desc.pl/Clansmen_and_Highlanders target=_blank>highlander</a>
+</td>
+<td valign=top>
+<input type=radio name=startingrace value=tribesman> <a href=/cgi-bin/tarmellion/races-desc.pl/Tribesmen target=_blank>tribesman</a>
+<br><input type=radio name=startingrace value=ffolk> <a href=/cgi-bin/tarmellion/races-desc.pl/Ffolk target=_blank>ffolk</a>
+<br><input type=radio name=startingrace value="cajun folk"> <a href=/cgi-bin/tarmellion/races-desc.pl/Lizardmen_and_Cajun_Folk target=_blank>cajun folk</a>
+<br><input type=radio name=startingrace value=lowlander> <a href=/cgi-bin/tarmellion/races-desc.pl/Halfings_and_Lowlanders target=_blank>lowlanders</a>
+</td>
+</tr>
+<tr>
+<td valign=top>non-human:</td>
+<td valign=top>
+<input type=radio name=startingrace value=elf> <a href=/cgi-bin/tarmellion/races-desc.pl/Halfelves_and_Elves target=_blank>elf</a>
+<br><input type=radio name=startingrace value=halfelf> <a href=/cgi-bin/tarmellion/races-desc.pl/Halfelves_and_Elves target=_blank>halfelf</a>
+</td>
+<td valign=top>
+<input type=radio name=startingrace value=gnome> <a href=/cgi-bin/tarmellion/races-desc.pl/Gnomes target=_blank>gnome</a>
+<br><input type=radio name=startingrace value=dwarf> <a href=/cgi-bin/tarmellion/races-desc.pl/Dwarves target=_blank>dwarf</a>
+</td>
+<td valign=top>
+<input type=radio name=startingrace value=halfing> <a href=/cgi-bin/tarmellion/races-desc.pl/Halfings_and_Lowlanders target=_blank>halfing</a>
+<br><input type=radio name=startingrace value=lizardman> <a href=/cgi-bin/tarmellion/races-desc.pl/Lizardmen_and_Cajun_Folk target=_blank>lizardman</a>
+</td>
+</tr>
+<tr><td colspan=4 align=center><input type=submit value=send></td></tr>
+</form>
+</table>
+<p>
+</body>
+</html>
+
+
+

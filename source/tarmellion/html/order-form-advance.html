@@ -1,0 +1,27 @@
+<html>
+ <head>
+ <title>Tarmellion</title>
+ </head>
+ <body background=images/background.jpg>
+ <h2>ADVANCE ORDER INPUT FORM</h2>
+ <p><b>usage</b>
+ <ul>
+ <li> faction number and password are necessary for storing the turn.</li>
+ <li> turn number should be blank unless you are submitting advance orders.</li>
+ <li> in the orders field, your orders must start with #atlantis and end with #end. Any orders missing these lines won't be executed.</li>
+ <li>The web orders take precedence over the email orders, so be sure to change web orders only by submitting new web orders.</li>
+ <li>Advance orders will be overwritten by either email or newer web orders.</li>
+</ul>
+ <table border>
+ <form action=/cgi-bin/tarmellion/order-form.pl method=POST>
+ <tr><td>faction number:</td><td><input name=faction size=12></td></tr>
+ <tr><td>password:</td><td><input name=password type=password size=12></td></tr>
+ <tr><td>turn number:</td><td><input name=turn size=12></td></tr>
+ <tr><td colspan=2>orders:</td></tr>
+ <tr><td colspan=2><textarea name=orders cols=80 rows=30 wrap=virtual></textarea></td></tr>
+ <tr><td colspan=2 align=center><input type=submit value=Save></td></tr>
+ </form>
+ </table>
+ 
+ </body>
+ </html>
