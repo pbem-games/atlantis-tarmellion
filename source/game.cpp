@@ -2033,7 +2033,7 @@ void Game::CheckUnitMaintenance(int consume) {
   int max = -1;
   int lastmax = -1;
   // Find maximum priority.
-  for (int it=0;it<sizeof(ItemDefs)/sizeof(ItemDefs[0]);it++) {
+  for (int it=0;it<NITEMS;it++) {
     if (ItemDefs[it].attributes & ItemType::CAN_CONSUME) {
       if (max < 0 || ItemDefs[it].pValue > max) {
 	max = ItemDefs[it].pValue;
@@ -2044,7 +2044,7 @@ void Game::CheckUnitMaintenance(int consume) {
   while (max >= 0) {
     lastmax = max;
     max = -1;
-    for (int it=0;it<sizeof(ItemDefs)/sizeof(ItemDefs[0]);it++) {
+    for (int it=0;it<NITEMS;it++) {
       if (ItemDefs[it].attributes & ItemType::CAN_CONSUME) {
 	// Consume items of present priority.
 	if (ItemDefs[it].pValue == lastmax) {
@@ -2063,7 +2063,7 @@ void Game::CheckFactionMaintenance(int con) {
   int max = -1;
   int lastmax = -1;
   // Find maximum priority.
-  for (int it=0;it<sizeof(ItemDefs)/sizeof(ItemDefs[0]);it++) {
+  for (int it=0;it<NITEMS;it++) {
     if (ItemDefs[it].attributes & ItemType::CAN_CONSUME) {
       if (max < 0 || ItemDefs[it].pValue > max) {
 	max = ItemDefs[it].pValue;
@@ -2074,7 +2074,7 @@ void Game::CheckFactionMaintenance(int con) {
   while (max >= 0) {
     lastmax = max;
     max = -1;
-    for (int it=0;it<sizeof(ItemDefs)/sizeof(ItemDefs[0]);it++) {
+    for (int it=0;it<NITEMS;it++) {
       if (ItemDefs[it].attributes & ItemType::CAN_CONSUME) {
 	// Consume items of present priority.
 	if (ItemDefs[it].pValue == lastmax) {
@@ -2093,7 +2093,7 @@ void Game::CheckAllyMaintenance() {
   int max = -1;
   int lastmax = -1;
   // Find maximum priority.
-  for (int it=0;it<sizeof(ItemDefs)/sizeof(ItemDefs[0]);it++) {
+  for (int it=0;it<NITEMS;it++) {
     if (ItemDefs[it].attributes & ItemType::CAN_CONSUME) {
       if (max < 0 || ItemDefs[it].pValue > max) {
 	max = ItemDefs[it].pValue;
@@ -2104,7 +2104,7 @@ void Game::CheckAllyMaintenance() {
   while (max >= 0) {
     lastmax = max;
     max = -1;
-    for (int it=0;it<sizeof(ItemDefs)/sizeof(ItemDefs[0]);it++) {
+    for (int it=0;it<NITEMS;it++) {
       if (ItemDefs[it].attributes & ItemType::CAN_CONSUME) {
 	// Consume items of present priority.
 	if (ItemDefs[it].pValue == lastmax) {
@@ -2123,7 +2123,7 @@ void Game::CheckUnitHunger() {
   int max = -1;
   int lastmax = -1;
   // Find maximum priority.
-  for (int it=0;it<sizeof(ItemDefs)/sizeof(ItemDefs[0]);it++) {
+  for (int it=0;it<NITEMS;it++) {
     if (ItemDefs[it].attributes & ItemType::CAN_CONSUME) {
       if (max < 0 || ItemDefs[it].pValue > max) {
 	max = ItemDefs[it].pValue;
@@ -2134,7 +2134,7 @@ void Game::CheckUnitHunger() {
   while (max >= 0) {
     lastmax = max;
     max = -1;
-    for (int it=0;it<sizeof(ItemDefs)/sizeof(ItemDefs[0]);it++) {
+    for (int it=0;it<NITEMS;it++) {
       if (ItemDefs[it].attributes & ItemType::CAN_CONSUME) {
 	// Consume items of present priority.
 	if (ItemDefs[it].pValue == lastmax) {
@@ -2153,7 +2153,7 @@ void Game::CheckFactionHunger() {
   int max = -1;
   int lastmax = -1;
   // Find maximum priority.
-  for (int it=0;it<sizeof(ItemDefs)/sizeof(ItemDefs[0]);it++) {
+  for (int it=0;it<NITEMS;it++) {
     if (ItemDefs[it].attributes & ItemType::CAN_CONSUME) {
       if (max < 0 || ItemDefs[it].pValue > max) {
 	max = ItemDefs[it].pValue;
@@ -2164,7 +2164,7 @@ void Game::CheckFactionHunger() {
   while (max >= 0) {
     lastmax = max;
     max = -1;
-    for (int it=0;it<sizeof(ItemDefs)/sizeof(ItemDefs[0]);it++) {
+    for (int it=0;it<NITEMS;it++) {
       if (ItemDefs[it].attributes & ItemType::CAN_CONSUME) {
 	// Consume items of present priority.
 	if (ItemDefs[it].pValue == lastmax) {
@@ -2183,7 +2183,7 @@ void Game::CheckAllyHunger() {
   int max = -1;
   int lastmax = -1;
   // Find maximum priority.
-  for (int it=0;it<sizeof(ItemDefs)/sizeof(ItemDefs[0]);it++) {
+  for (int it=0;it<NITEMS;it++) {
     if (ItemDefs[it].attributes & ItemType::CAN_CONSUME) {
       if (max < 0 || ItemDefs[it].pValue > max) {
 	max = ItemDefs[it].pValue;
@@ -2194,7 +2194,7 @@ void Game::CheckAllyHunger() {
   while (max >= 0) {
     lastmax = max;
     max = -1;
-    for (int it=0;it<sizeof(ItemDefs)/sizeof(ItemDefs[0]);it++) {
+    for (int it=0;it<NITEMS;it++) {
       if (ItemDefs[it].attributes & ItemType::CAN_CONSUME) {
 	// Consume items of present priority.
 	if (ItemDefs[it].pValue == lastmax) {
