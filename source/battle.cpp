@@ -45,7 +45,7 @@ Battle::~Battle() {
 void Battle::FreeRound(Army * att,Army * def, int ass, bool attIsAttacker ) {
 	int debug = 0;
 
-//	if( att->leader->faction->num == 16 ) debug = 1;
+//	if( att->leader->faction->num == 82 ) debug = 1;
 
 	if( debug ) Awrite( "Free round" );
 
@@ -157,7 +157,7 @@ void Battle::DoAttack(int round, Soldier *a, Army *attackers, Army *def,
 {
 	int debug = 0;
 
-//	if( a->unit->num == 121 ) debug=1;
+//	if( a->unit->num == 1134 ) debug=1;
 if( debug ) Awrite("1");
 	DoSpecialAttack(round, a, attackers, def, behind, canattackback);
 	if (!def->NumAlive()) return;
@@ -804,6 +804,18 @@ void Game::GetSides( ARegion *r, AList & afacs, AList & dfacs, AList & atts,
 		             AList & defs, Unit * attacker, AList * targets, int ass,
 					 int adv )
 {
+	int debug = 0;
+//	if( attacker->num == 3745 ) debug = 1;
+
+	if( debug ) {
+		AString temp;
+		forlist( &atts ) {
+			Location * l = ( Location * ) elem;
+			temp += AString( l->unit->num ) + " ";
+		}
+		Awrite( AString( "** GetSides starts with Attackers: " ) + temp );
+	}
+
 	if (ass) {
 		Unit * tar = (Unit *)((UnitPtr *)targets->First())->ptr;
 
@@ -826,7 +838,14 @@ void Game::GetSides( ARegion *r, AList & afacs, AList & dfacs, AList & atts,
 	AList defFactionsWantingAid;
 
 	int j=NDIRS;
-	int noaida = 0;//, noaidd = 0;
+
+//	New: Don't need noaidd anymore. Factions wanting aid are recorded in defFactionsWantingAid
+//	If attacker is noaid, it should be the only unit attacking, so we check noaida here only
+//
+//	int noaida = 0, noaidd = 0;
+	int noaida = 0;
+	if( attacker->GetFlag( FLAG_NOAID ) ) noaida = 1;
+
 	for (int i=-1;i<j;i++) {
 		ARegion * r2 = r;
 		if (i>=0) {
@@ -950,7 +969,7 @@ void Game::GetSides( ARegion *r, AList & afacs, AList & dfacs, AList & atts,
 		// the units involved
 		//
 		if( i == -1 ) {
-			noaida = 1;
+/*			noaida = 1;
 			forlist( &atts ) {
 				Location *l = (Location *) elem;
 				if( !l->unit->GetFlag(FLAG_NOAID) ) {
@@ -958,7 +977,7 @@ void Game::GetSides( ARegion *r, AList & afacs, AList & dfacs, AList & atts,
 					break;
 				}
 			}
-
+*/
 //			noaidd = 1;
 			{
 				forlist (&defs) {
@@ -975,6 +994,15 @@ void Game::GetSides( ARegion *r, AList & afacs, AList & dfacs, AList & atts,
 			}
 		}
 	}
+	if( debug ) {
+		AString temp;
+		forlist( &atts ) {
+			Location * l = ( Location * ) elem;
+			temp += AString( l->unit->num ) + " ";
+		}
+		Awrite( AString( "** GetSides ends with Attackers: " ) + temp );
+	}
+
 }
 
 void Game::KillDead(Location * l) {
@@ -998,6 +1026,7 @@ int Game::RunBattle( ARegion * r, Unit * attacker, AList * targets, int ass,
 	AString atype = (ass ? "ASSASSINATE":"ATTACK" );
 
 	int debug = 0;
+//	if( attacker->num == 3745 ) debug = 1;
 
 	if( debug ) {
 		Awrite(AString("Attacking unit = ") + *attacker->name);
