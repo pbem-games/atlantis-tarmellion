@@ -1,0 +1,63 @@
+Geoff Dunbar and Russell Wallace
+    The original Atlantis game
+Azthar Septragen
+    Roads patch (part of the Realms code)
+Davis Kulis
+    MAP template option (part of the realms code)
+Larry Stanberry
+    Multitudes of fixes and changes to make Atlantis+/Realms
+James Riechel
+    Patches and fixes that constituted Atlantis 4.04c
+    Various changes for his Unlimited Atlantis code
+Stefan Morrell
+    The patch for Apprentices/revamping Lacandon Conquest
+Karl Castle
+	Implementation of alternate army rout methods.
+	Patch for bug with losing items other than prepared items when in game
+	  with USE_PREPARED_COMMAND
+Jon Bagshaw
+    Working with Stefan on Lacandon Conquest
+Tom Alsen (aka Tzarg)
+    Implementation of the FIND ALL order, and a new combat system
+	Implementation of the SPOILS code which allows saner battle spoils
+	  selection.
+	Implmented a GIVE ALL <category> option.
+	Multiple other code enhancements.
+Ben Lloyd
+    Bugfixes and suggestions, and code to implement some of them.
+Georg Gottschalk
+	Bugfixes and suggestions and lots of ideas for Ceran.
+Andrew Zhilenko
+    Small bug fixes and code cleanup
+Terho Uotila
+    A couple of ideas and items
+Paul Mehrer
+	Submitted patch to allow limiting the number of mages which can study
+	  in any give building type.
+Stephen Baillie
+    Submitted a patch to allow units passing through a region (but not
+      stopping) to generate a partial, slightly innacurate hex report.
+    Pointed out bugs in the easier underworld code, the improved
+      farsight code and other places.
+	Implemented multiple taxation options controlling who could tax.
+	Implemented skill improvement through practise code.
+	Changed MOVE and SAIL to queue moves that failed because of lack
+	  of movement points, so that @TURN caravans can cope with weather.
+	Cleaned up TURN processing significantly.
+	Various small changes and fixes
+Nick Hoggard
+    Implementation of the EXCHANGE order.
+	Implementation of the TURN order which allows pre-doing turn orders as
+	  well as cyclical orders.
+Peter Rayner
+    Patch for 'EVICT' command.
+Vitauts Stochka
+    Various bugfixes from Latvian Atlantis.
+Ales Privetivy
+    Variou bugfixes and the unit weight/capacity info patch
+Jan Rietema
+    Patch for improved world generation
+	Patch to prevent sailing through single hex land masses.
+Joseph Traub
+    Changes, updates, and merging a few disparate branches
+	Maintaining and extending the 4.0.X code.
