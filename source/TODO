@@ -1,0 +1,18 @@
+1. I need something to only allow certain weapons for assassination. It
+could be something like the thing for armors
+(ArmorType::USEINASSASSINATE).
+
+2. I want to change the way healing works right now. Currently you
+either use a healing potion or herbs and someone with healing skill. The
+healing potion stuff is fine, but it would be nice to have other things
+with healing possibility too. Maybe having a flag in item definition to
+say that it works like a healing potion. But the main thing is healing
+with the healing skill. Currently your success chance and the number of
+injured people healed is determined only by the skill level of healing
+and a herb is used. I want to determine the number of injured people by
+the healing skill as before, but the chance of success should be
+determined by the item used for healing. Consequently there should be
+more items with healing power. In Tarmellion we have herbs, fungus,
+medicine plant and maybe healing draft and medicine for this use. I want
+to have larger chances if a more advanced item is used. Do you think
+that is possible?
