@@ -1260,6 +1260,7 @@ enum {
 	S_ANIMALTAMING,				//26
 	S_MONSTERTAMING,			//27
 	S_COOKING,				//28
+	S_SCOUTING,				//28.5
 	S_MANIPULATE,				//29
 	S_FORCE,				//30
 	S_PATTERN,				//31

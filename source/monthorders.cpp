@@ -577,10 +577,26 @@ void Game::RunBuildHelpers(ARegion *r) {
 void Game::RunMonthOrders() {
 	forlist(&regions) {
 		ARegion * r = (ARegion *) elem;
+		RunIdleOrders(r);
 		RunSettleOrders(r);
 		RunStudyOrders(r);
 		RunBuildHelpers(r);
 		RunProduceOrders(r);
+	}
+}
+
+void Game::RunIdleOrders(ARegion *r)
+{
+	forlist((&r->objects)) {
+		Object *obj = (Object *)elem;
+		forlist((&obj->units)) {
+			Unit *u = (Unit *)elem;
+			if (u->monthorders && u->monthorders->type == O_IDLE) {
+				u->Event("Sits idle.");
+				delete u->monthorders;
+				u->monthorders = 0;
+			}
+		}
 	}
 }
 

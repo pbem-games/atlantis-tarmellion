@@ -661,12 +661,16 @@ int Faction::CanCatch(ARegion *r, Unit *t) {
 	return 0;
 }
 
-int Faction::CanSee(ARegion * r,Unit * u, int practise) {
+int Faction::CanSee(ARegion * r,Unit * u, int practise, int useScout) {
 	int detfac = 0;
 	if (u->faction == this) return 2;
 	if (u->reveal == REVEAL_FACTION) return 2;
 	int retval = 0;
 	if (u->reveal == REVEAL_UNIT) retval = 1;
+	int hideLevel = u->GetSkill(S_STEALTH);
+	if( useScout && hideLevel < u->GetSkill(S_SCOUTING) + 1 )
+		hideLevel = u->GetSkill(S_SCOUTING) + 1;
+
 	forlist((&r->objects)) {
 		Object * obj = (Object *) elem;
 		int dummy = 0;
@@ -675,7 +679,7 @@ int Faction::CanSee(ARegion * r,Unit * u, int practise) {
 			Unit * temp = (Unit *) elem;
 			if (u == temp && dummy == 0) retval = 1;
 			if (temp->faction == this) {
-				if (temp->GetSkill(S_OBSERVATION) > u->GetSkill(S_STEALTH)) {
+				if (temp->GetSkill(S_OBSERVATION) > hideLevel) {
 					if (practise) {
 						temp->Practise(S_OBSERVATION);
 						temp->Practise(S_TRUE_SEEING);
@@ -684,7 +688,7 @@ int Faction::CanSee(ARegion * r,Unit * u, int practise) {
 					else
 						return 2;
 				} else {
-					if (temp->GetSkill(S_OBSERVATION)==u->GetSkill(S_STEALTH)) {
+					if (temp->GetSkill(S_OBSERVATION) == hideLevel) {
 						if (practise) {
 							temp->Practise(S_OBSERVATION);
 							temp->Practise(S_TRUE_SEEING);

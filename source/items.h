@@ -318,6 +318,7 @@ class MountType {
 		// combat
 		int mountSpecial;
 		int specialLev;
+		int monster;
 };
 
 extern MountType *MountDefs;
@@ -327,13 +328,23 @@ class BattleItemType {
 		enum {
 			MAGEONLY = 0x1,
 			SPECIAL = 0x2,
-			SHIELD = 0x4,
+			RING = 0x4,
+			AMULET = 0x8,
+//			SHIELD = 0x10,
 		};
 
 		int flags;
 		int itemNum;
 		int index;
 		int skillLevel;
+		enum {
+			ADD_ATTACK = 0x1,
+			ADD_DEFENSE = 0x2,
+			ADD_HITS = 0x4,
+			ADD_ATTACKS = 0x8,
+		};
+		int bonusType;
+		int bonusAmount;
 };
 
 extern BattleItemType *BattleItemDefs;

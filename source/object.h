@@ -53,6 +53,7 @@ class ObjectType {
 		int capacity;
 		int sailors;
 		int maxMages;
+		int sailSpeed;
 
 		int item;
 		int cost;

@@ -56,6 +56,10 @@ Soldier::Soldier(Unit * u,Object * o,int regtype,int r,int ass) {
 	riding = -1;
 	weapon = -1;
 
+	amulet = -1;
+	ring1 = -1;
+	ring2 = -1;
+
 	attacks = 1;
 	attacktype = ATTACK_COMBAT;
 
@@ -312,19 +316,31 @@ void Soldier::SetupCombatItems() {
 		if (item == -1) continue;
 
 		// If we are using the ready command, skip this item unless
-		// it's the right one, or unless it is a shield which doesn't
-		// need preparing.
+		// it's the right one, or unless it is a shield, ring or amulet
+		// which doesn't need preparing.
+		
 		if (!Globals->USE_PREPARE_COMMAND ||
 				((unit->readyItem == -1) &&
 				 (Globals->USE_PREPARE_COMMAND == GameDefs::PREPARE_NORMAL)) ||
 				(pBat->itemNum==unit->readyItem) ||
-				(pBat->flags & BattleItemType::SHIELD)) {
+//				(pBat->flags & BattleItemType::SHIELD) ||
+				(pBat->flags & BattleItemType::RING) ||
+				(pBat->flags & BattleItemType::AMULET) ) {
 			if ((pBat->flags & BattleItemType::SPECIAL) && special != -1) {
 				// This unit already has a special attack so give the item
 				// back to the unit as they aren't going to use it.
 				unit->items.SetNum(item, unit->items.GetNum(item)+1);
 				continue;
 			}
+			if( (pBat->flags & BattleItemType::AMULET && amulet != -1) ||
+				(pBat->flags & BattleItemType::RING && ring1 != -1 && ring2 != -1) )
+			{
+				// This unit already has an item of this type so give the item
+				// back to the unit as they aren't going to use it.
+				unit->items.SetNum(item, unit->items.GetNum(item)+1);
+				continue;
+			}
+
 			if (pBat->flags & BattleItemType::MAGEONLY &&
 			   unit->type != U_MAGE && unit->type != U_GUARDMAGE &&
 			   unit->type != U_APPRENTICE) {
@@ -339,31 +355,65 @@ void Soldier::SetupCombatItems() {
 				amuletofi = 1;
 			}
 
-			SET_BIT(battleItems, battleType);
+			if( pBat->index == -1 && pBat->bonusType == -1 ) {
+				// This item gives no bonus in combat - don't equip it
+				unit->items.SetNum(item, unit->items.GetNum(item)+1);
+				continue;
+			}
 
 			if (pBat->flags & BattleItemType::SPECIAL) {
 				special = pBat->index;
 				slevel = pBat->skillLevel;
 			}
 
-			if (pBat->flags & BattleItemType::SHIELD) {
-				SpecialType *sp = &SpecialDefs[pBat->index];
-				/* we have a shield item with no shield FX */
-				if (!(sp->effectflags & SpecialType::FX_SHIELD)) {
-					continue;
-				}
-				for (int i = 0; i < 4; i++) {
-					if (sp->shield[i] == NUM_ATTACK_TYPES) {
-						for (int j = 0; j < NUM_ATTACK_TYPES; j++) {
-							if (dskill[j] < pBat->skillLevel)
-								dskill[j] = pBat->skillLevel;
+			if( pBat->flags & BattleItemType::AMULET ||
+				pBat->flags & BattleItemType::RING )
+			{
+				// If item has a shield special effect, add it now
+				if( pBat->index != -1 ) {
+					SpecialType *sp = &SpecialDefs[pBat->index];
+					if (sp->effectflags & SpecialType::FX_SHIELD) {
+						for (int i = 0; i < 4; i++) {
+							if (sp->shield[i] == NUM_ATTACK_TYPES) {
+								for (int j = 0; j < NUM_ATTACK_TYPES; j++) {
+									if (dskill[j] < pBat->skillLevel)
+										dskill[j] = pBat->skillLevel;
+								}
+							} else if (sp->shield[i] >= 0) {
+								if (dskill[sp->shield[i]] < pBat->skillLevel)
+									dskill[sp->shield[i]] = pBat->skillLevel;
+							}
 						}
-					} else if (sp->shield[i] >= 0) {
-						if (dskill[sp->shield[i]] < pBat->skillLevel)
-							dskill[sp->shield[i]] = pBat->skillLevel;
 					}
 				}
+
+				// Add bonuses
+				if( pBat->bonusType & BattleItemType::ADD_ATTACK )
+					askill += pBat->bonusAmount;
+
+				if( pBat->bonusType & BattleItemType::ADD_DEFENSE )
+					dskill[ATTACK_COMBAT] += pBat->bonusAmount;
+
+				if( pBat->bonusType & BattleItemType::ADD_HITS )
+					hits += pBat->bonusAmount;
+
+				if( pBat->bonusType & BattleItemType::ADD_ATTACKS )
+					attacks += pBat->bonusAmount;
+
+				// Add to soldier's item slot
+				if( pBat->flags & BattleItemType::AMULET ) {
+					amulet = item;
+				} else if( pBat->flags & BattleItemType::RING ) {
+					if( ring1 == -1 ) {
+						ring1 = item;
+					} else {
+						ring2 = item;
+					}
+				}
+			} else {
+				SET_BIT(battleItems, battleType);
 			}
+
 		} else {
 			// We are using prepared items and this item is NOT the one
 			// we have prepared, so give it back to the unit as they won't
@@ -468,6 +518,12 @@ void Soldier::RestoreItems() {
 		unit->items.SetNum(shield,unit->items.GetNum(shield) + 1);
 	if (riding != -1)
 		unit->items.SetNum(riding,unit->items.GetNum(riding) + 1);
+	if (amulet != -1)
+		unit->items.SetNum(amulet,unit->items.GetNum(amulet) + 1);
+	if (ring1 != -1)
+		unit->items.SetNum(ring1,unit->items.GetNum(ring1) + 1);
+	if (ring2 != -1)
+		unit->items.SetNum(ring2,unit->items.GetNum(ring2) + 1);
 
 	int battleType;
 	for (battleType = 1; battleType < NUMBATTLEITEMS; battleType++) {

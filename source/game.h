@@ -362,6 +362,7 @@ public:
     void ProcessOptionOrder(Unit *,AString *, OrdersCheck *pCheck );
     void ProcessPasswordOrder(Unit *, AString *, OrdersCheck *pCheck );
 	void ProcessExchangeOrder(Unit *, AString *, OrdersCheck *pCheck);
+	void ProcessIdleOrder(Unit *, AString *, OrdersCheck *pCheck);
 	AString *ProcessTurnOrder(Unit *, Aorders *, OrdersCheck *pCheck, int);
     void ProcessSettleOrder(Unit *,AString *, OrdersCheck *pCheck );
 
@@ -519,6 +520,7 @@ public:
     void RunTeachOrders();
     void Do1TeachOrder(ARegion *,Unit *);
     void RunProduceOrders(ARegion *);
+	void RunIdleOrders(ARegion *);
     int ValidProd(Unit *,ARegion *,Object *,Production *);
     int FindAttemptedProd(ARegion *,Production *);
     void RunAProduction(ARegion *,Production *);

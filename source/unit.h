@@ -174,7 +174,7 @@ class Unit : public AListElem {
 		void AdjustSkills();
 
 		/* Return 1 if can see, 2 if can see faction */
-		int CanSee(ARegion *,Unit *, int practise = 0);
+		int CanSee(ARegion *,Unit *, int practise = 0, int useScout = 0);
 		int CanCatch(ARegion *,Unit *);
 		int GetAttitude(ARegion *,Unit *); /* Get this unit's attitude toward
 											  the Unit parameter */

@@ -58,6 +58,7 @@ char * od[] = {
 	"give",
 	"guard",
 	"hold",
+	"idle",
 	"leave",
 	"move",
 	"name",
@@ -286,4 +287,13 @@ SettleOrder::SettleOrder() {
 }
 
 SettleOrder::~SettleOrder() {
+}
+
+IdleOrder::IdleOrder()
+{
+	type = O_IDLE;
+}
+
+IdleOrder::~IdleOrder()
+{
 }

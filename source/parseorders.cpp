@@ -449,6 +449,9 @@ void Game::ProcessOrder(int orderNum, Unit *unit, AString *o,
 		case O_AVOID:
 			ProcessAvoidOrder(unit, o, pCheck);
 			break;
+		case O_IDLE:
+			ProcessIdleOrder(unit, o, pCheck);
+			break;
 		case O_BEHIND:
 			ProcessBehindOrder(unit, o, pCheck);
 			break;
@@ -2674,4 +2677,19 @@ void Game::ProcessEvictOrder(Unit *u, AString *o, OrdersCheck *pCheck) {
 		}
 		id = ParseUnit(o);
 	}
+}
+
+void Game::ProcessIdleOrder(Unit *u, AString *o, OrdersCheck *pCheck)
+{
+	if (u->monthorders || (Globals->TAX_PILLAGE_MONTH_LONG &&
+		((u->taxing == TAX_TAX) || (u->taxing == TAX_PILLAGE)))) {
+		if (u->monthorders) delete u->monthorders;
+		AString err = "IDLE: Overwriting previous ";
+		if (u->inTurnBlock) err += "DELAYED ";
+		err += "month-long order.";
+		ParseError(pCheck, u, 0, err);
+	}
+	if(Globals->TAX_PILLAGE_MONTH_LONG) u->taxing = TAX_NONE;
+	IdleOrder *i = new IdleOrder;
+	u->monthorders = i;
 }

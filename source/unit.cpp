@@ -1178,6 +1178,10 @@ int Unit::MaintCost() {
 		i = nonleaders * Globals->MAINTENANCE_COST;
 	retval += i;
 
+	// Decrease maintenance for units with scouting skill
+	retval -= 2 * GetSkill(S_SCOUTING) * (leaders + nonleaders);
+	if( retval < 0 ) retval = 0;
+
 	return retval;
 }
 
@@ -1410,8 +1414,8 @@ int Unit::CanCatch(ARegion *r,Unit *u) {
 	return faction->CanCatch(r,u);
 }
 
-int Unit::CanSee(ARegion * r,Unit * u, int practise) {
-	return faction->CanSee(r,u, practise);
+int Unit::CanSee(ARegion * r,Unit * u, int practise, int useScout) {
+	return faction->CanSee(r,u, practise, useScout);
 }
 
 int Unit::ItemsWithAttribute(int att) {
@@ -1449,11 +1453,17 @@ int Unit::Hostile() {
 }
 
 int Unit::Forbids(ARegion * r,Unit * u) {
+	Awrite( "Checking forbid" );
 	if (guard != GUARD_GUARD) return 0;
+	Awrite( "We're guarding" );
 	if (!IsAlive()) return 0;
-	if (!CanSee(r,u, Globals->SKILL_PRACTISE_AMOUNT > 0)) return 0;
+	Awrite( "We're alive" );
+	if (!CanSee(r,u, Globals->SKILL_PRACTISE_AMOUNT > 0, 1)) return 0;
+	Awrite( "We can see 'em" );
 	if (!CanCatch(r,u)) return 0;
+	Awrite( "We can cath 'em" );
 	if (GetAttitude(r,u) < A_NEUTRAL) return 1;
+	Awrite( "We wanna stop 'em" );
 	return 0;
 }
 

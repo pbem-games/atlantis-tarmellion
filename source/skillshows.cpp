@@ -1230,6 +1230,13 @@ AString *ShowSkill::Report(Faction *f) {
 			*str += "This skill enables a unit to fashion higher quality "
 				"gems from lower quality ones.";
 			break;
+		case S_SCOUTING:
+			if (level > 1) break;
+			*str += "This skill enables a unit to pass behind enemy lines, providing the "
+				"unit's Scouting skill is equal to or greater than the enemy's Observation "
+				"skill. This skill will also decrease the amount of maintenance the unit "
+				"must pay by 2 silver per skill level per man.";
+			break;
 		case S_COOKING:
 			if (level > 1) break;
 			*str += "This skill deals with creating provisions from basic "

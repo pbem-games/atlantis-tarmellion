@@ -90,6 +90,10 @@ class Soldier {
 		int maxhits;
 		int damage;
 
+		int ring1;
+		int ring2;
+		int amulet;
+
 		BITFIELD battleItems;
 		int amuletofi;
 

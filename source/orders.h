@@ -47,6 +47,7 @@ class CastRegionOrder;
 class TeleportOrder;
 class ForgetOrder;
 class EvictOrder;
+class IdleOrder;
 class SettleOrder;
 
 #include "unit.h"
@@ -88,6 +89,7 @@ enum {
 	O_GIVE,
 	O_GUARD,
 	O_HOLD,
+	O_IDLE,
 	O_LEAVE,
 	O_MOVE,
 	O_NAME,
@@ -131,7 +133,7 @@ enum {
 #define MOVE_OUT 99
 /* Enter is MOVE_ENTER + num of object */
 #define MOVE_ENTER 100
-
+   
 extern char ** OrderStrs;
 
 int Parse1Order(AString *);
@@ -376,6 +378,12 @@ class SettleOrder : public Order {
 	public:
 		SettleOrder();
 		~SettleOrder();
+};
+
+class IdleOrder : public Order {
+	public:
+		IdleOrder();
+		~IdleOrder();
 };
 
 #endif
