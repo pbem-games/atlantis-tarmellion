@@ -62,6 +62,7 @@ void Game::ProcessCastOrder(Unit * u,AString * o, OrdersCheck *pCheck) {
 			case S_CREATE_CHARMS:
 			case S_ENCHANT_WEAPONS:
 			case S_ENCHANT_ARMOR:
+			case S_WOLF_LORE:
 			case S_SUMMON_DRAGON:
 			case S_SUMMON_WYRM:
 			case S_CREATE_PHANTASMAL_BEASTS:
@@ -78,7 +79,6 @@ void Game::ProcessCastOrder(Unit * u,AString * o, OrdersCheck *pCheck) {
 			case S_SUMMON_SKELETONS:
 			case S_RAISE_UNDEAD:
 			case S_SUMMON_LICH:
-			case S_WOLF_LORE:
 			case S_EARTH_LORE:
 			case S_CREATE_RING_OF_INVISIBILITY:
 			case S_CREATE_CLOAK_OF_INVULNERABILITY:
@@ -1530,16 +1530,19 @@ void Game::RunBirdLore(ARegion *r,Unit *u) {
 }
 
 void Game::RunWolfLore(ARegion *r,Unit *u) {
-	if (TerrainDefs[r->type].similar_type != R_MOUNTAIN &&
-		TerrainDefs[r->type].similar_type != R_TUNDRA && 
-		TerrainDefs[r->type].similar_type != R_FOREST) {
-		u->Error("CAST: Can only summon wolves in hill, mountain, "
-								 "tundra and forest regions.");
-		return;
-	}
+	//deactivated for balancing reasons
+	//if (TerrainDefs[r->type].similar_type != R_MOUNTAIN &&
+	//	TerrainDefs[r->type].similar_type != R_TUNDRA && 
+	//	TerrainDefs[r->type].similar_type != R_FOREST) {
+	//	u->Error("CAST: Can only summon wolves in hill, mountain, "
+	//							 "tundra and forest regions.");
+	//	return;
+	//}
+	CastItemOrder *order = (CastItemOrder *) u->castorders;
+	int item = order->item;
 	if( Globals->TARMELLION_SUMMONING ) {
-		int success = RunSummonCreature( u, I_WOLF, S_WOLF_LORE );
-		if( success ) r->NotifySpell( u, S_EARTH_LORE, &regions );
+	    int success = RunSummonCreature( u, item, S_WOLF_LORE );
+	    if ( success ) r->NotifySpell( u, S_EARTH_LORE, &regions );
 	} else {
 		int level = u->GetSkill(S_WOLF_LORE);
 		int num = u->items.GetNum(I_WOLF);
@@ -2202,6 +2205,7 @@ int Game::GetMonsterControlSkill( int monster )
 		case I_BLACKDRAGON:
 			return S_WYRM_LORE;
 		case I_WOLF:
+	        case I_ICEWOLF:
 			return S_WOLF_LORE;
 		case I_EAGLE:
 		case I_GIANTEAGLE:
@@ -2378,6 +2382,7 @@ int Game::GetAllowedMonsters(Unit *u, int creature )
 			num += u->items.GetNum(creature);
 			numAllowed = controlLevel * controlLevel;
 			break;
+	        case I_ICEWOLF:
 		case I_DEMON:
 		case I_UNDEAD:
 		case I_LICH:

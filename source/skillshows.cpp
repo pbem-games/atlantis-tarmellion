@@ -660,7 +660,7 @@ AString *ShowSkill::Report(Faction *f) {
 			break;
 		case S_WOLF_LORE:
 			/* XXX -- This should be cleaner somehow. */
-			if (level > 1) break;
+		  if (level == 1) {
 			if (ITEM_DISABLED(I_WOLF)) break;
 			*str += "A mage with Wolf Lore skill may summon wolves, who will "
 				"fight for him in combat. A mage may summon a number of "
@@ -678,11 +678,28 @@ AString *ShowSkill::Report(Faction *f) {
 				*str += "his skill level squared times 4 ";
 			}
 			*str += "wolves; the wolves will "
-				"be placed in the mages inventory. Note, however, that wolves "
-				"may only be summoned in hill, mountain and any kind of forest regions. To "
+				"be placed in the mages inventory. To "
 				"summon wolves, the mage should issue the order CAST "
-				"Wolf_Lore.";
-			break;
+				"Wolf_Lore";
+			if( Globals->TARMELLION_SUMMONING ) {
+			  *str += " WOLF.";
+			} else {
+			  *str += ".";
+			}
+		  } else if (level == 3) {
+			if (ITEM_DISABLED(I_ICEWOLF)) break;
+			*str += "A mage with Wolf Lore skill of level 3 may summon ice wolves, who will "
+				"fight for him in combat. A mage may summon one ice "
+				"wolf ";
+			*str += "per month. ";
+			*str += "The mage may control a total of ";
+			*str += "his skill level ";
+			*str += "ice wolves; the ice wolves will "
+				"be placed in the mages inventory. To "
+				"summon ice wolves, the mage should issue the order CAST "
+				"Wolf_Lore ICE_WOLF.";
+		  }
+		  break;
 		case S_BIRD_LORE:
 			/* XXX -- This should be cleaner somehow. */
 			if (level == 1) {
