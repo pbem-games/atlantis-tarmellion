@@ -248,10 +248,10 @@ void Battle::DoSpecialAttack(int round, Soldier *a, Army *attackers,
 			if (tot == -1) tot = num;
 			else tot += num;
 			if( !fullreport )
-				attackers->roundHits[spd->damage[i].dclass] += num;
+				attackers->specialHits[a->special] += num;
 		}
 		if( !fullreport )
-			attackers->roundAttacks[spd->damage[i].dclass] += realtimes;
+			attackers->specialAttacks[a->special] += realtimes;
 	}
 	if (fullreport) {
 		if (tot == -1) {

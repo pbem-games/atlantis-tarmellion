@@ -34,6 +34,7 @@ class Army;
 #include "object.h"
 #include "shields.h"
 #include "helper.h"
+#include "gamedata.h"
 
 #define SPECIAL_NONE 0
 
@@ -159,6 +160,8 @@ class Army {
 
 		int roundHits[NUM_WEAPON_CLASSES];
 		int roundAttacks[NUM_WEAPON_CLASSES];
+		int specialHits[NUMSPECIALS];
+		int specialAttacks[NUMSPECIALS];
 		AList roundLeaderReports;
 
 };

@@ -219,6 +219,7 @@ class SpecialType {
 		char *spelldesc;
 		char *spelldesc2;
 		char *spelltarget;
+		char *attackdesc;
 };
 extern SpecialType *SpecialDefs;
 

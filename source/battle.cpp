@@ -82,6 +82,14 @@ void Battle::FreeRound(Army * att,Army * def, int ass) {
 				break;
 			}
 		}
+		if( !ok ) {
+			for( int i = 0; i < NUMSPECIALS; i++ ) {
+				if( att->specialAttacks[i] > 0 ) {
+					ok = 1;
+					break;
+				}
+			}
+		}
 		if( ok ) {
 			AddLine( "Attacker does:" );
 			for( int i = 0; i < NUM_WEAPON_CLASSES; i++ ) {
@@ -89,6 +97,13 @@ void Battle::FreeRound(Army * att,Army * def, int ass) {
 				AddLine( AString( " " ) + att->roundAttacks[i] + " " + WeapClass( i ) + 
 					" attack" + (att->roundAttacks[i] == 1 ? "" : "s") + 
 					" killing " + att->roundHits[i] + "." );
+			}
+			for( int i = 0; i < NUMSPECIALS; i++ ) {
+				if( att->specialAttacks[i] == 0 ) continue;
+				AddLine( AString( " " ) + att->specialAttacks[i] + " " + 
+					SpecialDefs[i].attackdesc +
+					" attack" + (att->specialAttacks[i] == 1 ? "" : "s") + 
+					" killing " + att->specialHits[i] + "." );
 			}
 		}
 		forlist( &att->roundLeaderReports ) {
@@ -125,9 +140,10 @@ void Battle::DoAttack(int round, Soldier *a, Army *attackers, Army *def,
 				if (num != -1) {
 					if (tot == -1) tot = num;
 					else tot += num;
-					attackers->roundHits[spd->damage[i].dclass] += num;
+					//attackers->roundHits[spd->damage[i].dclass] += num;
+					attackers->specialHits[pMt->mountSpecial] += num;		
 				}
-				attackers->roundAttacks[spd->damage[i].dclass] += realtimes;
+				attackers->specialAttacks[pMt->mountSpecial] += realtimes;
 			}
 			if (tot != -1) {
 				if( !Globals->AGGREGATE_BATTLE_REPORTS ) {
@@ -271,6 +287,14 @@ void Battle::NormalRound(int round,Army * a,Army * b) {
 				break;
 			}
 		}
+		if( !ok ) {
+			for( int i = 0; i < NUMSPECIALS; i++ ) {
+				if( a->specialAttacks[i] > 0 ) {
+					ok = 1;
+					break;
+				}
+			}
+		}
 		if( ok ) {
 			AddLine( "Attacker does:" );
 			for( int i = 0; i < NUM_WEAPON_CLASSES; i++ ) {
@@ -278,6 +302,13 @@ void Battle::NormalRound(int round,Army * a,Army * b) {
 				AddLine( AString( " " ) + a->roundAttacks[i] + " " + WeapClass( i ) + 
 					" attack" + (a->roundAttacks[i] == 1 ? "" : "s") + 
 					" killing " + a->roundHits[i] + "." );
+			}
+			for( int i = 0; i < NUMSPECIALS; i++ ) {
+				if( a->specialAttacks[i] == 0 ) continue;
+				AddLine( AString( " " ) + a->specialAttacks[i] + " " +
+					SpecialDefs[i].attackdesc +
+					" attack" + (a->specialAttacks[i] == 1 ? "" : "s") + 
+					" killing " + a->specialHits[i] + "." );
 			}
 		}
 		forlist( &a->roundLeaderReports ) {
@@ -291,6 +322,14 @@ void Battle::NormalRound(int round,Army * a,Army * b) {
 				break;
 			}
 		}
+		if( !ok ) {
+			for( int i = 0; i < NUMSPECIALS; i++ ) {
+				if( b->specialAttacks[i] > 0 ) {
+					ok = 1;
+					break;
+				}
+			}
+		}
 		if( ok ) {
 			AddLine( "Defender does:" );
 			for( int i = 0; i < NUM_WEAPON_CLASSES; i++ ) {
@@ -298,6 +337,13 @@ void Battle::NormalRound(int round,Army * a,Army * b) {
 				AddLine( AString( " " ) + b->roundAttacks[i] + " " + WeapClass( i ) + 
 					" attack" + (b->roundAttacks[i] == 1 ? "" : "s") + 
 					" killing " + b->roundHits[i] + "." );
+			}
+			for( int i = 0; i < NUMSPECIALS; i++ ) {
+				if( b->specialAttacks[i] == 0 ) continue;
+				AddLine( AString( " " ) + b->specialAttacks[i] + " " +
+					SpecialDefs[i].attackdesc +
+					" attack" + (b->specialAttacks[i] == 1 ? "" : "s") + 
+					" killing " + b->specialHits[i] + "." );
 			}
 		}
 		{

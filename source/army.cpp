@@ -674,6 +674,10 @@ finished_army:
 		roundAttacks[i] = 0;
 		roundHits[i] = 0;
 	}
+	for( int i = 0; i < NUMSPECIALS; i++ ) {
+		specialAttacks[i] = 0;
+		specialHits[i] = 0;
+	}
 }
 
 Army::~Army() {
@@ -687,6 +691,10 @@ void Army::Reset() {
 	for( int i = 0; i < NUM_WEAPON_CLASSES; i++ ) {
 		roundAttacks[i] = 0;
 		roundHits[i] = 0;
+	}
+	for( int i = 0; i < NUMSPECIALS; i++ ) {
+		specialAttacks[i] = 0;
+		specialHits[i] = 0;
 	}
 	roundLeaderReports.DeleteAll();
 }
