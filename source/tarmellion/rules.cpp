@@ -190,6 +190,7 @@ static GameDefs g = {
 	10,	// UPKEEP_FOOD_VALUE
 	0,	// PREVENT_SAIL_THROUGH
 	0,	// ALLOW_TRIVIAL_PORTAGE
+	0,      // AUTOMATIC_FOOD
 };
 
 GameDefs * Globals = &g;

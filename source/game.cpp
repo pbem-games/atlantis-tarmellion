@@ -2304,7 +2304,17 @@ void Game::AdjustCityMon( ARegion *r, Unit *u )
 			men = Globals->CITY_GUARD * (towntype+1);
 	}
 
-    u->SetMen(I_LEADERS,men);
+	int race;
+	if (Globals->LEADERS_EXIST == GameDefs::RACIAL_LEADERS) {
+	  race = r->race;
+	  int leader = ManDefs[ItemDefs[race].index].minority;
+	  race = (leader == -1 ? race : leader);
+	} else if (Globals->LEADERS_EXIST == GameDefs::NORMAL_LEADERS) {
+	  race = I_LEADERS;
+	} else {
+	  race = r->race;
+	}
+	u->SetMen(race,men);
 	if (IV) u->items.SetNum(I_AMULETOFI,men);
 
 	if(u->type == U_GUARDMAGE) {

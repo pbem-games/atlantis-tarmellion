@@ -349,10 +349,10 @@ void ARegion::SetupPop()
 		ratio = ItemDefs[minority].baseprice / (float)Globals->BASE_MAN_COST;
 		int current = Population()/divisor;
 		int max = 10000/divisor;
-		if (ManDefs[ItemDefs[minority].index].flags | ManType::POPULUS) {
+		if (ManDefs[ItemDefs[minority].index].flags & ManType::POPULUS) {
 		  current *= 2;
 		  max *= 2;
-		} else if (ManDefs[ItemDefs[minority].index].flags | ManType::SCARCE) {
+		} else if (ManDefs[ItemDefs[minority].index].flags & ManType::SCARCE) {
 		  current /= 2;
 		  max /= 2;
 		}
@@ -888,10 +888,10 @@ void ARegion::UpdateTown()
 			    ratio = ItemDefs[minority].baseprice / (float)Globals->BASE_MAN_COST;
 			    int current = Population()/divsor;
 			    int max = 10000/divsor;
-			    if (ManDefs[ItemDefs[minority].index].flags | ManType::POPULUS) {
+			    if (ManDefs[ItemDefs[minority].index].flags & ManType::POPULUS) {
 			      current *= 2;
 			      max *= 2;
-			    } else if (ManDefs[ItemDefs[minority].index].flags | ManType::SCARCE) {
+			    } else if (ManDefs[ItemDefs[minority].index].flags & ManType::SCARCE) {
 			      current /= 2;
 			      max /= 2;
 			    }
