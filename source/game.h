@@ -181,6 +181,8 @@ public:
 	void ModifySkillCost(int sk, int cost);
 	void ModifySkillSpecial(int sk, int special);
 	void ModifySkillRange(int sk, int range);
+	void ModifySkillName (int, const char *);
+	void ModifySkillAbbr (int, const char *);
 
 	void EnableItem(int it); // Enables a disabled item
 	void DisableItem(int it); // Prevents item being generated/produced
@@ -197,6 +199,8 @@ public:
 	void ModifyItemMagicSkill(int it, int sk, int lev);
 	void ModifyItemMagicOutput(int it, int count);
 	void ModifyItemMagicInput(int it, int i, int input, int amount);
+	void ModifyItemName(int it, const char * itname, const char * itnames);
+	void ModifyItemAbr(int it, const char * itabr);
 
 	void ModifyRaceSkillLevels(int race, int def, int magicdef);
 	void ModifyRaceSkills(int race, int i, int sk, int lvl);
@@ -233,6 +237,7 @@ public:
 	void ModifyObjectConstructionBooster(int ob, int item, int bonus);
 	void ModifyObjectManpower(int ob, int prot, int cap, int sail, int mages);
 
+	void Game::ModifyTerrainName(int t, const char * tname);
 	void ClearTerrainRaces(int t);
 	void ModifyTerrainRace(int t, int i, int r);
 	void ModifyTerrainCoastRace(int t, int i, int r);

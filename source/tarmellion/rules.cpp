@@ -54,6 +54,18 @@ static int at[] = { 0, 12, 28, 48, 72, 120 };
 int *allowedTrades = at;
 int allowedTradesSize = sizeof(at) / sizeof(at[0]);
 
+static int uw[] = { 3, 0, 0 };
+int *UnderworldCities = uw;
+int UnderworldCityLevels = sizeof(uw) / sizeof(uw[0]);
+
+static int ud[] = { 3, 0, 0 };
+int *UnderdeepCities = ud;
+int UnderdeepCityLevels = sizeof(ud) / sizeof(ud[0]);
+
+static int su[] = { 8 };
+int *SurfaceCities = su;
+int SurfaceCityLevels = sizeof(su) / sizeof(su[0]);
+
 static GameDefs g = {
 	"Tarmellion",				// RULESET_NAME
 	MAKE_ATL_VER( 1, 0, 0 ), // RULESET_VERSION
@@ -190,14 +202,16 @@ static GameDefs g = {
 	0,	// PREVENT_SAIL_THROUGH
 	0,	// ALLOW_TRIVIAL_PORTAGE
 	0,      // AUTOMATIC_FOOD
-	1,      // CITY_TAX_COST;
-	1,      // TOWN_TAX_COST;
-	1,      // VILLAGE_TAX_COST;
-	1,      // CITY_TRADE_COST;
-	1,      // TOWN_TRADE_COST;
-	1,      // VILLAGE_TRADE_COST;
-	0,      // UNDERWORLD_STARTING_CITIES
-	0,      // UNDERDEEP_STARTING_CITIES
+        1,      // CITY_TAX_COST;
+        1,      // TOWN_TAX_COST;
+        1,      // VILLAGE_TAX_COST;
+        1,      // CITY_TRADE_COST;
+        1,      // TOWN_TRADE_COST;
+        1,      // VILLAGE_TRADE_COST;
+	GameDefs::FP_OLD,       // FP_DISTRIBUTION
+	1,      // FP_FACTOR
+	0,	// ACN_IS_STARTING_CITY
+
 };
 
 GameDefs * Globals = &g;

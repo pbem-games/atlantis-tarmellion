@@ -29,6 +29,7 @@
 //                               different base costs
 #include "game.h"
 #include "gamedata.h"
+#include "aregion.h"
 
 // Make sure this is correct.   The default is 1000 towns and 1000 regions.
 #define NUMBER_OF_TOWNS 1000
@@ -2192,7 +2193,8 @@ void Game::CreateWorld() {
 		}
 	}
 
-	regions.SetACNeighbors(0, 1, xx, yy);
+	regions.SetACNeighbors(0, 5, xx, yy);
+	regions.SetStartingCities(0, xx, yy);
 
 	regions.InitSetupGates(1);
 	// Set up gates on all levels of the underworld
@@ -2205,272 +2207,257 @@ void Game::CreateWorld() {
 	regions.CalcDensities();
 }
 
-int ARegionList::GetRegType(ARegion *pReg) {
+//****************************************************************************//
+// Get the terrain type for a new seed-region or odd terrain.                 //
+//      non-seed regions are created according to near seed regions which is  //
+//      not done here.                                                        //
+//****************************************************************************//
+int ARegionList::GetRegType(ARegion *pReg, const int odd) {
 	//
-	// Figure out the distance from the equator, from 0 to 3.
+	// Latitude is in a 0 to 4 range in Ceran unlike standard atlantis,
+	// which uses a 0 to 3 range. Ceran has an additional polar region.
 	//
 	int lat = (pReg->yloc * 10) / (pRegionArrays[ pReg->zloc ]->y);
 	if (lat > 4) lat = (9 - lat);
 	int lass = (pReg->xloc * 8) / (pRegionArrays[ pReg->zloc ]->x);
 
-	// Underworld region
-	if ((pReg->zloc>1) && (pReg->zloc < Globals->UNDERWORLD_LEVELS+2)) {
-		int r = getrandom(130);
-		if (r < 35) return R_OCEAN;
-		if ((r < 49) && (lass > 3)) return R_CE_GDCAVERN;
-		if ((r < 49) && (lass < 4)) return R_CE_EVCAVERN;
-		if ((r < 63) && (lass > 3)) return R_CE_GDCAVERN1;
-		if ((r < 63) && (lass < 4)) return R_CE_EVCAVERN1;
-		if ((r < 77) && (lass > 3)) return R_CE_GDUFOREST;
-		if ((r < 77) && (lass < 4)) return R_CE_EVUFOREST;
-		if ((r < 91) && (lass > 3)) return R_CE_GDUFOREST1;
-		if ((r < 91) && (lass < 4)) return R_CE_EVUFOREST1;
-		if (r < 108) return R_CE_TUNNELS;
-		if (r < 125) return R_CE_TUNNELS1;
-		if (r < 126) return R_CE_NEULAKE;
-		if ((r < 127) && (lass > 3)) return R_CE_GDULAKE;
-		if ((r < 127) && (lass < 4)) return R_CE_EVULAKE;
-		if (r < 129) return R_VOLCANO;
-		int rr = getrandom(20);
-		switch (rr) {
-		case 0: // there might be some new terrains here later
-		case 1:
-		case 2:
-		case 3:
-		case 4:
-		case 5:
-		case 6:
-		case 7:
-		case 8:
-		case 9:
-		case 10:
-		case 11:
-		case 12: return R_CE_CRYSTALCAVERN;
-		case 13: return R_CE_BLUECAVERN;
-		case 14: return R_CE_REDCAVERN;
-		case 15: return R_CE_YELLOWCAVERN;
-		case 16: return R_CE_ORANGECAVERN;
-		case 17: return R_CE_GREENCAVERN;
-		case 18: return R_CE_VIOLETCAVERN;
-		case 19: if (lass > 3) return R_CE_WHITECAVERN; else return R_CE_BLACKCAVERN;
-		}	
-		return 0;
-	}
-	// Underdeep region
-	if ((pReg->zloc > Globals->UNDERWORLD_LEVELS+1) && (pReg->zloc < Globals->UNDERWORLD_LEVELS+Globals->UNDERDEEP_LEVELS+2)) {
-		int r = getrandom(130);
-		if (r < 35) return R_OCEAN;
-		if ((r < 49) && (lass > 3)) return R_CE_EVDCAVERN;
-		if ((r < 49) && (lass < 4)) return R_CE_GDDCAVERN;
-		if ((r < 63) && (lass > 3)) return R_CE_EVDCAVERN1;
-		if ((r < 63) && (lass < 4)) return R_CE_GDDCAVERN1;
-		if ((r < 77) && (lass > 3)) return R_CE_EVDFOREST;
-		if ((r < 77) && (lass < 4)) return R_CE_GDDFOREST;
-		if ((r < 91) && (lass > 3)) return R_CE_EVDFOREST1;
-		if ((r < 91) && (lass < 4)) return R_CE_GDDFOREST1;
-		if (r < 108) return R_CE_TUNNELS;
-		if (r < 125) return R_CE_TUNNELS1;
-		if (r < 126) return R_CE_NEULAKE;
-		if ((r < 127) && (lass > 3)) return R_CE_EVULAKE;
-		if ((r < 127) && (lass < 4)) return R_CE_GDULAKE;
-		if (r < 128) return R_VOLCANO;
-		int rr = getrandom(20);
-		switch (rr) {
-		case 0: return R_CE_CRYSTALCAVERN;
-		case 1:
-		case 2:
-		case 3: return R_CE_BLUECAVERN;
-		case 4:
-		case 5:
-		case 6: return R_CE_REDCAVERN;
-		case 7:
-		case 8:
-		case 9: return R_CE_YELLOWCAVERN;
-		case 10:
-		case 11:
-		case 12: return R_CE_ORANGECAVERN;
-		case 13:
-		case 14:
-		case 15: return R_CE_GREENCAVERN;
-		case 16:
-		case 17:
-		case 18: return R_CE_VIOLETCAVERN;
-		case 19: if (lass > 3) return R_CE_WHITECAVERN; else return R_CE_BLACKCAVERN;
+	while (1) {
+		int newterrain=0;
+		if ((pReg->zloc>1) && (pReg->zloc < Globals->UNDERWORLD_LEVELS+2)) {
+			// Underworld region
+			int r = getrandom(130);
+			if (r < 30) return R_OCEAN;
+			else if ((r < 40) && (lass > 3)) newterrain=R_CE_GDCAVERN;
+			else if ((r < 40) && (lass < 4)) newterrain=R_CE_EVCAVERN;
+			else if ((r < 50) && (lass > 3)) newterrain=R_CE_GDCAVERN1;
+			else if ((r < 50) && (lass < 4)) newterrain=R_CE_EVCAVERN1;
+			else if ((r < 60) && (lass > 3)) newterrain=R_CE_GDUFOREST;
+			else if ((r < 60) && (lass < 4)) newterrain=R_CE_EVUFOREST;
+			else if ((r < 70) && (lass > 3)) newterrain=R_CE_GDUFOREST1;
+			else if ((r < 70) && (lass < 4)) newterrain=R_CE_EVUFOREST1;
+			else if (r < 85) newterrain=R_CE_TUNNELS;
+			else if (r < 100) newterrain=R_CE_TUNNELS1;
+			else if (r < 104) newterrain=R_CE_NEULAKE;
+			else if ((r < 107) && (lass > 3)) newterrain=R_CE_GDULAKE;
+			else if ((r < 110) && (lass < 4)) newterrain=R_CE_EVULAKE;
+			else if (r < 120) newterrain=R_VOLCANO;
+			else {
+				int rr = getrandom(20);
+				if (rr < 13) newterrain=R_CE_CRYSTALCAVERN;
+				else if (rr == 13) newterrain=R_CE_BLUECAVERN;
+				else if (rr == 14) newterrain=R_CE_REDCAVERN;
+				else if (rr == 15) newterrain=R_CE_YELLOWCAVERN;
+				else if (rr == 16) newterrain=R_CE_ORANGECAVERN;
+				else if (rr == 17) newterrain=R_CE_GREENCAVERN;
+				else if (rr == 18) newterrain=R_CE_VIOLETCAVERN;
+				else if (rr == 19) if (lass > 3) newterrain=R_CE_WHITECAVERN; else newterrain=R_CE_BLACKCAVERN;
+			}
+		} else if ((pReg->zloc > Globals->UNDERWORLD_LEVELS+1) && (pReg->zloc < Globals->UNDERWORLD_LEVELS+Globals->UNDERDEEP_LEVELS+2)) {
+			// Underdeep region
+			int r = getrandom(130);
+			if (r < 30) newterrain=R_OCEAN;
+			else if ((r < 40) && (lass > 3)) newterrain=R_CE_EVDCAVERN;
+			else if ((r < 40) && (lass < 4)) newterrain=R_CE_GDDCAVERN;
+			else if ((r < 50) && (lass > 3)) newterrain=R_CE_EVDCAVERN1;
+			else if ((r < 50) && (lass < 4)) newterrain=R_CE_GDDCAVERN1;
+			else if ((r < 60) && (lass > 3)) newterrain=R_CE_EVDFOREST;
+			else if ((r < 60) && (lass < 4)) newterrain=R_CE_GDDFOREST;
+			else if ((r < 70) && (lass > 3)) newterrain=R_CE_EVDFOREST1;
+			else if ((r < 70) && (lass < 4)) newterrain=R_CE_GDDFOREST1;
+			else if (r < 85) newterrain=R_CE_TUNNELS;
+			else if (r < 100) newterrain=R_CE_TUNNELS1;
+			else if (r < 104) newterrain=R_CE_NEULAKE;
+			else if ((r < 107) && (lass > 3)) newterrain=R_CE_EVULAKE;
+			else if ((r < 110) && (lass < 4)) newterrain=R_CE_GDULAKE;
+			else if (r < 120) newterrain=R_VOLCANO;
+			else {
+				int rr = getrandom(20);
+				if (rr == 0) newterrain=R_CE_CRYSTALCAVERN;
+				else if (rr < 4) newterrain=R_CE_BLUECAVERN;
+				else if (rr < 7) newterrain=R_CE_REDCAVERN;
+				else if (rr < 10) newterrain=R_CE_YELLOWCAVERN;
+				else if (rr < 13) newterrain=R_CE_ORANGECAVERN;
+				else if (rr < 16) newterrain=R_CE_GREENCAVERN;
+				else if (rr < 19) newterrain=R_CE_VIOLETCAVERN;
+				else if (rr == 19) if (lass > 3) newterrain=R_CE_WHITECAVERN; else newterrain=R_CE_BLACKCAVERN;
+			}
 		}
-		return 0;
-	}
-
-	// Surface region
-	if (pReg->zloc == 1) {
-		int r = getrandom(130);
-		switch (lat) {
-		case 0: /* Ethernal Ice */
-			//return R_OCEAN;
-			if (r < 90) return R_CE_GLACIER;
-			return R_CE_ICE;
-		case 1: /* Arctic regions */
-			if ((r < 20) && (lass > 3)) return R_CE_EVTUNDRA;
-			if ((r < 20) && (lass < 4)) return R_CE_GDTUNDRA;
-			if ((r < 40) && (lass > 3)) return R_CE_EVTUNDRA1;
-			if ((r < 40) && (lass < 4)) return R_CE_GDTUNDRA1;
-			if ((r < 58) && (lass > 3)) return R_CE_EVMOUNTAIN;
-			if ((r < 58) && (lass < 4)) return R_CE_GDMOUNTAIN;
-			if ((r < 76) && (lass > 3)) return R_CE_EVMOUNTAIN1;
-			if ((r < 76) && (lass < 4)) return R_CE_GDMOUNTAIN1;
-			if ((r < 90) && (lass > 3)) return R_CE_EVFOREST;
-			if ((r < 90) && (lass < 4)) return R_CE_GDFOREST;
-			if ((r < 104) && (lass > 3)) return R_CE_EVFOREST1;
-			if ((r < 104) && (lass < 4)) return R_CE_GDFOREST1;
-			if ((r < 116) && (lass > 3)) return R_CE_EVPLAIN;
-			if ((r < 116) && (lass < 4)) return R_CE_GDPLAIN;
-			if ((r < 128) && (lass > 3)) return R_CE_EVPLAIN1;
-			if ((r < 128) && (lass < 4)) return R_CE_GDPLAIN1;
-			if ((r < 129) && (lass > 3)) return R_CE_WASTELAND;
-			if ((r < 129) && (lass < 4)) return R_VOLCANO;
-			if ((r < 130) && (lass > 3)) return R_CE_WASTELAND;
-			if ((r < 130) && (lass < 4)) return R_VOLCANO;
-			return (0);
-		case 2: /* Colder regions */
-			if ((r < 10) && (lass > 3)) return R_CE_EVPLAIN;
-			if ((r < 10) && (lass < 4)) return R_CE_GDPLAIN;
-			if ((r < 20) && (lass > 3)) return R_CE_EVPLAIN1;
-			if ((r < 20) && (lass < 4)) return R_CE_GDPLAIN1;
-			if ((r < 30) && (lass > 3)) return R_CE_EVGRASSLAND;
-			if ((r < 30) && (lass < 4)) return R_CE_GDGRASSLAND;
-			if ((r < 40) && (lass > 3)) return R_CE_EVGRASSLAND1;
-			if ((r < 40) && (lass < 4)) return R_CE_GDGRASSLAND1;
-			if ((r < 50) && (lass > 3)) return R_CE_EVFOREST;
-			if ((r < 50) && (lass < 4)) return R_CE_GDFOREST;
-			if ((r < 60) && (lass > 3)) return R_CE_EVFOREST1;
-			if ((r < 60) && (lass < 4)) return R_CE_GDFOREST1;
-			if ((r < 70) && (lass > 3)) return R_CE_EVMOUNTAIN;
-			if ((r < 70) && (lass < 4)) return R_CE_GDMOUNTAIN;
-			if ((r < 80) && (lass > 3)) return R_CE_EVMOUNTAIN1;
-			if ((r < 80) && (lass < 4)) return R_CE_GDMOUNTAIN1;
-			if ((r < 90) && (lass > 3)) return R_CE_EVHILL;
-			if ((r < 90) && (lass < 4)) return R_CE_GDHILL;
-			if ((r < 100) && (lass > 3)) return R_CE_EVHILL1;
-			if ((r < 100) && (lass < 4)) return R_CE_GDHILL1;
-			if ((r < 110) && (lass > 3)) return R_CE_EVSWAMP;
-			if ((r < 110) && (lass < 4)) return R_CE_GDSWAMP;
-			if ((r < 120) && (lass > 3)) return R_CE_EVSWAMP1;
-			if ((r < 120) && (lass < 4)) return R_CE_GDSWAMP1;
-			if ((r < 121) && (lass > 3)) return R_CE_WASTELAND;
-			if ((r < 121) && (lass < 4)) return R_CE_MYSTFOREST;
-			if ((r < 122) && (lass > 3)) return R_CE_WASTELAND1;
-			if ((r < 122) && (lass < 4)) return R_CE_MYSTFOREST1;
-			if ((r < 124) && (lass > 3)) return R_CE_EVLAKE;
-			if ((r < 124) && (lass < 4)) return R_CE_GDLAKE;
-			if (r < 125) return R_CE_NELAKE;
-			if ((r < 127) && (lass > 3)) return R_CE_WASTELAND;
-			if ((r < 129) && (lass > 3)) return R_CE_WASTELAND1;
-			if ((r < 129) && (lass < 4)) return R_VOLCANO;
-			if (r < 130) return R_VOLCANO;
-			return (0);
-		case 3: /* Warmer regions */
-			if ((r < 6) && (lass > 3)) return R_CE_EVPLAIN;
-			if ((r < 6) && (lass < 4)) return R_CE_GDPLAIN;
-			if ((r < 12) && (lass > 3)) return R_CE_EVPLAIN1;
-			if ((r < 12) && (lass < 4)) return R_CE_GDPLAIN1;
-			if ((r < 24) && (lass > 3)) return R_CE_EVGRASSLAND;
-			if ((r < 24) && (lass < 4)) return R_CE_GDGRASSLAND;
-			if ((r < 36) && (lass > 3)) return R_CE_EVGRASSLAND1;
-			if ((r < 36) && (lass < 4)) return R_CE_GDGRASSLAND1;
-			if ((r < 42) && (lass > 3)) return R_CE_EVFOREST;
-			if ((r < 42) && (lass < 4)) return R_CE_GDFOREST;
-			if ((r < 48) && (lass > 3)) return R_CE_EVFOREST1;
-			if ((r < 48) && (lass < 4)) return R_CE_GDFOREST1;
-			if ((r < 54) && (lass > 3)) return R_CE_EVMOUNTAIN;
-			if ((r < 54) && (lass < 4)) return R_CE_GDMOUNTAIN;
-			if ((r < 60) && (lass > 3)) return R_CE_EVMOUNTAIN1;
-			if ((r < 60) && (lass < 4)) return R_CE_GDMOUNTAIN1;
-			if ((r < 66) && (lass > 3)) return R_CE_EVHILL;
-			if ((r < 66) && (lass < 4)) return R_CE_GDHILL;
-			if ((r < 72) && (lass > 3)) return R_CE_EVHILL1;
-			if ((r < 72) && (lass < 4)) return R_CE_GDHILL1;
-			if ((r < 82) && (lass > 3)) return R_CE_EVSWAMP;
-			if ((r < 82) && (lass < 4)) return R_CE_GDSWAMP;
-			if ((r < 92) && (lass > 3)) return R_CE_EVSWAMP1;
-			if ((r < 92) && (lass < 4)) return R_CE_GDSWAMP1;
-			if (r < 95) return R_CE_NELAKE;
-			if ((r < 99) && (lass > 3)) return R_CE_EVLAKE;
-			if ((r < 99) && (lass < 4)) return R_CE_GDLAKE;
-			if ((r < 101) && (lass > 3)) return R_CE_WASTELAND;
-			if ((r < 101) && (lass < 4)) return R_CE_MYSTFOREST;
-			if ((r < 103) && (lass > 3)) return R_CE_WASTELAND1;
-			if ((r < 103) && (lass < 4)) return R_CE_MYSTFOREST1;
-			if (r < 105) return R_VOLCANO;
-			if ((r < 111) && (lass > 3)) return R_CE_EVDESERT;
-			if ((r < 111) && (lass < 4)) return R_CE_GDDESERT;
-			if ((r < 117) && (lass > 3)) return R_CE_EVDESERT1;
-			if ((r < 117) && (lass < 4)) return R_CE_GDDESERT1;
-			if ((r < 123) && (lass > 3)) return R_CE_EVJUNGLE;
-			if ((r < 123) && (lass < 4)) return R_CE_GDJUNGLE;
-			if ((r < 129) && (lass > 3)) return R_CE_EVJUNGLE1;
-			if ((r < 129) && (lass < 4)) return R_CE_GDJUNGLE1;
-			return (R_VOLCANO);
-		case 4: /* tropical */
-			if ((r < 10) && (lass > 3)) return R_CE_EVPLAIN;
-			if ((r < 10) && (lass < 4)) return R_CE_GDPLAIN;
-			if ((r < 20) && (lass > 3)) return R_CE_EVPLAIN1;
-			if ((r < 20) && (lass < 4)) return R_CE_GDPLAIN1;
-			if ((r < 26) && (lass > 3)) return R_CE_EVGRASSLAND;
-			if ((r < 26) && (lass < 4)) return R_CE_GDGRASSLAND;
-			if ((r < 32) && (lass > 3)) return R_CE_EVGRASSLAND1;
-			if ((r < 32) && (lass < 4)) return R_CE_GDGRASSLAND1;
-			if ((r < 42) && (lass > 3)) return R_CE_EVMOUNTAIN;
-			if ((r < 42) && (lass < 4)) return R_CE_GDMOUNTAIN;
-			if ((r < 52) && (lass > 3)) return R_CE_EVMOUNTAIN1;
-			if ((r < 52) && (lass < 4)) return R_CE_GDMOUNTAIN1;
-			if ((r < 62) && (lass > 3)) return R_CE_EVSWAMP;
-			if ((r < 62) && (lass < 4)) return R_CE_GDSWAMP;
-			if ((r < 72) && (lass > 3)) return R_CE_EVSWAMP1;
-			if ((r < 72) && (lass < 4)) return R_CE_GDSWAMP1;
-			if ((r < 82) && (lass > 3)) return R_CE_EVJUNGLE;
-			if ((r < 82) && (lass < 4)) return R_CE_GDJUNGLE;
-			if ((r < 92) && (lass > 3)) return R_CE_EVJUNGLE1;
-			if ((r < 92) && (lass < 4)) return R_CE_GDJUNGLE1;
-			if ((r < 104) && (lass > 3)) return R_CE_EVDESERT;
-			if ((r < 104) && (lass < 4)) return R_CE_GDDESERT;
-			if ((r < 110) && (lass > 3)) return R_CE_EVDESERT1;
-			if ((r < 110) && (lass < 4)) return R_CE_GDDESERT1;
-			if (r < 112) return R_CE_NELAKE;
-			if ((r < 114) && (lass > 3)) return R_CE_EVLAKE;
-			if ((r < 114) && (lass < 4)) return R_CE_GDLAKE;
-			if ((r < 120) && (lass > 3)) return R_CE_WASTELAND;
-			if ((r < 126) && (lass > 3)) return R_CE_WASTELAND1;
-			return R_VOLCANO;
+		else if (pReg->zloc == 1) {
+		// Surface region
+			int r = getrandom(220);
+			switch (lat) {
+			case 0: /* Ethernal Ice */
+				if (r < 140) newterrain=R_CE_GLACIER;
+				else if (r < 200) newterrain=R_CE_ICE;
+				else if ((r < 205) && (lass > 3)) newterrain=R_CE_EVMOUNTAIN;
+				else if ((r < 205) && (lass < 4)) newterrain=R_CE_GDMOUNTAIN;
+				else if ((r < 210) && (lass > 3)) newterrain=R_CE_EVMOUNTAIN1;
+				else if ((r < 210) && (lass < 4)) newterrain=R_CE_GDMOUNTAIN1;
+				else if ((r < 215) && (lass > 3)) newterrain=R_CE_EVTUNDRA;
+				else if ((r < 215) && (lass < 4)) newterrain=R_CE_GDTUNDRA;
+				else if ((r < 220) && (lass > 3)) newterrain=R_CE_EVTUNDRA1;
+				else if ((r < 220) && (lass < 4)) newterrain=R_CE_GDTUNDRA1;
+				else newterrain=R_VOLCANO;
+			case 1: /* Arctic regions */
+				if ((r < 30) && (lass > 3)) newterrain=R_CE_EVTUNDRA;
+				else if ((r < 30) && (lass < 4)) newterrain=R_CE_GDTUNDRA;
+				else if ((r < 60) && (lass > 3)) newterrain=R_CE_EVTUNDRA1;
+				else if ((r < 60) && (lass < 4)) newterrain=R_CE_GDTUNDRA1;
+				else if ((r < 80) && (lass > 3)) newterrain=R_CE_EVMOUNTAIN;
+				else if ((r < 80) && (lass < 4)) newterrain=R_CE_GDMOUNTAIN;
+				else if ((r < 100) && (lass > 3)) newterrain=R_CE_EVMOUNTAIN1;
+				else if ((r < 100) && (lass < 4)) newterrain=R_CE_GDMOUNTAIN1;
+				else if ((r < 120) && (lass > 3)) newterrain=R_CE_EVFOREST;
+				else if ((r < 120) && (lass < 4)) newterrain=R_CE_GDFOREST;
+				else if ((r < 140) && (lass > 3)) newterrain=R_CE_EVFOREST1;
+				else if ((r < 140) && (lass < 4)) newterrain=R_CE_GDFOREST1;
+				else if ((r < 160) && (lass > 3)) newterrain=R_CE_EVPLAIN;
+				else if ((r < 160) && (lass < 4)) newterrain=R_CE_GDPLAIN;
+				else if ((r < 180) && (lass > 3)) newterrain=R_CE_EVPLAIN1;
+				else if ((r < 180) && (lass < 4)) newterrain=R_CE_GDPLAIN1;
+				else if ((r < 200) && (lass > 3)) newterrain=R_CE_WASTELAND;
+				else if ((r < 200) && (lass < 4)) newterrain=R_VOLCANO;
+				else if ((r < 220) && (lass > 3)) newterrain=R_CE_WASTELAND1;
+				else if ((r < 220) && (lass < 4)) newterrain=R_VOLCANO;
+				else newterrain=R_VOLCANO;
+				break;
+			case 2: /* Colder regions */
+				if ((r < 15) && (lass > 3)) newterrain=R_CE_EVPLAIN;
+				else if ((r < 15) && (lass < 4)) newterrain=R_CE_GDPLAIN;
+				else if ((r < 30) && (lass > 3)) newterrain=R_CE_EVPLAIN1;
+				else if ((r < 30) && (lass < 4)) newterrain=R_CE_GDPLAIN1;
+				else if ((r < 45) && (lass > 3)) newterrain=R_CE_EVGRASSLAND;
+				else if ((r < 45) && (lass < 4)) newterrain=R_CE_GDGRASSLAND;
+				else if ((r < 60) && (lass > 3)) newterrain=R_CE_EVGRASSLAND1;
+				else if ((r < 60) && (lass < 4)) newterrain=R_CE_GDGRASSLAND1;
+				else if ((r < 75) && (lass > 3)) newterrain=R_CE_EVFOREST;
+				else if ((r < 75) && (lass < 4)) newterrain=R_CE_GDFOREST;
+				else if ((r < 90) && (lass > 3)) newterrain=R_CE_EVFOREST1;
+				else if ((r < 90) && (lass < 4)) newterrain=R_CE_GDFOREST1;
+				else if ((r < 105) && (lass > 3)) newterrain=R_CE_EVMOUNTAIN;
+				else if ((r < 105) && (lass < 4)) newterrain=R_CE_GDMOUNTAIN;
+				else if ((r < 120) && (lass > 3)) newterrain=R_CE_EVMOUNTAIN1;
+				else if ((r < 120) && (lass < 4)) newterrain=R_CE_GDMOUNTAIN1;
+				else if ((r < 130) && (lass > 3)) newterrain=R_CE_EVHILL;
+				else if ((r < 130) && (lass < 4)) newterrain=R_CE_GDHILL;
+				else if ((r < 140) && (lass > 3)) newterrain=R_CE_EVHILL1;
+				else if ((r < 140) && (lass < 4)) newterrain=R_CE_GDHILL1;
+				else if ((r < 150) && (lass > 3)) newterrain=R_CE_EVSWAMP;
+				else if ((r < 150) && (lass < 4)) newterrain=R_CE_GDSWAMP;
+				else if ((r < 160) && (lass > 3)) newterrain=R_CE_EVSWAMP1;
+				else if ((r < 160) && (lass < 4)) newterrain=R_CE_GDSWAMP1;
+				else if ((r < 170) && (lass > 3)) newterrain=R_CE_WASTELAND;
+				else if ((r < 170) && (lass < 4)) newterrain=R_CE_MYSTFOREST;
+				else if ((r < 180) && (lass > 3)) newterrain=R_CE_WASTELAND1;
+				else if ((r < 180) && (lass < 4)) newterrain=R_CE_MYSTFOREST1;
+				else if ((r < 200) && (lass > 3)) newterrain=R_CE_EVLAKE;
+				else if ((r < 200) && (lass < 4)) newterrain=R_CE_GDLAKE;
+				else if (r < 210) newterrain=R_CE_NELAKE;
+				else if (r < 220) newterrain=R_VOLCANO;
+				else newterrain=R_VOLCANO;
+				break;
+			case 3: /* Warmer regions */
+				if ((r < 10) && (lass > 3)) newterrain=R_CE_EVPLAIN;
+				else if ((r < 10) && (lass < 4)) newterrain=R_CE_GDPLAIN;
+				else if ((r < 20) && (lass > 3)) newterrain=R_CE_EVPLAIN1;
+				else if ((r < 20) && (lass < 4)) newterrain=R_CE_GDPLAIN1;
+				else if ((r < 30) && (lass > 3)) newterrain=R_CE_EVGRASSLAND;
+				else if ((r < 30) && (lass < 4)) newterrain=R_CE_GDGRASSLAND;
+				else if ((r < 40) && (lass > 3)) newterrain=R_CE_EVGRASSLAND1;
+				else if ((r < 40) && (lass < 4)) newterrain=R_CE_GDGRASSLAND1;
+				else if ((r < 50) && (lass > 3)) newterrain=R_CE_EVFOREST;
+				else if ((r < 50) && (lass < 4)) newterrain=R_CE_GDFOREST;
+				else if ((r < 60) && (lass > 3)) newterrain=R_CE_EVFOREST1;
+				else if ((r < 60) && (lass < 4)) newterrain=R_CE_GDFOREST1;
+				else if ((r < 70) && (lass > 3)) newterrain=R_CE_EVMOUNTAIN;
+				else if ((r < 70) && (lass < 4)) newterrain=R_CE_GDMOUNTAIN;
+				else if ((r < 80) && (lass > 3)) newterrain=R_CE_EVMOUNTAIN1;
+				else if ((r < 80) && (lass < 4)) newterrain=R_CE_GDMOUNTAIN1;
+				else if ((r < 90) && (lass > 3)) newterrain=R_CE_EVHILL;
+				else if ((r < 90) && (lass < 4)) newterrain=R_CE_GDHILL;
+				else if ((r < 100) && (lass > 3)) newterrain=R_CE_EVHILL1;
+				else if ((r < 100) && (lass < 4)) newterrain=R_CE_GDHILL1;
+				else if ((r < 110) && (lass > 3)) newterrain=R_CE_EVSWAMP;
+				else if ((r < 110) && (lass < 4)) newterrain=R_CE_GDSWAMP;
+				else if ((r < 120) && (lass > 3)) newterrain=R_CE_EVSWAMP1;
+				else if ((r < 120) && (lass < 4)) newterrain=R_CE_GDSWAMP1;
+				else if (r < 130) newterrain=R_CE_NELAKE;
+				else if ((r < 140) && (lass > 3)) newterrain=R_CE_EVLAKE;
+				else if ((r < 140) && (lass < 4)) newterrain=R_CE_GDLAKE;
+				else if ((r < 150) && (lass > 3)) newterrain=R_CE_WASTELAND;
+				else if ((r < 150) && (lass < 4)) newterrain=R_CE_MYSTFOREST;
+				else if ((r < 160) && (lass > 3)) newterrain=R_CE_WASTELAND1;
+				else if ((r < 160) && (lass < 4)) newterrain=R_CE_MYSTFOREST1;
+				else if (r < 170) newterrain=R_VOLCANO;
+				else if ((r < 180) && (lass > 3)) newterrain=R_CE_EVDESERT;
+				else if ((r < 180) && (lass < 4)) newterrain=R_CE_GDDESERT;
+				else if ((r < 190) && (lass > 3)) newterrain=R_CE_EVDESERT1;
+				else if ((r < 190) && (lass < 4)) newterrain=R_CE_GDDESERT1;
+				else if ((r < 200) && (lass > 3)) newterrain=R_CE_EVJUNGLE;
+				else if ((r < 200) && (lass < 4)) newterrain=R_CE_GDJUNGLE;
+				else if ((r < 210) && (lass > 3)) newterrain=R_CE_EVJUNGLE1;
+				else if ((r < 210) && (lass < 4)) newterrain=R_CE_GDJUNGLE1;
+				else newterrain=R_VOLCANO;
+				break;
+			case 4: /* tropical */
+				if ((r < 20) && (lass > 3)) newterrain=R_CE_EVPLAIN;
+				else if ((r < 20) && (lass < 4)) newterrain=R_CE_GDPLAIN;
+				else if ((r < 40) && (lass > 3)) newterrain=R_CE_EVPLAIN1;
+				else if ((r < 40) && (lass < 4)) newterrain=R_CE_GDPLAIN1;
+				else if ((r < 50) && (lass > 3)) newterrain=R_CE_EVGRASSLAND;
+				else if ((r < 50) && (lass < 4)) newterrain=R_CE_GDGRASSLAND;
+				else if ((r < 60) && (lass > 3)) newterrain=R_CE_EVGRASSLAND1;
+				else if ((r < 60) && (lass < 4)) newterrain=R_CE_GDGRASSLAND1;
+				else if ((r < 70) && (lass > 3)) newterrain=R_CE_EVMOUNTAIN;
+				else if ((r < 70) && (lass < 4)) newterrain=R_CE_GDMOUNTAIN;
+				else if ((r < 80) && (lass > 3)) newterrain=R_CE_EVMOUNTAIN1;
+				else if ((r < 80) && (lass < 4)) newterrain=R_CE_GDMOUNTAIN1;
+				else if ((r < 95) && (lass > 3)) newterrain=R_CE_EVSWAMP;
+				else if ((r < 95) && (lass < 4)) newterrain=R_CE_GDSWAMP;
+				else if ((r < 110) && (lass > 3)) newterrain=R_CE_EVSWAMP1;
+				else if ((r < 110) && (lass < 4)) newterrain=R_CE_GDSWAMP1;
+				else if ((r < 125) && (lass > 3)) newterrain=R_CE_EVJUNGLE;
+				else if ((r < 125) && (lass < 4)) newterrain=R_CE_GDJUNGLE;
+				else if ((r < 140) && (lass > 3)) newterrain=R_CE_EVJUNGLE1;
+				else if ((r < 140) && (lass < 4)) newterrain=R_CE_GDJUNGLE1;
+				else if ((r < 160) && (lass > 3)) newterrain=R_CE_EVDESERT;
+				else if ((r < 160) && (lass < 4)) newterrain=R_CE_GDDESERT;
+				else if ((r < 180) && (lass > 3)) newterrain=R_CE_EVDESERT1;
+				else if ((r < 180) && (lass < 4)) newterrain=R_CE_GDDESERT1;
+				else if (r < 190) newterrain=R_CE_NELAKE;
+				else if ((r < 200) && (lass > 3)) newterrain=R_CE_EVLAKE;
+				else if ((r < 200) && (lass < 4)) newterrain=R_CE_GDLAKE;
+				else if ((r < 210) && (lass > 3)) newterrain=R_CE_WASTELAND;
+				else if ((r < 220) && (lass > 3)) newterrain=R_CE_WASTELAND1;
+				else newterrain=R_VOLCANO;
+				break;
+			}
 		}
-		return R_OCEAN;
-	}
+		else if (pReg->zloc == 0) {
+			//
+			// This really shouldn't ever get called.
+			//
+			newterrain=R_NEXUS;
+		}
 
-	if (pReg->zloc == 0) {
-		//
-		// This really shouldn't ever get called.
-		//
-		return R_NEXUS;
+		if ((odd==1) || (!(TerrainDefs[newterrain].flags&TerrainType::ODD))) return newterrain;
 	}
-
-	//
-	// This really shouldn't get called either
-	//
-	return R_OCEAN;
 }
 
 int ARegionList::GetLevelXScale(int level) {
-	// have Ceran III unscaled
-	return 1;
 	// Surface and nexus are unscaled
-	// if (level < 2) return 1;
-	// return 2;
+	if (level < 2) return 1;
+	// underworld starting level is unscaled
+	if (level == Globals->UNDERWORLD_LEVELS+1) return 1;
+	return 2;
 }
 
 int ARegionList::GetLevelYScale(int level) {
-	// have Ceran III unscaled
-	return 1;
 	// Surface and nexus are unscaled
-	// if (level < 2) return 1;
-	//return 2;
+	if (level < 2) return 1;
+	// underworld starting level is unscaled
+	if (level == Globals->UNDERWORLD_LEVELS+1) return 1;
+	return 2;
 }
 
 int ARegionList::CheckRegionExit(ARegion *pFrom, ARegion *pTo) {
@@ -2478,54 +2465,91 @@ int ARegionList::CheckRegionExit(ARegion *pFrom, ARegion *pTo) {
 		return 1;
 	}
 	int chance = 0;
-	// caverns have many exits
-	if (	pFrom->type == R_CE_GDCAVERN   || pTo->type == R_CE_GDCAVERN ||
-		pFrom->type == R_CE_GDCAVERN1   || pTo->type == R_CE_GDCAVERN1 ||
-		pFrom->type == R_CE_EVCAVERN   || pTo->type == R_CE_EVCAVERN ||
-		pFrom->type == R_CE_EVCAVERN1   || pTo->type == R_CE_EVCAVERN1) {
-		chance = 66;
+	// add new terrain to the two case statemens unless they require special treatment.
+	// terrain that needs special treatment should only go to the second case, just add another if clause afterwards.
+	switch (pFrom->type) {
+		case R_CE_GDCAVERN:
+		case R_CE_GDCAVERN1:
+		case R_CE_EVCAVERN:
+		case R_CE_EVCAVERN1:	chance+=25; break;
+		case R_CE_GDDCAVERN:
+		case R_CE_GDDCAVERN1:
+		case R_CE_EVDCAVERN:
+		case R_CE_EVDCAVERN1:	chance+=33; break;
+		case R_CE_GDUFOREST:
+		case R_CE_GDUFOREST1:
+		case R_CE_EVUFOREST:
+		case R_CE_EVUFOREST1:
+		case R_CE_GDDFOREST:
+		case R_CE_GDDFOREST1:
+		case R_CE_EVDFOREST:
+		case R_CE_EVDFOREST1:	chance+=20; break;
+		case R_CE_GDULAKE:
+		case R_CE_NEULAKE:
+		case R_CE_EVULAKE:	chance+=35; break;
+		case R_CE_CRYSTALCAVERN:	chance+=16;break;
 	}
-	if (	pFrom->type == R_CE_GDDCAVERN   || pTo->type == R_CE_GDDCAVERN ||
-		pFrom->type == R_CE_GDDCAVERN1   || pTo->type == R_CE_GDDCAVERN1 ||
-		pFrom->type == R_CE_EVDCAVERN   || pTo->type == R_CE_EVDCAVERN ||
-		pFrom->type == R_CE_EVDCAVERN1   || pTo->type == R_CE_EVDCAVERN1) {
-		chance = 70;
+	switch (pTo->type) {
+		case R_CE_GDCAVERN:
+		case R_CE_GDCAVERN1:
+		case R_CE_EVCAVERN:
+		case R_CE_EVCAVERN1:	chance+=25; break;
+		case R_CE_GDDCAVERN:
+		case R_CE_GDDCAVERN1:
+		case R_CE_EVDCAVERN:
+		case R_CE_EVDCAVERN1:	chance+=33; break;
+		case R_CE_GDUFOREST:
+		case R_CE_GDUFOREST1:
+		case R_CE_EVUFOREST:
+		case R_CE_EVUFOREST1:
+		case R_CE_GDDFOREST:
+		case R_CE_GDDFOREST1:
+		case R_CE_EVDFOREST:
+		case R_CE_EVDFOREST1:	chance+=20; break;
+		case R_CE_GDULAKE:
+		case R_CE_NEULAKE:
+		case R_CE_EVULAKE:	chance+=35; break;
+		case R_CE_TUNNELS:
+		case R_CE_TUNNELS1:
+		case R_CE_DTUNNELS:
+		case R_CE_DTUNNELS1:	chance=chance/2+15;break;
+		case R_CE_BLUECAVERN:
+		case R_CE_REDCAVERN:
+		case R_CE_YELLOWCAVERN:	chance=chance/2+12;break;
+		case R_CE_ORANGECAVERN:
+		case R_CE_GREENCAVERN:
+		case R_CE_VIOLETCAVERN:	chance=chance/2+10;break;
+		case R_CE_WHITECAVERN:
+		case R_CE_BLACKCAVERN:	chance=chance/2+8;break;
+		case R_CE_CRYSTALCAVERN:	chance+=16;break;
 	}
-	// underforests are dense and have many walls
-	if (	pFrom->type == R_CE_GDUFOREST   || pTo->type == R_CE_GDUFOREST ||
-		pFrom->type == R_CE_GDUFOREST1   || pTo->type == R_CE_GDUFOREST1 ||
-		pFrom->type == R_CE_EVUFOREST   || pTo->type == R_CE_EVUFOREST ||
-		pFrom->type == R_CE_EVUFOREST1   || pTo->type == R_CE_EVUFOREST1) {
-		chance = 40;
+	if (pFrom->type==R_OCEAN) {
+		// oceans don't lead into underlakes
+		if (pFrom->type==R_CE_GDULAKE || pFrom->type==R_CE_NEULAKE || pFrom->type==R_CE_EVULAKE) chance=0;
+		// but are otherwise well connected.
+		else chance+=50;
 	}
-	if (	pFrom->type == R_CE_GDDFOREST   || pTo->type == R_CE_GDDFOREST ||
-		pFrom->type == R_CE_GDDFOREST1   || pTo->type == R_CE_GDDFOREST1 ||
-		pFrom->type == R_CE_EVDFOREST   || pTo->type == R_CE_EVDFOREST ||
-		pFrom->type == R_CE_EVDFOREST1   || pTo->type == R_CE_EVDFOREST1) {
-		chance = 50;
+	if (pTo->type==R_OCEAN) {
+		// oceans are nearly always connected to other oceans.
+		if (pFrom->type==R_OCEAN) chance=90;
+		// oceans don't lead into underlakes
+		else if (pFrom->type==R_CE_GDULAKE || pFrom->type==R_CE_NEULAKE || pFrom->type==R_CE_EVULAKE) chance=0;
+		// but are otherwise well connected.
+		else chance+=50;
 	}
-	// lakes in the underworld have good connections
-	if (    pFrom->type == R_CE_GDULAKE   || pFrom->type == R_CE_NEULAKE ||
-		pFrom->type == R_CE_EVULAKE) {
-		if (pTo->type == R_OCEAN) chance = 0; else chance = 70;
-	}
-	if (    pTo->type == R_CE_GDULAKE   || pTo->type == R_CE_NEULAKE ||
-		pTo->type == R_CE_EVULAKE) {
-		if (pFrom->type == R_OCEAN) chance = 0; else chance = 70;
-	}
-	// tunnels have bad connections.
-	if (	pFrom->type == R_CE_TUNNELS   || pTo->type == R_CE_TUNNELS ||
-		pFrom->type == R_CE_TUNNELS1  || pTo->type == R_CE_TUNNELS1) {
-		chance = 33;
-	}
-	if (	pFrom->type == R_CE_DTUNNELS   || pTo->type == R_CE_DTUNNELS ||
-		pFrom->type == R_CE_DTUNNELS1  || pTo->type == R_CE_DTUNNELS1) {
-		chance = 35;
-	}
+	// tunnels often are dead ends.
+	if (pFrom->type==R_CE_TUNNELS || pFrom->type==R_CE_TUNNELS1 || pFrom->type==R_CE_DTUNNELS || pFrom->type==R_CE_DTUNNELS1)
+		chance=chance/2+15;
+	// special caverns even have worse connections than tunnels.
+	if (pFrom->type==R_CE_BLUECAVERN || pFrom->type==R_CE_REDCAVERN || pFrom->type==R_CE_YELLOWCAVERN)
+		chance=chance/2+12;
+	if (pFrom->type==R_CE_ORANGECAVERN || pFrom->type==R_CE_GREENCAVERN || pFrom->type==R_CE_VIOLETCAVERN)
+		chance=chance/2+10;
+	if (pFrom->type==R_CE_WHITECAVERN || pFrom->type==R_CE_BLACKCAVERN)
+		chance=chance/2+8;
 
-	if (getrandom(100) < chance) {
-		return 0;
-	}
+	// check whether there is a connection
+	if (getrandom(100) < chance) return 0;
 	return 1;
 }
 
@@ -2567,9 +2591,17 @@ int ARegionList::GetWeather(ARegion *pReg, int month) {
 }
 
 int ARegion::CanBeStartingCity(ARegionArray *pRA) {
+	// no starting cities in oceans, lakes, volcanos, ice, glaciers and tunnels as there is no population.
 	if (type == R_OCEAN) return 0;
 	if (type == R_LAKE) return 0;
 	if (type == R_VOLCANO) return 0;
+	if (type == R_CE_ICE) return 0;
+	if (type == R_CE_GLACIER) return 0;
+	if (type == R_CE_TUNNELS) return 0;
+	if (type == R_CE_TUNNELS1) return 0;
+	if (type == R_CE_DTUNNELS) return 0;
+	if (type == R_CE_DTUNNELS1) return 0;
+	// no starting cities in lakes and mystforests as this would result in unbalancing good cities.
 	if (type == R_CE_GDLAKE) return 0;
 	if (type == R_CE_NELAKE) return 0;
 	if (type == R_CE_EVLAKE) return 0;
@@ -2578,15 +2610,23 @@ int ARegion::CanBeStartingCity(ARegionArray *pRA) {
 	if (type == R_CE_EVULAKE) return 0;
 	if (type == R_CE_MYSTFOREST) return 0;
 	if (type == R_CE_MYSTFOREST1) return 0;
+	// no starting cites in wasteland as these cities would be very poor starting locations.
 	if (type == R_CE_WASTELAND) return 0;
 	if (type == R_CE_WASTELAND1) return 0;
-	if (type == R_CE_ICE) return 0;
-	if (type == R_CE_GLACIER) return 0;
-	if (type == R_CE_TUNNELS) return 0;
-	if (type == R_CE_TUNNELS1) return 0;
-	if (type == R_CE_DTUNNELS) return 0;
-	if (type == R_CE_DTUNNELS1) return 0;
-	if (!IsCoastal()) return 0;
+	// no starting cities in special caverns as this would make it too easy to get crystals.
+	if (type == R_CE_BLUECAVERN) return 0;
+	if (type == R_CE_REDCAVERN) return 0;
+	if (type == R_CE_YELLOWCAVERN) return 0;
+	if (type == R_CE_ORANGECAVERN) return 0;
+	if (type == R_CE_GREENCAVERN) return 0;
+	if (type == R_CE_VIOLETCAVERN) return 0;
+	if (type == R_CE_BLACKCAVERN) return 0;
+	if (type == R_CE_WHITECAVERN) return 0;
+	if (type == R_CE_CRYSTALCAVERN) return 0;
+	// surface starting cities must be next to an ocean so new players can always leave.
+	// this isn't always possible in the underworld so this requirement is dropped there.
+	if (pRA->levelType==ARegionArray::LEVEL_SURFACE&&!IsCoastal()) return 0;
+	// finally if a city already is a starting city, we cannot add another one.
 	if (town && town->pop == 5000) return 0;
 
 	int regs = 0;
@@ -2597,6 +2637,9 @@ int ARegion::CanBeStartingCity(ARegionArray *pRA) {
 	temp->ptr = this;
 	inlist.Add(temp);
 
+	// check the size of the land mass the city is on.
+	// continent must contain at least 20 land hexes.
+	// <TODO>: make this number configurable in gamedefs.
 	while(inlist.Num()) {
 		ARegionPtr * reg = (ARegionPtr *) inlist.First();
 		for (int i=0; i<NDIRS; i++) {
@@ -2625,11 +2668,13 @@ void ARegion::MakeStartingCity() {
 
 	if (Globals->GATES_EXIST) gate = -1;
 	
-	cout << "TOWN: " << town << endl << flush;
 
 	if (!town) {
-	// cout << "ADDTOWN()" << endl << flush;
 	AddTown();
+	}
+	if (xloc+yloc+zloc==0) {
+		if (town->name) delete town->name;
+		town->name=new AString("Sanctuary");
 	}
 
 	// cout << "TOWN: " << town << endl << flush;
@@ -2684,9 +2729,6 @@ ARegion *ARegionList::GetStartingCity(ARegion *AC, int i, int level, int maxX, i
 		//
 		int x = getrandom(maxX);
 		int y = 2 * getrandom(maxY / 2) + x % 2;
-		//int z = 1;
-		//if (getrandom(2) == 1)
-		//	z=getrandom(Globals->UNDERWORLD_LEVELS+Globals->UNDERDEEP_LEVELS)+1;
 		reg = pArr->GetRegion( x, y);
 		
 
@@ -2733,4 +2775,3 @@ ARegion *ARegionList::GetStartingCity(ARegion *AC, int i, int level, int maxX, i
 	// Okay, if we still don't have anything, we're done.
 	return reg;
 }
-

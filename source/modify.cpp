@@ -23,6 +23,7 @@
 //
 // END A3HEADER
 //
+#include <string.h>
 #include "game.h"
 #include "gamedata.h"
 
@@ -65,6 +66,18 @@ void Game::ModifySkillSpecial(int sk, int special) {
 void Game::ModifySkillRange(int sk, int range) {
 	if (sk < 0 || sk > (NSKILLS-1)) return;
 	SkillDefs[sk].rangeIndex = range;
+}
+
+void Game::ModifySkillName(int sk, const char * skname) {
+	if (sk < 0 || sk > (NSKILLS-1)) return;
+	SkillDefs[sk].name = new char[strlen(skname)];
+	strcpy (SkillDefs[sk].name,skname);
+}
+
+void Game::ModifySkillAbbr(int sk, const char * skabbr) {
+	if (sk < 0 || sk > (NSKILLS-1)) return;
+	SkillDefs[sk].abbr = new char[strlen(skabbr)];
+	strcpy (SkillDefs[sk].abbr,skabbr);
 }
 
 void Game::EnableItem(int item) {
@@ -172,6 +185,20 @@ void Game::ModifyItemMagicInput(int it, int i, int input, int amount) {
 	if (amount < 0) amount = 0;
 	ItemDefs[it].mInput[i].item = input;
 	ItemDefs[it].mInput[i].amt = amount;
+}
+
+void Game::ModifyItemName(int it, const char * itname, const char * itnames) {
+        if (it < 0 || it > (NITEMS-1)) return;
+        ItemDefs[it].name = new char[strlen(itname)];
+        ItemDefs[it].names = new char[strlen(itnames)];
+        strcpy (ItemDefs[it].name,itname);
+        strcpy (ItemDefs[it].names,itnames);
+}
+
+void Game::ModifyItemAbr(int it, const char * itabr) {
+        if (it < 0 || it > (NITEMS-1)) return;
+        ItemDefs[it].abr = new char[strlen(itabr)];
+        strcpy (ItemDefs[it].abr,itabr);
 }
 
 void Game::ModifyRaceSkillLevels(int r, int def, int magicdef) {
@@ -479,6 +506,12 @@ void Game::ModifyTerrainEconomy(int t, int pop, int wages, int econ, int move) {
 	TerrainDefs[t].wages = wages;
 	TerrainDefs[t].economy = econ;
 	TerrainDefs[t].movepoints = move;
+}
+
+void Game::ModifyTerrainName(int t, const char * tname) {
+        if (t < 0 || t > (R_NUM-1)) return;
+        TerrainDefs[t].name = new char[strlen(tname)];
+        strcpy (TerrainDefs[t].name,tname);
 }
 
 void Game::ModifyBattleItemFlags(int item, int flags) {

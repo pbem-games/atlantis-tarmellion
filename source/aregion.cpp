@@ -27,7 +27,10 @@
 #include <stdio.h>
 #include <string.h>
 #include "game.h"
+#include "faction.h"
 #include "gamedata.h"
+
+extern Game *thisgame;
 
 Location * GetUnit(AList * list,int n) {
 	forlist(list) {
@@ -2570,7 +2573,7 @@ void ARegionList::CreateNexusLevel(int level,int xSize,int ySize,char *name) {
 		for(int x = 0; x < xSize; x++) {
 			ARegion *reg = pRegionArrays[level]->GetRegion(x, y);
 			if (reg && Globals->NEXUS_IS_CITY && Globals->TOWNS_EXIST) {
-				reg->MakeStartingCity();
+				if (x==0&&y==0) reg->MakeStartingCity();
 				if (Globals->GATES_EXIST) {
 					numberofgates++;
 				}
@@ -3039,7 +3042,8 @@ void ARegionList::SetupAnchors(ARegionArray * ta) {
 				int tempy = y * 8 + getrandom(4)*2 + tempx%2;
 				reg = ta->GetRegion(tempx,tempy);
 				if (reg->type == R_NUM) {
-					reg->type = GetRegType(reg);
+					reg->type = GetRegType(reg,0);
+					cout << "SetupAnchors: created " << TerrainDefs[reg->type].name << "\n" << flush;
 					if (TerrainDefs[reg->type].similar_type != R_OCEAN)
 						reg->wages = AGetName(0);
 					break;
@@ -3068,7 +3072,7 @@ void ARegionList::GrowTerrain(ARegionArray *pArr, int growOcean) {
 					}
 					// Check for Odd Terrain
 					if (getrandom(1000) < Globals->ODD_TERRAIN) {
-						reg->type = GetRegType(reg);
+						reg->type = GetRegType(reg,1);
 						if (TerrainDefs[reg->type].similar_type != R_OCEAN)
 							reg->wages = AGetName(0);
 						break;
@@ -3078,12 +3082,14 @@ void ARegionList::GrowTerrain(ARegionArray *pArr, int growOcean) {
 					for (int i=0; i<NDIRS; i++) {
 						ARegion *t = reg->neighbors[(i+init) % NDIRS];
 						if (t) {
-							if (t->type != R_NUM &&
-								(TerrainDefs[t->type].similar_type!=R_OCEAN ||
-								 (growOcean && (t->type != R_LAKE)))) {
-								reg->race = t->type;
-								reg->wages = t->wages;
-								break;
+							if (t->type != R_NUM && (TerrainDefs[t->type].similar_type!=R_OCEAN || (growOcean && (t->type != R_LAKE)))) {
+								if (TerrainDefs[t->type].flags&TerrainType::ODD) {
+									cout << "Don't seed " << TerrainDefs[t->type].name << "\n" << flush;
+								} else {
+									reg->race = t->type;
+									reg->wages = t->wages;
+									break;
+								}
 							}
 						}
 					}
@@ -3126,7 +3132,7 @@ void ARegionList::RandomTerrain(ARegionArray *pArr) {
 					reg->type = adjtype;
 					reg->wages = adjname;
 				} else {
-					reg->type = GetRegType(reg);
+					reg->type = GetRegType(reg,0);
 					reg->wages = AGetName(0);
 				}
 			}
@@ -3189,8 +3195,13 @@ void ARegionList::FinalSetup(ARegionArray *pArr) {
 					reg->SetName(ocean_name.Str());
 				}
 			} else {
-				if (reg->wages == -1) reg->SetName("Unnamed");
-				else if (reg->wages != -2)
+				if (reg->wages == -1) {
+					if (pArr->levelType==ARegionArray::LEVEL_NEXUS)
+						if (Globals->NEXUS_IS_CITY)
+							reg->SetName("Titan Palace");
+						else
+							reg->SetName("Unnamed");
+			} else if (reg->wages != -2)
 					reg->SetName(AGetNameString(reg->wages));
 				else
 					reg->wages = -1;
@@ -3215,6 +3226,7 @@ void ARegionList::MakeShaft(ARegion *reg, ARegionArray *pFrom,
 
 	ARegion *temp = pTo->GetRegion(tempx, tempy);
 	if (TerrainDefs[temp->type].similar_type == R_OCEAN) return;
+	if (TerrainDefs[reg->type].similar_type == R_OCEAN) return;
 
 	Object * o = new Object(reg);
 	o->num = reg->buildingseq++;
@@ -3231,6 +3243,76 @@ void ARegionList::MakeShaft(ARegion *reg, ARegionArray *pFrom,
 	o->incomplete = 0;
 	o->inner = reg->num;
 	temp->objects.Add(o);
+}
+
+//****************************************************************************//
+// Create a portal tower from *reg to *rTo                                    //
+//	a portal tower is a oneway-shaft that can be reaimed during the game  //
+//      there's just a short hint of what is behind (koordinetes, no details) //
+//****************************************************************************//
+void ARegionList::MakePortalTower(ARegion *reg, ARegion *rTo) {
+	if (TerrainDefs[reg->type].similar_type == R_OCEAN) return;
+
+	Object * o = new Object(reg);
+	o->num = reg->buildingseq++;
+	AString * ptname = new AString(AString("Portal [") + o->num + "] to " + rTo->xloc + "," + rTo->yloc);
+
+	if (Globals->EASIER_UNDERWORLD && (Globals->UNDERWORLD_LEVELS+Globals->UNDERDEEP_LEVELS > 1)) {
+		*ptname += ", ";
+		*ptname += AString(rTo->zloc);
+	} else {
+		if (rTo->zloc > 1) *ptname += ",";
+		// add less explicit multilevel information about the underworld
+		if (rTo->zloc > 1 && rTo->zloc < Globals->UNDERWORLD_LEVELS+2) {
+			for (int i = rTo->zloc; i > 3; i--) *ptname += "very ";
+			if (rTo->zloc > 2) *ptname += "deep ";
+			*ptname += "underworld";
+		} else if ((rTo->zloc > Globals->UNDERWORLD_LEVELS+2) &&
+			(rTo->zloc < Globals->UNDERWORLD_LEVELS + Globals->UNDERDEEP_LEVELS + 2)) {
+			for (int i = rTo->zloc; i > Globals->UNDERWORLD_LEVELS + 3; i--) *ptname += "very ";
+			if (rTo->zloc < Globals->UNDERWORLD_LEVELS + Globals->UNDERDEEP_LEVELS + 2) *ptname += "deep ";
+			*ptname += "underdeep";
+		} else if ((rTo->zloc ==Globals->UNDERWORLD_LEVELS+2) &&
+			(rTo->zloc < Globals->UNDERWORLD_LEVELS + Globals->UNDERDEEP_LEVELS + 2))
+			*ptname += "underdeep";
+
+	}
+	o->name = ptname;
+	o->type = O_HTOWER;
+	o->incomplete = 0;
+	o->inner = rTo->num;
+	reg->objects.Add(o);
+	// move that to a procedure called later on as there are no factions created yet.
+	//if (Globals->CITY_MONSTERS_EXIST) {
+	//	Faction *pFac = GetFaction(&(thisgame->factions), thisgame->guardfaction);
+	//	Unit *u = thisgame->GetNewUnit(pFac);
+	//	AString *s = new AString("Tower Guard");
+	//	u->SetName(s);
+	//	u->type = U_NORMAL;
+	//	u->guard = GUARD_GUARD;
+	//	int race;
+	//	int *gitems;
+	//	if (Globals->LEADERS_EXIST == GameDefs::RACIAL_LEADERS) {
+	//		race = reg->race;
+	//		int leader = ManDefs[ItemDefs[race].index].minority;
+	//		race = (leader == -1 ? race : leader);
+	//	} else if (Globals->LEADERS_EXIST == GameDefs::NORMAL_LEADERS)
+	//		race = I_LEADERS;
+	//	else race = reg->race;
+	//	gitems = ManDefs[ItemDefs[race].index].guarditems;
+	//	u->SetMen(race,1);
+	//	u->items.SetNum(I_AMULETOFI,1);
+	//	if (gitems[5]!=-1) u->items.SetNum(gitems[5],1);
+	//	else if (gitems[0]!=-1) u->items.SetNum(gitems[0],1);
+	//	else u->items.SetNum(I_SWORD, 1);
+	//	if (gitems[6]!=-1) u->items.SetNum(gitems[6],1);
+	//	else if (gitems[1]!=-1) u->items.SetNum(gitems[1],1);
+	//	else u->items.SetNum(I_IRONPLATEARMOR, 1);
+	//	if (gitems[4]!=-1) u->items.SetNum(gitems[4],1);
+	//	u->SetSkill(S_OBSERVATION,10);
+	//	u->SetFlag(FLAG_HOLDING, 1);
+	//	u->MoveUnit(o);
+	//}
 }
 
 void ARegionList::MakeShaftLinks(int levelFrom, int levelTo, int odds) {
@@ -3266,6 +3348,14 @@ void ARegionList::CalcDensities() {
 	Awrite("");
 }
 
+//****************************************************************************//
+// Create the exits from nexus regions.                                       //
+//      SetACNeighbors is called from world.cpp                               //
+//      This only creates starting citesif the ACN_IS_STARTING_CITY gamedef   //
+//      is set.                                                               //
+//      Starting Cities created by this routine are created in addition to    //
+//      those defined in extra.cpp                                            //
+//****************************************************************************//
 void ARegionList::SetACNeighbors(int levelSrc, int levelTo, int maxX, int maxY) {
 	ARegionArray *ar = GetRegionArray(levelSrc);
 
@@ -3275,28 +3365,74 @@ void ARegionList::SetACNeighbors(int levelSrc, int levelTo, int maxX, int maxY) 
 			if (!AC) continue;
 			for (int i=0; i<NDIRS; i++) {
 				if (AC->neighbors[i]) continue;
-				int level=levelTo;
-				if (Globals->UNDERWORLD_STARTING_CITIES) {
-					if (Globals->UNDERDEEP_STARTING_CITIES) {
-						if (getrandom(2)==1)
-							level=getrandom(Globals->UNDERWORLD_LEVELS+Globals->UNDERDEEP_LEVELS)+1;
-					} else {
-						if (getrandom(2)==1)
-							level=getrandom(Globals->UNDERWORLD_LEVELS)+1;
-					}
-				} else if (Globals->UNDERDEEP_STARTING_CITIES) {
-					if (getrandom(2)==1) {
-						level=getrandom(Globals->UNDERDEEP_LEVELS)+1;
-						if (level>1) level+=Globals->UNDERWORLD_LEVELS;
-					}
-				}
-				ARegion *pReg = GetStartingCity(AC,i,level,maxX,maxY);
+				ARegion *pReg = GetStartingCity(AC,i,levelTo,maxX,maxY);
 				if (!pReg) continue;
 				AC->neighbors[i] = pReg;
+				if (Globals->ACN_IS_STARTING_CITY) pReg->MakeStartingCity();
+				if (Globals->GATES_EXIST) numberofgates++;
+			}
+		}
+	}
+}
+
+//****************************************************************************//
+// Create Starting Cities defined in extra.cpp                                //
+//      SetStartingCities is called from world.cpp                            //
+//      This only creates starting citesif the ACN_IS_STARTING_CITY gamedef   //
+//      is set.                                                               //
+//      Starting Cities created by this routine are created in addition to    //
+//      those defined in extra.cpp                                            //
+//****************************************************************************//
+void ARegionList::SetStartingCities(int levelSrc, int maxX, int maxY) {
+	ARegionArray *ar = GetRegionArray(levelSrc);
+	// first shot: put all portals to (0,0,nexus). TODO: distribute them between all AC-regions in multi-hex nexus
+	ARegion *AC = ar->GetRegion(0, 0);
+
+	// setup surface starting cities
+	for (int j=0;j<SurfaceCityLevels;j++) {
+		for (int i=1;i<SurfaceCities[j]+1;i++) {
+			cout << "creating surface starting city no " << i << "\n" << flush;
+			// call GetStartingCity with 2nd parameter=0 as we don't want to check other AC exits.
+			// TODO: Change the procedure not to require that parameter anymore.
+			ARegion *pReg = GetStartingCity(AC,0,1,maxX,maxY);
+			if (!pReg) continue;
+			pReg->MakeStartingCity();
+			MakePortalTower(AC,pReg);
+			if (Globals->GATES_EXIST) numberofgates++;
+		}
+	}
+	if (Globals->UNDERWORLD_LEVELS>0) {
+		// setup underworld starting cities
+		for (int j=0;j<UnderworldCityLevels;j++) {
+			if (j>Globals->UNDERWORLD_LEVELS) break;
+			for (int i=1;i<UnderworldCities[j]+1;i++) {
+				cout << "creating underworld level "<<j+1<<" starting city no " << i << "\n" << flush;
+				// call GetStartingCity with 2nd parameter=0 as we don't want to check other AC exits.
+				// TODO: Change the procedure not to require that parameter anymore.
+				ARegion *pReg = GetStartingCity(AC,0,j+2,maxX,maxY);
+				if (!pReg) continue;
 				pReg->MakeStartingCity();
-				if (Globals->GATES_EXIST) {
-					numberofgates++;
-				}
+				MakePortalTower(AC,pReg);
+				if (Globals->GATES_EXIST) numberofgates++;
+			}
+		}
+	}
+	if (Globals->UNDERDEEP_LEVELS>0) {
+		// setup underdeep starting cities
+		for (int j=0;j<UnderdeepCityLevels;j++) {
+			if (j>Globals->UNDERDEEP_LEVELS) {
+				cout << "Warning: processing level " << j << " while Globals->UNDERDEEP_LEVELS = " << Globals->UNDERDEEP_LEVELS << "!\n" << flush;
+				break;
+			}
+			for (int i=1;i<UnderdeepCities[j]+1;i++) {
+				cout << "creating underdeep level "<<j+1<<" starting city no " << i << "\n" << flush;
+				// call GetStartingCity with 2nd parameter=0 as we don't want to check other AC exits.
+				// TODO: Change the procedure not to require that parameter anymore.
+				ARegion *pReg = GetStartingCity(AC,0,Globals->UNDERWORLD_LEVELS+j+2,maxX,maxY);
+				if (!pReg) continue;
+				pReg->MakeStartingCity();
+				MakePortalTower(AC,pReg);
+				if (Globals->GATES_EXIST) numberofgates++;
 			}
 		}
 	}
@@ -3315,8 +3451,7 @@ void ARegionList::InitSetupGates(int level) {
 				int tempx = i*8 + getrandom(8);
 				int tempy = j*16 + getrandom(8)*2 + tempx%2;
 				ARegion *temp = pArr->GetRegion(tempx,tempy);
-				if (TerrainDefs[temp->type].similar_type != R_OCEAN &&
-						temp->gate != -1) {
+				if (TerrainDefs[temp->type].similar_type != R_OCEAN && temp->gate != -1) {
 					numberofgates++;
 					temp->gate = -1;
 					break;

@@ -61,6 +61,7 @@ class TerrainType {
 		enum {
 			RIDINGMOUNTS = 0x1,
 			FLYINGMOUNTS = 0x2,
+			ODD = 0x4,
 		};
 		int flags;
 
@@ -347,7 +348,9 @@ class ARegionList : public AList {
 		void CreateUnderdeepLevel(int level, int xSize, int ySize, char *name);
 
 		void MakeShaftLinks(int levelFrom, int levelTo, int odds);
+		void MakePortalTower(ARegion *reg, ARegion *rTo);
 		void SetACNeighbors(int levelSrc, int levelTo, int maxX, int maxY);
+		void SetStartingCities(int levelSrc, int maxX, int maxY);
 		void InitSetupGates(int level);
 		void FinalSetupGates();
 
@@ -387,7 +390,7 @@ class ARegionList : public AList {
 		//
 		// Game-specific world stuff (see world.cpp)
 		//
-		int GetRegType(ARegion *pReg);
+		int GetRegType(ARegion *pReg, const int odd);
 		int CheckRegionExit(ARegion *pFrom, ARegion *pTo);
 
 };

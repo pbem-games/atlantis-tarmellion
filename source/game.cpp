@@ -28,6 +28,7 @@
 #endif
 
 #include <string.h>
+#include <math.h>
 
 #include "game.h"
 #include "unit.h"
@@ -36,10 +37,13 @@
 #include "gamedata.h"
 #include "items.h"
 
+Game *thisgame;
+
 Game::Game() {
 	gameStatus = GAME_STATUS_UNINIT;
 	ppUnits = 0;
 	maxppunits = 0;
+	thisgame=this;
 }
 
 Game::~Game() {
@@ -263,7 +267,7 @@ int Game::NewGame() {
 	monfaction = 0;
 	unitseq = 1;
 	SetupUnitNums();
-	shipseq = 100;
+	shipseq = 1000;
 	year = 1;
 	month = -1;
 	gameStatus = GAME_STATUS_NEW;
@@ -763,13 +767,13 @@ int Game::ReadPlayersLine(AString *pToken, AString *pLine, Faction *pFac,
 				}
 			}
 		}
-	} else if (*pToken == "Market:") {
+       } else if (*pToken == "Market:") {
 		// Create or alters a market.
 		int error = 0;
 		if (!pFac->pReg && pFac->pReg->town) {
 			Awrite(AString("Markets can only be altered in a ") +
-			       "region with a valid town for faction "
-			       + pFac->num);
+				"region with a valid town for faction "
+				+ pFac->num);
 			error = 1;
 		}
 		int type;
@@ -777,11 +781,9 @@ int Game::ReadPlayersLine(AString *pToken, AString *pLine, Faction *pFac,
 			pTemp = pLine->gettoken();
 			if (*pTemp == AString("BUY")) {
 				type = M_BUY;
-			}
-			else if (*pTemp == AString("SELL")) {
+			} else if (*pTemp == AString("SELL")) {
 				type = M_SELL;
-			}
-			else {
+			} else {
 				Awrite(AString("Invalid Market type specfied"));
 				error = 1;
 			}
@@ -792,7 +794,7 @@ int Game::ReadPlayersLine(AString *pToken, AString *pLine, Faction *pFac,
 			if (!pTemp) {
 				Awrite(AString("Market: must specify item"));
 				error = 1;
-			} else {	
+			} else {
 				item = ParseEnabledItem(pTemp);
 			}
 		}
@@ -803,7 +805,7 @@ int Game::ReadPlayersLine(AString *pToken, AString *pLine, Faction *pFac,
 				Awrite(AString("Market: insufficent arguments"));
 				error = 1;
 			} else {
-				price = pTemp->value();	
+				price = pTemp->value();
 			}
 			pTemp = pLine->gettoken();
 			if (!pTemp) {
@@ -854,7 +856,7 @@ int Game::ReadPlayersLine(AString *pToken, AString *pLine, Faction *pFac,
 		}
 		if (!found && maxamt > 0) {
 			Market *m = new Market(type,item,price,price,minpop,maxpop,
-					       minamt,maxamt);
+			minamt,maxamt);
 			pFac->pReg->markets.Add((AListElem *)m);
 		}
 	} else if (*pToken == "NewUnit:") {
@@ -1912,38 +1914,90 @@ int Game::CountApprentices(Faction *pFac) {
 int Game::AllowedMages(Faction *pFac) {
 	int points = pFac->type[F_MAGIC];
 
-	if (points < 0) points = 0;
-	if (points > allowedMagesSize - 1) points = allowedMagesSize - 1;
-
-	return allowedMages[points];
+        switch (Globals->FP_DISTRIBUTION){
+	case GameDefs::FP_OLD:
+		if (points < 0) points = 0;
+		if (points > allowedMagesSize - 1) points = allowedMagesSize - 1;
+		return allowedMages[points];
+	case GameDefs::FP_LIN:
+		return (int) (points*1.6*Globals->FP_FACTOR);
+	case GameDefs::FP_SQR:
+		return (int) (points*points/46.875);
+	case GameDefs::FP_SQRT:
+		return (int) (13.9*sqrt((double) points));
+	case GameDefs::FP_LIN_SQRT:
+		return (int) (points*sqrt((double) points)/5.4);
+	case GameDefs::FP_EQU:
+		return points*Globals->FP_FACTOR;
+	}
+	return 0; // shouldn't ever be reached
 }
 
 int Game::AllowedApprentices(Faction *pFac) {
 	int points = pFac->type[F_MAGIC];
 
-	if (points < 0) points = 0;
-	if (points > allowedApprenticesSize - 1)
-		points = allowedApprenticesSize - 1;
+        switch (Globals->FP_DISTRIBUTION){
+	case GameDefs::FP_OLD:
+		if (points < 0) points = 0;
+		if (points > allowedApprenticesSize - 1) points = allowedApprenticesSize - 1;
+		return allowedApprentices[points];
+	case GameDefs::FP_LIN:
+		return (int) (points*1.6*Globals->FP_FACTOR*2);
+	case GameDefs::FP_SQR:
+		return (int) (points*points/46.875*2);
+	case GameDefs::FP_SQRT:
+		return (int) (13.9*sqrt((double) points)*2);
+	case GameDefs::FP_LIN_SQRT:
+		return (int) (points*sqrt((double) points)/5.4*2);
+	case GameDefs::FP_EQU:
+		return points*Globals->FP_FACTOR*2;
+	}
+	return 0; // shouldn't ever be reached
 
-	return allowedApprentices[points];
 }
 
 int Game::AllowedTaxes(Faction *pFac) {
 	int points = pFac->type[F_WAR];
 
-	if (points < 0) points = 0;
-	if (points > allowedTaxesSize - 1) points = allowedTaxesSize - 1;
-
-	return allowedTaxes[points];
+        switch (Globals->FP_DISTRIBUTION){
+	case GameDefs::FP_OLD:
+		if (points < 0) points = 0;
+		if (points > allowedTaxesSize - 1) points = allowedTaxesSize - 1;
+		return allowedTaxes[points];
+	case GameDefs::FP_LIN:
+		return (int) (points*1.6*Globals->FP_FACTOR);
+	case GameDefs::FP_SQR:
+		return (int) (points*points/46.875);
+	case GameDefs::FP_SQRT:
+		return (int) (13.9*sqrt((double) points));
+	case GameDefs::FP_LIN_SQRT:
+		return (int) (points*sqrt((double) points)/5.4);
+	case GameDefs::FP_EQU:
+		return points*Globals->FP_FACTOR;
+	}
+	return 0; // shouldn't ever be reached
 }
 
 int Game::AllowedTrades(Faction *pFac) {
 	int points = pFac->type[F_TRADE];
 
-	if (points < 0) points = 0;
-	if (points > allowedTradesSize - 1) points = allowedTradesSize - 1;
-
-	return allowedTrades[points];
+        switch (Globals->FP_DISTRIBUTION){
+	case GameDefs::FP_OLD:
+		if (points < 0) points = 0;
+		if (points > allowedTradesSize - 1) points = allowedTradesSize - 1;
+		return allowedTrades[points];
+	case GameDefs::FP_LIN:
+		return (int) (points*1.6*Globals->FP_FACTOR);
+	case GameDefs::FP_SQR:
+		return (int) (points*points/46.875);
+	case GameDefs::FP_SQRT:
+		return (int) (13.9*sqrt((double) points));
+	case GameDefs::FP_LIN_SQRT:
+		return (int) (points*sqrt((double) points)/5.4);
+	case GameDefs::FP_EQU:
+		return points*Globals->FP_FACTOR;
+	}
+	return 0; // shouldn't ever be reached
 }
 
 int Game::UpgradeMajorVersion(int savedVersion) {
@@ -1987,8 +2041,8 @@ void Game::MonsterCheck(ARegion *r, Unit *u) {
 		int level;
 		int skill;
 		int top;
-		int dragons = 0; // number of good dragons found in unit // not used yet
-		int wyrms = 0; // number of evil dragons found in unit // not used yet
+		//int dragons = 0; // number of good dragons found in unit // not used yet
+		//int wyrms = 0; // number of evil dragons found in unit // not used yet
 
 		forlist (&u->items) {
 			Item *i = (Item *) elem;
@@ -2525,19 +2579,25 @@ void Game::CreateCityMon(ARegion *pReg, int percent, int needmage) {
 	int num;
 	if (pReg->type == R_NEXUS || pReg->IsStartingCity()) {
 		skilllevel = TOWN_CITY + 1;
-		if (Globals->SAFE_START_CITIES || (pReg->type == R_NEXUS))
-			IV = 1;
-		AC = 1;
 		num = Globals->AMT_START_CITY_GUARDS;
+		if (Globals->SAFE_START_CITIES || (pReg->type == R_NEXUS)) {
+			IV = 1;
+			if (pReg->zloc==0)
+				if (pReg->xloc==0&&pReg->yloc==0) num=100;
+				else num=10;
+		}
+		AC = 1;
 	} else {
 		skilllevel = pReg->town->TownType() + 1;
 		num = Globals->CITY_GUARD * skilllevel;
 	}
 	if (pReg->race != -1) {
+		AString *s;
 		num = num * percent / 100;
 		Faction *pFac = GetFaction(&factions, guardfaction);
 		Unit *u = GetNewUnit(pFac);
-		AString *s = new AString("City Guard");
+		if (IV) s = new AString("Peacekeepers");
+		else s = new AString("City Guard");
 		u->SetName(s);
 		u->type = U_GUARD;
 		u->guard = GUARD_GUARD;
@@ -2678,14 +2738,18 @@ void Game::AdjustCityMon(ARegion *r, Unit *u) {
 	if (r->type == R_NEXUS || r->IsStartingCity()) {
 		towntype = TOWN_CITY;
 		AC = 1;
-		if (Globals->SAFE_START_CITIES || (r->type == R_NEXUS))
-			IV = 1;
 		if (u->type == U_GUARDMAGE)
 			men = 1;
 		else {
 			men = u->GetMen() + (Globals->AMT_START_CITY_GUARDS/10);
 			if (men > Globals->AMT_START_CITY_GUARDS)
 				men = Globals->AMT_START_CITY_GUARDS;
+		}
+		if (Globals->SAFE_START_CITIES || (r->type == R_NEXUS)) {
+			IV = 1;
+			if (r->zloc==0)
+				if (r->xloc==0&&r->yloc==0) men=100;
+				else men=10;
 		}
 	} else {
 		towntype = r->town->TownType();

@@ -55,6 +55,12 @@ extern int *allowedTaxes;
 extern int allowedTaxesSize;
 extern int *allowedTrades;
 extern int allowedTradesSize;
+extern int *UnderworldCities;
+extern int UnderworldCityLevels;
+extern int *UnderdeepCities;
+extern int UnderdeepCityLevels;
+extern int *SurfaceCities;
+extern int SurfaceCityLevels;
 
 class GameDefs {
 public:
@@ -120,6 +126,7 @@ public:
 	int WMON_FREQUENCY;
 	int LAIR_FREQUENCY;
 
+	// It is recommended to have 75 faction points if you use the new granular system.
 	int FACTION_POINTS;
 
 	int TIMES_REWARD;
@@ -576,8 +583,19 @@ public:
 	int CITY_TRADE_COST;
 	int TOWN_TRADE_COST;
 	int VILLAGE_TRADE_COST;
-	int UNDERWORLD_STARTING_CITIES;
-	int UNDERDEEP_STARTING_CITIES;
+        
+	// use the factor to modify the standard numbers.
+	enum {
+		FP_OLD = 0,		// using *allowedXXX from rules.cpp
+		FP_LIN = 1, 	// x*1.6		linear from 0 to 120
+		FP_SQR = 2,		// x*x/46.875		squared from 0 to 120 (very slow start!!!)
+		FP_SQRT = 3,	// 13.9*sqrt(x)		square root from 0 to 120 (very fast start!!!)
+		FP_LIN_SQRT = 4,	// x*sqrt(x)/5.4	faster than linear from 0 to 120
+		FP_EQU = 5,		// x			linear from 0 to 75
+	};
+	int FP_DISTRIBUTION;
+	int FP_FACTOR;
+	int ACN_IS_STARTING_CITY;
 
 };
 

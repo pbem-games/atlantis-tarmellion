@@ -229,7 +229,7 @@ int Game::TradeCheck(ARegion *pReg, Faction *pFac) {
 				return 1;
 			}
 		}
-		if (pFac->trade_regions_num >= AllowedTaxes(pFac)) {
+		if (pFac->trade_regions_num >= AllowedTrades(pFac)) {
 			//
 			// This faction is over its trade limit.
 			//

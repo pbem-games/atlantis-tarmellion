@@ -46,13 +46,27 @@ static int aa[] = { 0, 2, 4, 6, 8, 10, 12 };
 int *allowedApprentices = aa;
 int allowedApprenticesSize = sizeof(aa) / sizeof(aa[0]);
 
-static int aw[] = { 0, 10, 24, 40, 60, 100 };
+static int aw[] = { 0, 15, 30, 45, 60, 75 };
 int *allowedTaxes = aw;
 int allowedTaxesSize = sizeof(aw) / sizeof(aw[0]);
 
-static int at[] = { 0, 12, 28, 48, 72, 120 };
+static int at[] = { 0, 18, 36, 54, 72, 90 };
 int *allowedTrades = at;
 int allowedTradesSize = sizeof(at) / sizeof(at[0]);
+
+static int uw[] = { 6, 6, 6, 0 };
+//static int uw[] = { 6 };
+int *UnderworldCities = uw;
+int UnderworldCityLevels = sizeof(uw) / sizeof(uw[0]);
+
+static int ud[] = { 6, 6, 6, 6 };
+//static int ud[] = { 6 };
+int *UnderdeepCities = ud;
+int UnderdeepCityLevels = sizeof(ud) / sizeof(ud[0]);
+
+static int su[] = { 23 };
+int *SurfaceCities = su;
+int SurfaceCityLevels = sizeof(su) / sizeof(su[0]);
 
 static GameDefs g = {
 	"Ceran",				// RULESET_NAME
@@ -92,7 +106,7 @@ static GameDefs g = {
 	25, /* WMON_FREQUENCY */
 	25, /* LAIR_FREQUENCY */
 
-	5, /* FACTION_POINTS */
+	75, /* FACTION_POINTS */
 
 	60, /* TIMES_REWARD */
 
@@ -154,20 +168,20 @@ static GameDefs g = {
 	1000,	// CITY_RENAME_COST
 	0,	// TAX_PILLAGE_MONTH_LONG
 	1,	// MULTI_HEX_NEXUS
-	4,	// UNDERWORLD_LEVELS
-	4,	// UNDERDEEP_LEVELS
 //	1,	// UNDERWORLD_LEVELS
 //	1,	// UNDERDEEP_LEVELS
+	4,	// UNDERWORLD_LEVELS
+	4,	// UNDERDEEP_LEVELS
 	1,	// ABYSS_LEVEL
-	100,	// TOWN_PROBABILITY
-	0,	// TOWN_SPREAD
-	1,	// TOWNS_NOT_ADJACENT
+	120,	// TOWN_PROBABILITY
+	20,	// TOWN_SPREAD
+	80,	// TOWNS_NOT_ADJACENT
 	2,	// LESS_ARCTIC_TOWNS
 	10,	// ARCHIPELAGO
 	0,	// LAKES_EXIST
 	GameDefs::DESERT_ONLY, // LAKE_WAGE_EFFECT
 	1,	// LAKESIDE_IS_COASTAL
-	20,	// ODD_TERRAIN
+	100,	// ODD_TERRAIN
 	0,	// IMPROVED_FARSIGHT
 	1,	// GM_REPORT
 	1,	// DECAY
@@ -199,16 +213,15 @@ static GameDefs g = {
 	1,	// PREVENT_SAIL_THROUGH
 	0,	// ALLOW_TRIVIAL_PORTAGE
 	0,      // AUTOMATIC_FOOD
-        // <TODO>
         4,	// CITY_TAX_COST;
         3,	// TOWN_TAX_COST;
         2,	// VILLAGE_TAX_COST;
         2,	// CITY_TRADE_COST;
         2,	// TOWN_TRADE_COST;
         1,	// VILLAGE_TRADE_COST;
-        // </TODO>
-	1,	// UNDERWORLD_STARTING_CITIES
-	1,	// UNDERDEEP_STARTING_CITIES
+	GameDefs::FP_EQU,	// FP_DISTRIBUTION
+	1,	// FP_FACTOR
+	1,	// ACN_IS_STARTING_CITY
 
 };
 

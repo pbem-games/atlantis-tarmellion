@@ -443,71 +443,73 @@ int Game::GenRules(const AString &rules, const AString &css,
 			"faction activities is in further sections of the rules).  Here "
 			"is a chart detailing the limits on factions by Faction Points.";
 		f.Paragraph(temp);
-		f.LinkRef("tablefactionpoints");
-		f.Enclose(1, "CENTER");
-		f.Enclose(1, "TABLE BORDER=1");
-		f.Enclose(1, "TR");
-		f.TagText("TH", "Faction Points");
-		f.TagText("TH", "War (max tax regions)");
-		f.TagText("TH", "Trade (max trade regions)");
-		temp = "Magic (max mages";
-		if (Globals->APPRENTICES_EXIST)
-			temp += "/apprentices";
-		temp += ")";
-		f.TagText("TH", temp);
-		f.Enclose(0, "TR");
-		int i;
-		for(i = 0; i <= Globals->FACTION_POINTS; i++) {
-			fac.type[F_WAR]=i;
-			fac.type[F_TRADE]=i;
-			fac.type[F_MAGIC]=i;
+		if (!Globals->FP_DISTRIBUTION) {
+			f.LinkRef("tablefactionpoints");
+			f.Enclose(1, "CENTER");
+			f.Enclose(1, "TABLE BORDER=1");
 			f.Enclose(1, "TR");
-			f.Enclose(1, "TD ALIGN=CENTER NOWRAP");
-			f.PutStr(i);
-			f.Enclose(0, "TD");
-			f.Enclose(1, "TD ALIGN=CENTER NOWRAP");
-			f.PutStr(AllowedTaxes(&fac));
-			f.Enclose(0, "TD");
-			f.Enclose(1, "TD ALIGN=CENTER NOWRAP");
-			f.PutStr(AllowedTrades(&fac));
-			f.Enclose(0, "TD");
-			f.Enclose(1, "TD ALIGN=CENTER NOWRAP");
-			temp = AllowedMages(&fac);
+			f.TagText("TH", "Faction Points");
+			f.TagText("TH", "War (max tax regions)");
+			f.TagText("TH", "Trade (max trade regions)");
+			temp = "Magic (max mages";
 			if (Globals->APPRENTICES_EXIST)
-				temp += AString("/") + AllowedApprentices(&fac);
-			f.PutStr(temp);
-			f.Enclose(0, "TD");
+				temp += "/apprentices";
+			temp += ")";
+			f.TagText("TH", temp);
 			f.Enclose(0, "TR");
+			int i;
+			for(i = 0; i <= Globals->FACTION_POINTS; i++) {
+				fac.type[F_WAR]=i;
+				fac.type[F_TRADE]=i;
+				fac.type[F_MAGIC]=i;
+				f.Enclose(1, "TR");
+				f.Enclose(1, "TD ALIGN=CENTER NOWRAP");
+				f.PutStr(i);
+				f.Enclose(0, "TD");
+				f.Enclose(1, "TD ALIGN=CENTER NOWRAP");
+				f.PutStr(AllowedTaxes(&fac));
+				f.Enclose(0, "TD");
+				f.Enclose(1, "TD ALIGN=CENTER NOWRAP");
+				f.PutStr(AllowedTrades(&fac));
+				f.Enclose(0, "TD");
+				f.Enclose(1, "TD ALIGN=CENTER NOWRAP");
+				temp = AllowedMages(&fac);
+				if (Globals->APPRENTICES_EXIST)
+					temp += AString("/") + AllowedApprentices(&fac);
+				f.PutStr(temp);
+				f.Enclose(0, "TD");
+				f.Enclose(0, "TR");
+			}
+			f.Enclose(0, "TABLE");
+			f.Enclose(0, "CENTER");
+			f.PutStr("<P></P>");
+			int m,w,t;
+			fac.type[F_WAR] = w = (Globals->FACTION_POINTS+1)/3;
+			fac.type[F_TRADE] = t = Globals->FACTION_POINTS/3;
+			fac.type[F_MAGIC] = m = (Globals->FACTION_POINTS+2)/3;
+			int nm, na, nw, nt;
+			nm = AllowedMages(&fac);
+			na = AllowedApprentices(&fac);
+			nt = AllowedTrades(&fac);
+			nw = AllowedTaxes(&fac);
+			temp = "For example, a well rounded faction might spend ";
+			temp += AString(w) + " point" + (w==1?"":"s") + " on War, ";
+			temp += AString(t) + " point" + (t==1?"":"s") + " on Trade, and ";
+			temp += AString(m) + " point" + (m==1?"":"s") + " on Magic.  ";
+			temp += "This faction's type would appear as \"War ";
+			temp += AString(w) + " Trade " + t + " Magic " + m;
+			temp += "\", and would be able to tax ";
+			temp += AString(nw) + " region" + (nw==1?"":"s") + ", ";
+			temp += "perform trade in ";
+			temp += AString(nt) + " region" + (nt==1?"":"s") + ", and have ";
+			temp += AString(nm) + " mage" + (nm==1?"":"s");
+			if (Globals->APPRENTICES_EXIST) {
+				temp += " as well as ";
+				temp += AString(na) + " apprentice" + (na==1?"":"s");
+			}
+			temp += ".";
+			f.Paragraph(temp);
 		}
-		f.Enclose(0, "TABLE");
-		f.Enclose(0, "CENTER");
-		f.PutStr("<P></P>");
-		int m,w,t;
-		fac.type[F_WAR] = w = (Globals->FACTION_POINTS+1)/3;
-		fac.type[F_TRADE] = t = Globals->FACTION_POINTS/3;
-		fac.type[F_MAGIC] = m = (Globals->FACTION_POINTS+2)/3;
-		int nm, na, nw, nt;
-		nm = AllowedMages(&fac);
-		na = AllowedApprentices(&fac);
-		nt = AllowedTrades(&fac);
-		nw = AllowedTaxes(&fac);
-		temp = "For example, a well rounded faction might spend ";
-		temp += AString(w) + " point" + (w==1?"":"s") + " on War, ";
-		temp += AString(t) + " point" + (t==1?"":"s") + " on Trade, and ";
-		temp += AString(m) + " point" + (m==1?"":"s") + " on Magic.  ";
-		temp += "This faction's type would appear as \"War ";
-		temp += AString(w) + " Trade " + t + " Magic " + m;
-		temp += "\", and would be able to tax ";
-		temp += AString(nw) + " region" + (nw==1?"":"s") + ", ";
-		temp += "perform trade in ";
-		temp += AString(nt) + " region" + (nt==1?"":"s") + ", and have ";
-		temp += AString(nm) + " mage" + (nm==1?"":"s");
-		if (Globals->APPRENTICES_EXIST) {
-			temp += " as well as ";
-			temp += AString(na) + " apprentice" + (na==1?"":"s");
-		}
-		temp += ".";
-		f.Paragraph(temp);
 
 		fac.type[F_WAR] = w = Globals->FACTION_POINTS;
 		fac.type[F_MAGIC] = m = 0;
