@@ -137,9 +137,12 @@ void Battle::FreeRound(Army * att,Army * def, int ass, bool attIsAttacker ) {
 void Battle::DoAttack(int round, Soldier *a, Army *attackers, Army *def,
 			int behind, int ass, int canattackback)
 {
+	int debug = 0;
+
 	DoSpecialAttack(round, a, attackers, def, behind, canattackback);
 	if (!def->NumAlive()) return;
 
+	// New Rule: Mounts can use specials even if they are behind 1
 	if (!behind && (a->riding != -1)) {
 		MountType *pMt = &MountDefs[ItemDefs[a->riding].index];
 		if (pMt->mountSpecial != -1) {
@@ -211,7 +214,11 @@ void Battle::DoAttack(int round, Soldier *a, Army *attackers, Army *def,
 	}
 
 	for (int i = 0; i < numAttacks; i++) {
-
+		if( debug ) {
+			AString * temp = new AString;
+			*temp = AString("**") + a->name + " attacked with a combat skill of " + a->askill + ".";
+			attackers->roundLeaderReports.Add( temp );
+		}
 		int numHit = def->DoAnAttack(0, 1, attackType, a->askill, flags, attackClass,
 				0, mountBonus, canattackback);
 		if( numHit != -1 ) totHit += numHit;

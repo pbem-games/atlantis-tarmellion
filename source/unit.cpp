@@ -1758,46 +1758,46 @@ int Unit::GetArmor(int index, int ass) {
 	return -1;
 }
 
-int Unit::GetMount(int index, int canFly, int canRide, int &bonus) {
+
+int Unit::GetMount(int index, int canFly, int canRide, int &bonus, bool alwaysGet ) {
 	bonus = 0;
-	if (!canFly && !canRide) return -1;
+//	if (!canFly && !canRide) return -1;
 	forlist(&items) {
 		Item *pItem = (Item *)elem;
 		if (!pItem->num) continue;
 		int item = pItem->type;
 		if ((ItemDefs[item].type&IT_MOUNT) && (ItemDefs[item].index==index)) {
 			// Found a possible mount
-			if (canFly == 1) {
-				if (!ItemDefs[item].fly) {
-					// The mount cannot fly, see if the region allows
-					// riding mounts
-					if (!canRide) continue;
-				}
-			} else {
-				// This region allows riding mounts, so if the mount
-				// can not carry at a riding level, continue
-				if (!ItemDefs[item].ride) continue;
+			if ((!ItemDefs[item].fly) && (!ItemDefs[item].ride)) {
+				// The mount cannot fly or ride
+				continue;
 			}
 			MountType *pMnt = &MountDefs[index];
 			bonus = GetSkill(pMnt->skill);
-			if (bonus < pMnt->minBonus) {
+			if (bonus < pMnt->minBonus && !alwaysGet) {
 				// Unit isn't skilled enough for this mount
 				bonus = 0;
 				continue;
 			}
-			// Is any bonus allowed?
-			if( canRide == -1 && canFly == -1 ) {
-				bonus = 0;
+
+			// 
+			if( !canRide && !canFly && bonus ) {
+				// Terrain doesn't normally allow mounts, however we'll give the
+				// rider a bonus of 1 anyway
+				bonus = 1;
 			} else {
+				// Unit may add riding skill
+
 				// Limit to max mount bonus;
 				if (bonus > pMnt->maxBonus) bonus = pMnt->maxBonus;
+
 				// If the mount can fly and the terrain doesn't allow
 				// flying mounts, limit the bonus to the maximum hampered
 				// bonus allowed by the mount
-				if (ItemDefs[item].fly && !canFly) {
-					if (bonus > pMnt->maxHamperedBonus)
-						bonus = pMnt->maxHamperedBonus;
-				}
+//				if (ItemDefs[item].fly && !canFly) {
+//					if (bonus > pMnt->maxHamperedBonus)
+//						bonus = pMnt->maxHamperedBonus;
+//				}
 			}
 			// Get the mount
 			items.SetNum(item, pItem->num - 1);
@@ -1806,6 +1806,7 @@ int Unit::GetMount(int index, int canFly, int canRide, int &bonus) {
 	}
 	return -1;
 }
+
 
 int Unit::GetWeapon(int index, int riding, int ridingBonus, int &attackBonus,
 		int &defenseBonus, int &attacks, int ass) {

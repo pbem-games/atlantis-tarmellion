@@ -201,7 +201,7 @@ class Unit : public AListElem {
 		void CopyFlags(Unit *);
 		int GetBattleItem(int index);
 		int GetArmor(int index, int ass);
-		int GetMount(int index, int canFly, int canRide, int &bonus);
+		int GetMount(int index, int canFly, int canRide, int &bonus, bool alwaysGet);
 		int GetWeapon(int index, int riding, int ridingBonus,
 				int &attackBonus, int &defenseBonus, int &attacks, int ass);
 		int CanUseWeapon(WeaponType *pWep, int riding);

@@ -174,17 +174,22 @@ Soldier::Soldier(Unit * u,Object * o,int regtype,int r,int ass) {
 	//
 	// Check if this unit is mounted
 	//
+
 	int terrainflags = TerrainDefs[regtype].flags;
 	int canFly = (terrainflags & TerrainType::FLYINGMOUNTS);
 	int canRide = (terrainflags & TerrainType::RIDINGMOUNTS);
 	int ridingBonus = 0;
-	if (canFly || canRide) {
-		//
-		// Mounts of some type _are_ allowed in this region
-		//
+//	if (canFly || canRide) {
+//		//
+//		// Mounts of some type _are_ allowed in this region
+//		//
+	// New rule: soldiers can _always_ ride mounts, regardless of skill and terrain.
+	// Terrain/skill only decides the bonus a unit can get. Also no difference between
+	// riding and flying mounts
+
 		int mountType;
 		for (mountType = 1; mountType < NUMMOUNTS; mountType++) {
-			item = unit->GetMount(mountType, canFly, canRide, ridingBonus);
+			item = unit->GetMount(mountType, canFly, canRide, ridingBonus, false);
 			if (item == -1) continue;
 			// Defer adding the combat bonus until we know if the weapon
 			// allows it.  The defense bonus for riding can be added now
@@ -198,23 +203,26 @@ Soldier::Soldier(Unit * u,Object * o,int regtype,int r,int ass) {
 
 			break;
 		}
-	}
-	// If no mount available that can be used for this terrain type, find
-	//  another mount can be ridden. No riding bonus though because of terrain
-	if( riding == -1 ) {
-		for (int mountType = 1; mountType < NUMMOUNTS; mountType++) {
-			item = unit->GetMount(mountType, -1, -1, ridingBonus);
-			if (item == -1) continue;
-			riding = item;
-			if( MountDefs[ItemDefs[riding].index].monster != -1 ) {
-				mount = new Soldier( u, o, regtype, riding, ass );
-				mount->rider = this;
-			}
+		if( riding == -1 ) {
+			// no mount found that will give a riding bonus, get any mount
+			for (mountType = 1; mountType < NUMMOUNTS; mountType++) {
+				item = unit->GetMount(mountType, canFly, canRide, ridingBonus, true);
+				if (item == -1) continue;
+				// Defer adding the combat bonus until we know if the weapon
+				// allows it.  The defense bonus for riding can be added now
+				// however.
+				dskill[ATTACK_RIDING] += ridingBonus;
+				riding = item;
+				if( MountDefs[ItemDefs[riding].index].monster != -1 ) {
+					mount = new Soldier( u, o, regtype, riding, ass );
+					mount->rider = this;
+				}
 
-			break;
+				break;
+			}
 		}
-	}
- 
+
+//	}
 	//
 	// Find the correct weapon for this soldier.
 	//

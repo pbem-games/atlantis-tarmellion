@@ -859,8 +859,11 @@ AString *ItemDescription(int item, int full) {
 		} else if (SkillDefs[pM->skill].flags & SkillType::DISABLED) {
 			*temp += " This mount is unridable.";
 		} else {
+// changed...
+//			*temp += AString(" This mount requires ") + SkillStrs(pM->skill) +
+//				" of at least level " + pM->minBonus + " to ride in combat.";
 			*temp += AString(" This mount requires ") + SkillStrs(pM->skill) +
-				" of at least level " + pM->minBonus + " to ride in combat.";
+				" of at least level " + pM->minBonus + " to get a bonues in combat.";
 		}
 		*temp += AString(" This mount gives a minimum bonus of +") +
 			pM->minBonus + " when ridden into combat.";
