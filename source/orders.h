@@ -42,7 +42,7 @@ class StealOrder;
 class AssassinateOrder;
 class CastOrder;
 class CastMindOrder;
-class CastEnchantOrder;
+class CastItemOrder;
 class CastRegionOrder;
 class TeleportOrder;
 class ForgetOrder;
@@ -321,10 +321,10 @@ class CastMindOrder : public CastOrder {
 		UnitId *id;
 };
 
-class CastEnchantOrder : public CastOrder {
+class CastItemOrder : public CastOrder {
  public:
-  CastEnchantOrder();
-  ~CastEnchantOrder();
+  CastItemOrder();
+  ~CastItemOrder();
 
   int item;
 };

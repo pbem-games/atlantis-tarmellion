@@ -283,11 +283,11 @@ CastMindOrder::~CastMindOrder()
 	delete id;
 }
 
-CastEnchantOrder::CastEnchantOrder()
+CastItemOrder::CastItemOrder()
 {
 }
 
-CastEnchantOrder::~CastEnchantOrder()
+CastItemOrder::~CastItemOrder()
 {
 }
 

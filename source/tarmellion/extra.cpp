@@ -40,7 +40,7 @@ int Game::SetupFaction( Faction *pFac )
 		reg = pFac->pStartLoc;
 	} else {
 		ARegionArray *pArr = regions.GetRegionArray(ARegionArray::LEVEL_SURFACE);
-		while(!reg) {
+		while(!reg || TerrainDefs[reg->type].similar_type == R_OCEAN) {
 			reg = pArr->GetRegion(getrandom(pArr->x), getrandom(pArr->y));
 		}
 	}

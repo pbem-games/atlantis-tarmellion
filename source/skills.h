@@ -252,5 +252,4 @@ class RangeType {
 		int crossLevelPenalty;	// How much extra distance to cross levels?
 };
 extern RangeType *RangeDefs;
-
 #endif

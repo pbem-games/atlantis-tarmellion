@@ -53,6 +53,7 @@
 #include "skills.h"
 #include "object.h"
 #include "aregion.h"
+#include "spells.h"
 
 //
 // Table of items
@@ -6357,3 +6358,4 @@ static RangeType rtd[] = {
 };
 
 RangeType *RangeDefs = rtd;
+

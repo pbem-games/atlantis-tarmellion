@@ -33,6 +33,7 @@
 //
 void ProcessGenericSpell(Unit *, int, OrdersCheck *pCheck);
 void ProcessRegionSpell(Unit *, AString *, int, OrdersCheck *pCheck);
+void ProcessItemSpell(Unit *,AString *, int skill, OrdersCheck *pCheck );
 
 //
 // Spell parsing - specific
@@ -45,8 +46,6 @@ void ProcessPhanDemons(Unit *,AString *, OrdersCheck *pCheck );
 void ProcessInvisibility(Unit *,AString *, OrdersCheck *pCheck );
 void ProcessBirdLore(Unit *,AString *, OrdersCheck *pCheck );
 void ProcessMindReading(Unit *,AString *, OrdersCheck *pCheck );
-void ProcessEnchantArmor(Unit *,AString *, OrdersCheck *pCheck );
-void ProcessEnchantSwords(Unit *,AString *, OrdersCheck *pCheck );
 void ProcessLacandonTeleport(Unit *, AString *, OrdersCheck *pCheck);
 
 //

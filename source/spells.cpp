@@ -59,10 +59,10 @@ void Game::ProcessCastOrder(Unit * u,AString * o, OrdersCheck *pCheck )
 				ProcessMindReading(u,o, pCheck );
 				break;
 			case S_ENCHANT_WEAPONS:
-			  ProcessEnchantSwords(u,o,pCheck);
-			  break;
 			case S_ENCHANT_ARMOR:
-			  ProcessEnchantArmor(u,o,pCheck);
+			case S_SUMMON_DRAGON:
+			case S_SUMMON_WYRM:
+			  ProcessItemSpell(u,o,sk,pCheck);
 			  break;
 			case S_CONSTRUCT_PORTAL:
 			case S_CONSTRUCT_GATE:
@@ -73,7 +73,6 @@ void Game::ProcessCastOrder(Unit * u,AString * o, OrdersCheck *pCheck )
 			case S_SUMMON_SKELETONS:
 			case S_RAISE_UNDEAD:
 			case S_SUMMON_LICH:
-			case S_DRAGON_LORE:
 			case S_WOLF_LORE:
 			case S_EARTH_LORE:
 			case S_CREATE_RING_OF_INVISIBILITY:
@@ -125,39 +124,24 @@ void Game::ProcessCastOrder(Unit * u,AString * o, OrdersCheck *pCheck )
 	}
 }
 
-void Game::ProcessEnchantSwords(Unit *u, AString *o, OrdersCheck *pCheck )
+void Game::ProcessItemSpell(Unit *u, AString *o, int skill, OrdersCheck *pCheck )
 {
-  AString *token = o->StripWhite();
+  AString *token = o->gettoken();
+  if (!token) {
+    u->Error("CAST: Must specify item.");
+    return;
+  }
   int item = ParseEnabledItem(token);
   delete token;
 
   if (item == -1) {
-    u->Error("CAST: Invalid item specified");
+    u->Error("CAST: Invalid item specified.");
     return;
   }
   
-  CastEnchantOrder *order = new CastEnchantOrder;
+  CastItemOrder *order = new CastItemOrder;
   order->item = item;
-  order->spell = S_ENCHANT_WEAPONS;
-  order->level = 1;
-
-  u->ClearCastOrders();
-  u->castorders = order;
-}
-
-void Game::ProcessEnchantArmor(Unit *u, AString *o, OrdersCheck *pCheck)
-{
-  AString *token = o->StripWhite();
-  int item = ParseEnabledItem(token);
-  delete token;
-  if (item == -1) {
-    u->Error("CAST: Invalid item specified");
-    return;
-  }
-  
-  CastEnchantOrder *order = new CastEnchantOrder;
-  order->item = item;
-  order->spell = S_ENCHANT_ARMOR;
+  order->spell = skill;
   order->level = 1;
 
   u->ClearCastOrders();
@@ -704,7 +688,10 @@ void Game::RunACastOrder(ARegion * r,Object *o,Unit * u)
 		case S_SUMMON_SKELETONS:
 			RunSummonSkeletons(r,u);
 			break;
-		case S_DRAGON_LORE:
+		case S_SUMMON_DRAGON:
+			RunDragonLore(r,u);
+			break;
+		case S_SUMMON_WYRM:
 			RunDragonLore(r,u);
 			break;
 		case S_BIRD_LORE:
@@ -850,7 +837,7 @@ void Game::RunMindReading(ARegion *r,Unit *u)
 
 void Game::RunEnchantArmor(ARegion *r,Unit *u)
 {
-	CastEnchantOrder *order = (CastEnchantOrder *) u->castorders;
+	CastItemOrder *order = (CastItemOrder *) u->castorders;
 	int level = u->GetSkill(S_ENCHANT_ARMOR);
 	int item = order->item;
 
@@ -910,7 +897,7 @@ void Game::RunEnchantArmor(ARegion *r,Unit *u)
 
 void Game::RunEnchantSwords(ARegion *r,Unit *u)
 {
-	CastEnchantOrder *order = (CastEnchantOrder *) u->castorders;
+	CastItemOrder *order = (CastItemOrder *) u->castorders;
 	int level = u->GetSkill(S_ENCHANT_WEAPONS);
 	int item = order->item;
 
@@ -1203,22 +1190,34 @@ void Game::RunSummonSkeletons(ARegion *r,Unit *u)
 
 void Game::RunDragonLore(ARegion *r, Unit *u)
 {
-	int level = u->GetSkill(S_DRAGON_LORE);
+	CastItemOrder *order = (CastItemOrder *) u->castorders;
+	int item = order->item;
+	int skill = order->spell;
+	int level = u->GetSkill(skill);
 
-	int num = u->items.GetNum(I_REDDRAGON);
+	// First check skill and level
+	if (ItemDefs[item].mSkill != skill) {
+	  u->Error("CAST: item can not be summoned.");
+	  return;
+	}
+	if (ItemDefs[item].mLevel > level) {
+	  u->Error("CAST: insufficent level to summon.");
+	  return;
+	}
+	int num = u->items.GetNum(item);
 	if (num >= level) {
-		u->Error("Mage may not summon more dragons.");
+		u->Error(AString("Mage may not summon more ")+ItemDefs[item].names+".");
 		return;
 	}
 
 	int chance = level * level * 4;
 	if (getrandom(100) < chance) {
-		u->items.SetNum(I_REDDRAGON,num + 1);
-		u->Event("Summons a dragon.");
+		u->items.SetNum(item,num + 1);
+		u->Event(AString("Summons a ")+ItemDefs[item].name+".");
 	} else {
 		u->Event("Attempts to summon a dragon, but fails.");
 	}
-	u->Practise(S_DRAGON_LORE);
+	u->Practise(skill);
 	r->NotifySpell(u,S_EARTH_LORE, &regions );
 }
 
