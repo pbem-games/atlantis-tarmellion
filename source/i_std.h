@@ -29,14 +29,14 @@ Standard definitions and types, Bob Jenkins
 */
 #ifndef STANDARD
 # define STANDARD
-# ifndef STDIO
-#  include <stdio.h>
-#  define STDIO
-# endif
-# ifndef STDDEF
-#  include <stddef.h>
-#  define STDDEF
-# endif
+//# ifndef STDIO
+//#  include <stdio.h>
+//#  define STDIO
+//# endif
+//# ifndef STDDEF
+//#  include <stddef.h>
+//#  define STDDEF
+//# endif
 
 typedef  unsigned long  int  ub4;   /* unsigned 4-byte quantities */
 #define UB4MAXVAL 0xffffffff
@@ -67,8 +67,12 @@ typedef                 int  word;  /* fastest type available */
 #ifndef abs
 # define abs(a)   (((a)>0) ? (a) : -(a))
 #endif
-#define TRUE  1
-#define FALSE 0
+#ifndef TRUE
+# define TRUE  1
+#endif
+#ifndef FALSE
+# define FALSE 0
+#endif
 #define SUCCESS 0  /* 1 on VAX */
 
 #endif /* STANDARD */

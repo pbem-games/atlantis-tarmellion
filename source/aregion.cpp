@@ -1792,7 +1792,6 @@ void ARegion::WriteReport(Areport * f,Faction * fac,int month, ARegionList *pReg
 	Farsight *farsight = GetFarsight(&farsees, fac);
 	Farsight *passer = GetFarsight(&passers, fac);
 	int present = Present(fac) || fac->IsNPC();
-
 	if (farsight || passer || present)  {
 		AString temp = Print(pRegions);
 		if (Population() &&
@@ -1912,18 +1911,21 @@ void ARegion::WriteReport(Areport * f,Faction * fac,int month, ARegionList *pReg
 				f->PutStr("");
 			}
 		}
-
 		int obs = GetObservation(fac, 0);
 		int truesight = GetTrueSight(fac, 0);
 		int detfac = 0;
-
+		int scout = GetScout(fac,0);
+		
 		int passobs = GetObservation(fac, 1);
 		int passtrue = GetTrueSight(fac, 1);
 		int passdetfac = detfac;
+		int passscout = GetScout(fac,1);
 
 		if (fac->IsNPC()) {
 			obs = 10;
 			passobs = 10;
+			scout = 10;
+			passscout = 10;
 		}
 
 		forlist (&objects) {
@@ -1957,6 +1959,7 @@ void ARegion::WriteReport(Areport * f,Faction * fac,int month, ARegionList *pReg
 				}
 			}
 		}
+
 		// Code can be removed when bug is found.
 // 		{
 // 		  Object *dummy = (Object *)NULL;
@@ -1978,7 +1981,7 @@ void ARegion::WriteReport(Areport * f,Faction * fac,int month, ARegionList *pReg
 			forlist (&objects) {
 				((Object *) elem)->Report(f, fac, obs, truesight, detfac,
 										  passobs, passtrue, passdetfac,
-										  present || farsight);
+										  present || farsight, scout, passscout);
 			}
 			f->EndLine();
 		}
@@ -2130,18 +2133,56 @@ int ARegion::GetObservation(Faction * f, int usepassers) {
 	return obs;
 }
 
+int ARegion::GetScout(Faction * f, int usepassers) {
+	int scout = 0;
+
+	if (Globals->IMPROVED_FARSIGHT) {
+		forlist(&farsees) {
+			Farsight *farsight = (Farsight *)elem;
+			if (farsight && farsight->faction == f && farsight->unit) {
+				int s = farsight->unit->GetSkill(S_SCOUTING);
+				if (s > scout) scout = s;
+			}
+		}
+	}
+
+	if (usepassers &&
+	   (Globals->TRANSIT_REPORT & GameDefs::REPORT_USE_UNIT_SKILLS) &&
+	   (Globals->TRANSIT_REPORT & GameDefs::REPORT_SHOW_UNITS)) {
+		forlist(&passers) {
+			Farsight *farsight = (Farsight *)elem;
+			if (farsight && farsight->faction == f && farsight->unit) {
+				int s = farsight->unit->GetSkill(S_SCOUTING);
+				if (s > scout) scout = s;
+			}
+		}
+	}
+
+	forlist ((&objects)) {
+		Object * obj = (Object *) elem;
+		forlist ((&obj->units)) {
+			Unit * u = (Unit *) elem;
+			if (u->faction == f) {
+				int temp = u->GetSkill(S_SCOUTING);
+				if (temp>scout) scout = temp;
+			}
+		}
+	}
+	return scout;
+}
+
 void ARegion::SetWeather(int newWeather) {
 	weather = newWeather;
 }
 
 int ARegion::IsCoastal() {
-	if ((type != R_LAKE) && (TerrainDefs[type].similar_type == R_OCEAN)) return 1;
+//	if ((type != R_LAKE) && (TerrainDefs[type].similar_type == R_OCEAN)) return 1;
+	if (TerrainDefs[type].flags & TerrainType::CANSAIL) return 1;
+
 	int seacount = 0;
 	for (int i=0; i<NDIRS; i++) {
-		if (neighbors[i] && TerrainDefs[neighbors[i]->type].similar_type == R_OCEAN) {
-			if (!Globals->LAKESIDE_IS_COASTAL && neighbors[i]->type == R_LAKE) continue;
+		if (neighbors[i] && TerrainDefs[neighbors[i]->type].flags & TerrainType::CANSAIL)
 			seacount++;
-		}
 	}
 	return seacount;
 }

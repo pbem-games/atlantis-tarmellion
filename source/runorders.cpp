@@ -125,7 +125,7 @@ void Game::RunCastOrders() {
 }
 
 int Game::CountMages(Faction *pFac) {
-	int i = 0;
+	int nummages = 0;
 	forlist(&regions) {
 		ARegion * r = (ARegion *) elem;
 		forlist(&r->objects) {
@@ -135,25 +135,28 @@ int Game::CountMages(Faction *pFac) {
 				if (u->faction == pFac && u->type == U_MAGE) {
 					int magerace;
 					forlist(&u->items) {
-						Item * i = (Item *) elem;
-						if (ItemDefs[i->type].type == IT_MAN) {
-							magerace = ItemDefs[i->type].index;
-							if (magerace) break;
+						Item * it = (Item *) elem;
+						if (ItemDefs[it->type].type == IT_MAN) {
+							magerace = ItemDefs[it->type].index;
+							if (magerace) { 
+								int cost = 0;
+								int magecost = ManDefs[magerace].defaultmagiclevel;
+								if (magerace == MAN_LEADER) magecost = 1;
+
+								if (magecost>0)
+									for (int i = 1; i < magecost + 1; i++)
+										cost += i * it->num;
+								else
+									cost += it->num;
+								nummages += cost;
+							}
 						}
 					}
-					int magecost=ManDefs[magerace].defaultmagiclevel;
-					if (magerace==MAN_LEADER) magecost=1;
-					if (magecost>0)
-						for (int iii=1;iii<magecost+1;iii++)
-							i+=iii;
-					else
-						i++;
-					//i++;
 				}
 			}
 		}
 	}
-	return i;
+	return nummages;
 }
 
 int Game::TaxCheck(ARegion *pReg, Faction *pFac) {
@@ -1460,7 +1463,7 @@ int Game::GetBuyAmount(ARegion * r,Market * m) {
 						}
 					}
 					if (ItemDefs[o->item].type & IT_MAN) {
-						if (u->type == U_MAGE) {
+						if (u->type == U_MAGE && !Globals->MULTIPLE_MAGES_PER_UNIT) {
 							u->Error("BUY: Mages can't recruit more men.");
 							o->num = 0;
 						}
@@ -2315,7 +2318,7 @@ int Game::DoGiveOrder(ARegion * r,Unit * u,GiveOrder * o) {
 		/* Give unit */
 		if (u->type == U_MAGE) {
 			if (Globals->FACTION_LIMIT_TYPE != GameDefs::FACLIM_UNLIMITED) {
-				if (CountMages(t->faction) >= AllowedMages(t->faction)) {
+				if (CountMages(t->faction) + u->GetMen() > AllowedMages(t->faction)) {
 					u->Error("GIVE: Faction has too many mages.");
 					return 0;
 				}
@@ -2374,8 +2377,10 @@ int Game::DoGiveOrder(ARegion * r,Unit * u,GiveOrder * o) {
 
 	/* If the item to be given is a man, combine skills */
 	if (ItemDefs[o->item].type & IT_MAN) {
-		if (u->type == U_MAGE || u->type == U_APPRENTICE ||
-				t->type == U_MAGE || t->type == U_APPRENTICE) {
+		if ((u->type == U_MAGE || u->type == U_APPRENTICE ||
+			 t->type == U_MAGE || t->type == U_APPRENTICE) &&
+			!Globals->MULTIPLE_MAGES_PER_UNIT )
+		{
 			u->Error("GIVE: Magicians can't transfer men.");
 			return 0;
 		}

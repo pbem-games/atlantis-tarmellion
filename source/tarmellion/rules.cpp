@@ -213,6 +213,7 @@ static GameDefs g = {
 	1,      // FP_FACTOR
 	0,	// ACN_IS_STARTING_CITY
 	1,	// TARMELLION_SUMMONING
+	1,	// MULTIPLE_MAGES_PER_UNIT
 
 };
 

@@ -1832,7 +1832,7 @@ void Game::CountAllMages() {
 				Object * o = (Object *) elem;
 				forlist(&o->units) {
 					Unit * u = (Unit *) elem;
-					if (u->type == U_MAGE) u->faction->nummages++;
+					if (u->type == U_MAGE) u->faction->nummages += u->GetMen();
 				}
 			}
 		}

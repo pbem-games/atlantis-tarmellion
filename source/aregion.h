@@ -62,6 +62,8 @@ class TerrainType {
 			RIDINGMOUNTS = 0x1,
 			FLYINGMOUNTS = 0x2,
 			ODD = 0x4,
+			CANSAIL = 0x8,
+			CANTWALK = 0x10,
 		};
 		int flags;
 
@@ -182,6 +184,7 @@ class ARegion : public AListElem {
 		void SetLoc(int,int,int);
 		int Present(Faction *);
 		AList * PresentFactions();
+		int GetScout(Faction *, int);
 		int GetObservation(Faction *, int);
 		int GetTrueSight(Faction *, int);
 

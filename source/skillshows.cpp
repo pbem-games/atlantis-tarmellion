@@ -1421,7 +1421,9 @@ AString *ShowSkill::Report(Faction *f) {
 			if (level > 1) break;
 			*str += "This skill enables a unit to pass behind enemy lines, providing the "
 				"unit's Scouting skill is equal to or greater than the enemy's Observation "
-				"skill. This skill will also decrease the amount of maintenance the unit "
+				"skill. A unit with this skill will be able to see certain buildings "
+				"that may normally be hidden. "
+				"This skill will also decrease the amount of maintenance the unit "
 				"must pay by 2 silver per skill level per man.";
 			break;
 		case S_COOKING:
@@ -1503,6 +1505,7 @@ AString *ShowSkill::Report(Faction *f) {
 		}
 
 	}
+
 	for(i = 0; i < NITEMS; i++) {
 		if (ITEM_DISABLED(i)) continue;
 		int illusion = ((ItemDefs[i].type & IT_MONSTER) &&
@@ -1592,6 +1595,10 @@ AString *ShowSkill::Report(Faction *f) {
 			temp += "minus the caster's skill level ";
 		} else if (SkillDefs[skill].failType == SkillType::FAIL_DIVIDE_SKILL ) {
 			temp += "divided by the caster's skill level ";
+		} else if( SkillDefs[skill].failType == SkillType::FAIL_MINUS_SKILL_SQUARED ) {
+			temp += "minus the caster's skill level squared ";
+		} else if( SkillDefs[skill].failType == SkillType::FAIL_MINUS_SKILL_TIMES_TEN ) {
+			temp += "minus ten times the caster's skill level ";
 		}		
 		temp += "percent, per casting.";
 	}
@@ -1615,6 +1622,12 @@ AString *ShowSkill::Report(Faction *f) {
 		*str += temp + ".";
 	}
 
+	// Required building
+	if( SkillDefs[skill].building != -1 ) {
+		*str += AString(" This skill must be studied inside a ") +
+				ObjectDefs[SkillDefs[skill].building].name + ". ";
+	}
+
 	// Required skills
 	last = -1;
 	if (level == 1) {
@@ -1634,13 +1647,14 @@ AString *ShowSkill::Report(Faction *f) {
 			last = c;
 			comma++;
 		}
-		if (comma) {
-			temp += "and ";
-		}
-		temp += SkillStrs(SkillDefs[skill].depends[last].skill) + " " +
-				SkillDefs[skill].depends[last].level;
-
 		if (found) {
+			if (comma) {
+				temp += "and ";
+			}
+
+			temp += SkillStrs(SkillDefs[skill].depends[last].skill) + " " +
+					SkillDefs[skill].depends[last].level;
+
 			if (!(*str == "")) *str += " ";
 			*str += temp + " to begin to study.";
 		}

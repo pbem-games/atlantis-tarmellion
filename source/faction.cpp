@@ -274,6 +274,7 @@ void Faction::WriteReport(Areport *f, Game *pGame) {
 			if (shows.Num()) {
 				f->PutStr("Skill reports:");
 				forlist(&shows) {
+
 					AString *string = ((ShowSkill *)elem)->Report(this);
 					if (string) {
 						f->PutStr("");

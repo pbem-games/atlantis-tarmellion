@@ -28,10 +28,6 @@
 #include <stdio.h>
 #include <time.h>
 
-#include <fstream>
-#include <iostream>
-using namespace std;
-
 extern "C" {
 #include "i_rand.h"
 }

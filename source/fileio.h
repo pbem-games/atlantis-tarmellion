@@ -27,8 +27,9 @@
 
 #include "astring.h"
 
-#include <fstream>
 #include <iostream>
+#include <fstream>
+
 using namespace std;
 
 class Ainfile {

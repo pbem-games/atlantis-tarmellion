@@ -864,13 +864,34 @@ int Unit::GetEntertainment() {
 	return (level > level2 ? level : level2);
 }
 
-int Unit::GetSkill(int sk) {
-	if (sk == S_TACTICS) return GetTactics();
-	if (sk == S_STEALTH) return GetStealth();
-	if (sk == S_OBSERVATION) return GetObservation();
-	if (sk == S_ENTERTAINMENT) return GetEntertainment();
-	int retval = GetRealSkill(sk);
-	return retval;
+int Unit::GetSkill(int sk)
+{
+	int baseSkill = 0;
+	if (sk == S_TACTICS)
+		return GetTactics();
+	else if (sk == S_STEALTH)
+		return GetStealth();
+	else if (sk == S_OBSERVATION)
+		return GetObservation();
+	else if (sk == S_ENTERTAINMENT)
+		return GetEntertainment();
+	else 
+		baseSkill = GetRealSkill(sk);
+
+	// Only add bonus if the units currently has *some* ability in this skill
+	if( baseSkill == 0 ) return 0;
+
+	int itemBonus = 0;
+	int numMen = GetMen();
+	forlist( &items ) {
+		Item * it = ( Item * ) elem;
+		if( it->num < numMen ) continue;
+		if( ItemDefs[it->type].bonusskill != sk ) continue;
+		if( itemBonus < ItemDefs[it->type].bonusskillamount )
+			itemBonus = ItemDefs[it->type].bonusskillamount;
+	}
+
+	return baseSkill + itemBonus;
 }
 
 void Unit::SetSkill(int sk,int level) {
@@ -2038,6 +2059,10 @@ int GetSpellFailureChance( Unit * u, int sk )
 		chance -= level;
 	} else if( SkillDefs[sk].failType == SkillType::FAIL_DIVIDE_SKILL ) {
 		chance /= level;
+	} else if( SkillDefs[sk].failType == SkillType::FAIL_MINUS_SKILL_SQUARED ) {
+		chance -= ( level * level );
+	} else if( SkillDefs[sk].failType == SkillType::FAIL_MINUS_SKILL_TIMES_TEN ) {
+		chance -= ( level * 10 );
 	}
 
 	return chance;

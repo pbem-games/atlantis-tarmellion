@@ -222,8 +222,22 @@ Unit *Object::GetOwner() {
 }
 
 void Object::Report(Areport *f, Faction *fac, int obs, int truesight,
-		int detfac, int passobs, int passtrue, int passdetfac, int present) {
+		int detfac, int passobs, int passtrue, int passdetfac, int present,
+		int scout, int passscout)
+{
 	ObjectType *ob = &ObjectDefs[type];
+
+	int hidden = 0;
+	if( ob->hideLevel > scout && ob->hideLevel > passscout ) hidden = 1;
+	{
+		forlist( &units ) {
+			Unit * u = ( Unit * ) elem;
+			if( u->faction == fac ) {
+				hidden = 0;
+				break;
+			}
+		}
+	}
 
 	if ((type != O_DUMMY) && !present) {
 		if (IsBuilding() &&
@@ -244,7 +258,19 @@ void Object::Report(Areport *f, Faction *fac, int obs, int truesight,
 	}
 
 	if (type != O_DUMMY) {
-		AString temp = AString("+ ") + *name + " : " + ob->name;
+		AString temp = "+ ";
+		if( hidden ) {
+			temp += AString("Object [") + num + "] : ";
+			if( ob->hiddenName ) 
+				temp += AString(ob->hiddenName) + ".";
+			else
+				temp += "Unknown building.";
+			f->PutStr(temp);
+			f->EndLine();
+			if (type != O_DUMMY) f->DropTab();
+			return;
+		}
+		temp += *name + " : " + ob->name;
 		if (incomplete > 0) {
 			temp += AString(", needs ") + incomplete;
 		} else if (Globals->DECAY &&
@@ -338,6 +364,12 @@ AString *ObjectDescription(int obj) {
 		  *temp += AString(o->protection[i]) + AString(" against ") + AttType(i) + AString(", ");
 		}
 		*temp += AString("and ") + AString(o->protection[NUM_ATTACK_TYPES-1]) + AString(" against ") + AttType(NUM_ATTACK_TYPES-1) + AString(".");
+	}
+
+	// Hidden?
+	if( o->hideLevel > 0 ) {
+		*temp += AString(" Units require a Scout skill of at least ") +
+				 o->hideLevel + " to identify this object and it's inhabitants.";
 	}
 
 	/*

@@ -599,6 +599,7 @@ public:
 	int ACN_IS_STARTING_CITY;
 	int TARMELLION_SUMMONING;	// Use tarmellion summoning rules
 
+	int MULTIPLE_MAGES_PER_UNIT; // allow several mages per unit
 };
 
 extern GameDefs * Globals;

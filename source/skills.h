@@ -82,6 +82,9 @@ class SkillType {
 		// range class for ranged skills (-1 for all others)
 		int rangeIndex;
 
+		// required building for studying this skill
+		int building;
+
 		SkillDepend depends[3];
 
 		int failChance;
@@ -90,6 +93,8 @@ class SkillType {
 			FAIL_CONSTANT,
 			FAIL_MINUS_SKILL,
 			FAIL_DIVIDE_SKILL,
+			FAIL_MINUS_SKILL_SQUARED,
+			FAIL_MINUS_SKILL_TIMES_TEN,
 		};
 		int failType;
 

@@ -893,6 +893,13 @@ AString *ItemDescription(int item, int full) {
 	    ItemDefs[item].pValue + AString(".");
 	}
 
+	// Skill bonuses
+	if (ItemDefs[item].bonusskill && ItemDefs[item].bonusskillamount) {
+		*temp += AString(" Provides a bonus of ") + ItemDefs[item].bonusskillamount +
+			" to the unit's " + SkillDefs[ItemDefs[item].bonusskill].name +
+			" skill, if the unit already knows this skill.";
+	}
+
 	if (ItemDefs[item].pSkill != -1 &&
 			!(SkillDefs[ItemDefs[item].pSkill].flags & SkillType::DISABLED)) {
 		unsigned int c;

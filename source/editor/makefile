@@ -1,4 +1,4 @@
-WXDIR = d:/wxCyg
+WXDIR = E:/wxCyg
 
 top_srcdir = $(WXDIR)
 top_builddir = $(WXDIR)/build
@@ -6,7 +6,7 @@ top_builddir = $(WXDIR)/build
 PROGRAM=gui
 GAME=tarmellion
 
-APPEXTRADEFS =  -I. -I..
+APPEXTRADEFS =  -g -I. -I.. -Wall -Wno-deprecated
 
 RULESET_OBJECTS = extra.o monsters.o rules.o world.o
 
@@ -16,7 +16,8 @@ ENGINE_OBJECTS = alist.o aregion.o army.o astring.o battle.o faction.o \
   production.o runorders.o shields.o skills.o skillshows.o specials.o \
   spells.o template.o unit.o
 
-GUI_OBJECTS = $(PROGRAM).o alistex.o config.o edit.o editaux.o map.o tree.o
+GUI_OBJECTS = $(PROGRAM).o aextend.o config.o edit.o editaux.o list.o map.o \
+  options.o run.o tree.o
 
 OBJECTS = $(GUI_OBJECTS) \
           $(patsubst %.o, ../$(GAME)/%.o, $(RULESET_OBJECTS)) \

@@ -142,6 +142,8 @@ class ItemType {
 		int mult_val;
 		int requiredstructure;
 		int byproducts[3];
+		int bonusskill;
+		int bonusskillamount;
 };
 
 extern ItemType * ItemDefs;

@@ -926,7 +926,7 @@ void Game::RunEnchantArmor(ARegion *r,Unit *u) {
 		return;
 	}
 
-	int max = ItemDefs[item].mOut * level * level;
+	int max = ItemDefs[item].mOut * level * level * u->GetMen();
 	int num = 0;
 	int count = 0;
 	unsigned int c;
@@ -985,7 +985,7 @@ void Game::RunEnchantSwords(ARegion *r,Unit *u) {
 		return;
 	}
 
-	int max = ItemDefs[item].mOut * level * level;
+	int max = ItemDefs[item].mOut * level * level * u->GetMen();
 	int num = 0;
 	int count = 0;
 	unsigned int c;
@@ -1034,7 +1034,7 @@ void Game::RunCreateFood(ARegion *r,Unit *u) {
 
 	if( Globals->TARMELLION_SUMMONING ) {
 		// Don't need inputs for this spell for tarmellion
-		int num = level * 10;
+		int num = level * 10 * u->GetMen();
 
 		u->items.SetNum(I_FOOD,u->items.GetNum(I_FOOD) + num);
 		u->Event(AString("Creates ") + num + " food.");
@@ -1043,7 +1043,7 @@ void Game::RunCreateFood(ARegion *r,Unit *u) {
 
 	} else {
 
-		int max = ItemDefs[I_FOOD].mOut * level;
+		int max = ItemDefs[I_FOOD].mOut * level * u->GetMen();
 		int num = 0;
 		int count = 0;
 		unsigned int c;
@@ -1181,7 +1181,7 @@ void Game::RunSummonBalrog(ARegion *r,Unit *u) {
 
 		int level = u->GetSkill(S_SUMMON_BALROG);
 
-		int num = (level * 20 + getrandom(100)) / 100;
+		int num = (level * 20 * u->GetMen() + getrandom(100)) / 100;
 
 		u->items.SetNum(I_BALROG,u->items.GetNum(I_BALROG) + num);
 		u->Event(AString("Summons ") + ItemString(I_BALROG,num) + ".");
@@ -1195,8 +1195,8 @@ void Game::RunSummonDemon(ARegion *r,Unit *u) {
 		int success = RunSummonCreature( u, I_DEMON, S_SUMMON_DEMON );
 		if( success ) r->NotifySpell( u, S_DEMON_LORE, &regions );
 	} else {
-		u->items.SetNum(I_DEMON,u->items.GetNum(I_DEMON) + 1);
-		u->Event(AString("Summons ") + ItemString(I_DEMON,1) + ".");
+		u->items.SetNum(I_DEMON,u->items.GetNum(I_DEMON) + u->GetMen() );
+		u->Event(AString("Summons ") + ItemString(I_DEMON,u->GetMen()) + ".");
 		u->Practise(S_SUMMON_DEMON);
 		r->NotifySpell(u,S_DEMON_LORE, &regions);
 	}
@@ -1209,8 +1209,8 @@ void Game::RunSummonImps(ARegion *r,Unit *u) {
 		int success = RunSummonCreature( u, I_IMP, S_SUMMON_IMPS );
 		if( success ) r->NotifySpell( u, S_DEMON_LORE, &regions );
 	} else {
-		u->items.SetNum(I_IMP,u->items.GetNum(I_IMP) + level);
-		u->Event(AString("Summons ") + ItemString(I_IMP,level) + ".");
+		u->items.SetNum(I_IMP,u->items.GetNum(I_IMP) + level * u->GetMen());
+		u->Event(AString("Summons ") + ItemString(I_IMP,level * u->GetMen()) + ".");
 		u->Practise(S_SUMMON_IMPS);
 		r->NotifySpell(u,S_DEMON_LORE, &regions);
 	}
@@ -1244,6 +1244,7 @@ void Game::RunCreateArtifact(ARegion *r,Unit *u,int skill,int item) {
 		num = (level * ItemDefs[item].mOut + getrandom(100)) / 100;
 	else
 		num = ItemDefs[item].mOut * level;
+// TODO multiple creation fo mages
 
 	u->items.SetNum(item,u->items.GetNum(item) + num);
 	u->Event(AString("Creates ") + ItemString(item,num) + ".");
@@ -1258,7 +1259,7 @@ void Game::RunSummonLich(ARegion *r,Unit *u) {
 	} else {
 		int level = u->GetSkill(S_SUMMON_LICH);
 
-		int num = ((2 * level * level) + getrandom(100))/100;
+		int num = ((2 * level * level * u->GetMen()) + getrandom(100))/100;
 
 		u->items.SetNum(I_LICH,u->items.GetNum(I_LICH) + num);
 		u->Event(AString("Summons ") + ItemString(I_LICH,num) + ".");
@@ -1274,7 +1275,7 @@ void Game::RunRaiseUndead(ARegion *r,Unit *u) {
 	} else {
 		int level = u->GetSkill(S_RAISE_UNDEAD);
 
-		int num = ((10 * level * level) + getrandom(100))/100;
+		int num = ((10 * level * level * u->GetMen()) + getrandom(100))/100;
 
 		u->items.SetNum(I_UNDEAD,u->items.GetNum(I_UNDEAD) + num);
 		u->Event(AString("Raises ") + ItemString(I_UNDEAD,num) + ".");
@@ -1290,7 +1291,7 @@ void Game::RunSummonSkeletons(ARegion *r,Unit *u) {
 	} else {
 		int level = u->GetSkill(S_SUMMON_SKELETONS);
 
-		int num = ((40 * level * level) + getrandom(100))/100;
+		int num = ((40 * level * level * u->GetMen()) + getrandom(100))/100;
 
 		u->items.SetNum(I_SKELETON,u->items.GetNum(I_SKELETON) + num);
 		u->Event(AString("Summons ") + ItemString(I_SKELETON,num) + ".");
@@ -1445,7 +1446,7 @@ void Game::RunDragonLore(ARegion *r, Unit *u) {
 			return;
 		}
 		int num = u->items.GetNum(item);
-		if (num >= level) {
+		if (num >= level * u->GetMen()) {
 			u->Error(AString("Mage may not summon more ")+ItemDefs[item].names+".");
 			return;
 		}
@@ -1501,7 +1502,7 @@ void Game::RunBirdLore(ARegion *r,Unit *u) {
 
 			int level = u->GetSkill(S_BIRD_LORE);
 			int num = u->items.GetNum(I_EAGLE);
-			int max = level * level - num;
+			int max = level * level * u->GetMen() - num;
 
 			if (max <= 0) {
 				u->Error("Mage may not summon more eagles.");
@@ -1534,7 +1535,7 @@ void Game::RunWolfLore(ARegion *r,Unit *u) {
 	} else {
 		int level = u->GetSkill(S_WOLF_LORE);
 		int num = u->items.GetNum(I_WOLF);
-		int max = level * level - num;
+		int max = level * level * u->GetMen() - num;
 
 		if (max <= 0) {
 			u->Error("Mage may not summon more wolves.");
@@ -1555,7 +1556,7 @@ void Game::RunWolfLore(ARegion *r,Unit *u) {
 void Game::RunInvisibility(ARegion *r,Unit *u) {
 	CastUnitsOrder *order = (CastUnitsOrder *) u->castorders;
 	int max = u->GetSkill(S_INVISIBILITY);
-	max = max * max;
+	max = max * max * u->GetMen();
 
 	int num = 0;
 	forlist (&(order->units)) {
@@ -1611,6 +1612,7 @@ void Game::RunPhanDemons(ARegion *r,Unit *u) {
 			}
 		}
 
+		max *= u->GetMen();
 		max -= u->items.GetNum(order->item);
 		if( max <= 0 || create > max ) {
 			u->Error("CAST: Can't create that many Phantasmal Demons.");
@@ -1647,6 +1649,7 @@ void Game::RunPhanUndead(ARegion *r,Unit *u) {
 			}
 		}
 
+		max *= u->GetMen();
 		max -= u->items.GetNum(order->item);
 		if( max <= 0 || create > max ) {
 			u->Error("CAST: Can't create that many Phantasmal Undead.");
@@ -1683,6 +1686,7 @@ void Game::RunPhanBeasts(ARegion *r,Unit *u) {
 			}
 		}
 
+		max *= u->GetMen();
 		max -= u->items.GetNum(order->item);
 		if( max <= 0 || create > max ) {
 			u->Error("CAST: Can't create that many Phantasmal Beasts.");
@@ -1702,7 +1706,7 @@ void Game::RunEarthLore(ARegion *r,Unit *u) {
 	int level = u->GetSkill(S_EARTH_LORE);
 
 	if (level > r->earthlore) r->earthlore = level;
-	int amt = r->Wages() * level * 2;
+	int amt = r->Wages() * level * 2 * u->GetMen();
 
 	u->items.SetNum(I_SILVER,u->items.GetNum(I_SILVER) + amt);
 	u->Event(AString("Casts Earth Lore, raising ") + amt + " silver.");
@@ -1832,7 +1836,7 @@ void Game::RunTeleport(ARegion *r,Object *o,Unit *u) {
 	if (!val) return;
 
 	int level = u->GetSkill(S_TELEPORTATION);
-	int maxweight = level * 15;
+	int maxweight = level * 15 * u->GetMen();
 
 	if (u->Weight() > maxweight) {
 		u->Error("CAST: Can't carry that much when teleporting.");
@@ -1889,6 +1893,7 @@ void Game::RunGateJump(ARegion *r,Object *o,Unit *u) {
 			break;
 	}
 
+	maxweight *= u->GetMen();
 	int weight = u->Weight();
 
 	forlist (&(order->units)) {
@@ -1995,7 +2000,7 @@ void Game::RunPortalLore(ARegion *r,Object *o,Unit *u) {
 		return;
 	}
 
-	int maxweight = 50 * level;
+	int maxweight = 50 * level * u->GetMen();
 	int maxdist = 2 * level * level;
 	int weight = 0;
 	forlist (&(order->units)) {
@@ -2137,6 +2142,7 @@ int Game::RunSummonCreature(Unit *u, int creature, int skill)
 			summoned = 1;
 	}
 
+	summoned *= u->GetMen();
 	if( summoned > max ) summoned = max;
 
 	u->items.SetNum(creature, u->items.GetNum(creature) + summoned);
@@ -2409,6 +2415,7 @@ int Game::GetAllowedMonsters(Unit *u, int creature )
 
 
 	}
+	numAllowed *= u->GetMen();
 
 	int max = numAllowed - num;
 	return max;

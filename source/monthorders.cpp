@@ -158,9 +158,16 @@ ARegion * Game::Do1SailOrder(ARegion * reg,Object * ship,Unit * cap) {
 					break;
 				}
 
+//				if ((ship->type != O_AIRSHIP) &&
+//					(TerrainDefs[reg->type].similar_type != R_OCEAN) &&
+//					(TerrainDefs[newreg->type].similar_type != R_OCEAN)) {
+//					cap->Error("SAIL: Can't sail inland.");
+//					break;
+//				}
 				if ((ship->type != O_AIRSHIP) &&
-					(TerrainDefs[reg->type].similar_type != R_OCEAN) &&
-					(TerrainDefs[newreg->type].similar_type != R_OCEAN)) {
+					!(TerrainDefs[reg->type].flags & TerrainType::CANSAIL) &&
+					!(TerrainDefs[newreg->type].flags & TerrainType::CANSAIL))
+				{
 					cap->Error("SAIL: Can't sail inland.");
 					break;
 				}
@@ -185,13 +192,11 @@ ARegion * Game::Do1SailOrder(ARegion * reg,Object * ship,Unit * cap) {
 						int l = k + 3;
 						if (l >= NDIRS) l = l - NDIRS;
 						ARegion *land2 = reg->neighbors[l];
-						if ((!land1) ||
-								(TerrainDefs[land1->type].similar_type !=
-								 R_OCEAN))
+						if (!land1 ||
+							!(TerrainDefs[land1->type].flags & TerrainType::CANSAIL))
 							blocked1 = 1;
-						if ((!land2) ||
-								(TerrainDefs[land2->type].similar_type !=
-								 R_OCEAN))
+						if (!land2 ||
+							!(TerrainDefs[land2->type].flags & TerrainType::CANSAIL))
 							blocked2 = 1;
 					}
 					if ((blocked1) && (blocked2))
@@ -965,6 +970,14 @@ void Game::Do1StudyOrder(Unit *u,Object *obj) {
 		return;
 	}
 
+	if( SkillDefs[sk].building != -1 && 
+		SkillDefs[sk].building != u->object->type )
+	{
+		u->Error(AString("STUDY: Unit must be inside a ") +
+				 ObjectDefs[SkillDefs[sk].building].name + " to study this skill.");
+		return;
+	}
+
 	//Small patch for Ceran Mercs
 	//	if (u->GetMen(I_MERCENARY)) {
 	//		u->Error("STUDY: Mercenaries are not allowed to study.");
@@ -977,12 +990,12 @@ void Game::Do1StudyOrder(Unit *u,Object *obj) {
 			return;
 		}
 		if (Globals->FACTION_LIMIT_TYPE != GameDefs::FACLIM_UNLIMITED) {
-			if (CountMages(u->faction) >= AllowedMages(u->faction)) {
-				u->Error("STUDY: Can't have another magician.");
+			if (CountMages(u->faction) + u->GetMen() > AllowedMages(u->faction)) {
+				u->Error("STUDY: Mage limit exceeded.");
 				return;
 			}
 		}
-		if (u->GetMen() != 1) {
+		if (u->GetMen() != 1 && !Globals->MULTIPLE_MAGES_PER_UNIT) {
 			u->Error("STUDY: Only 1-man units can be magicians.");
 			return;
 		}

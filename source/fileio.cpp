@@ -25,9 +25,6 @@
 #include "fileio.h"
 #include "gameio.h"
 
-#include <fstream>
-#include <iostream>
-
 #define F_ENDLINE '\n'
 
 extern long _ftype,_fcreator;

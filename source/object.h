@@ -69,8 +69,8 @@ class ObjectType {
 		int productionAided;
 		int fixedBonus;
 		int workersallowed;
-
 		int allowedRegions[5];
+
 		int populationbonus;
 		int wagebonus;
 		
@@ -78,6 +78,11 @@ class ObjectType {
 		int mult_item;
 		int mult_val;
 		// fSharky
+
+		// Units need scout of at least hideLevel to see the object, otherwise
+		// they only see it's hiddenName
+		int hideLevel;
+		char *hiddenName;
 };
 
 extern ObjectType * ObjectDefs;
@@ -95,7 +100,7 @@ class Object : public AListElem {
 
 		void Readin( Ainfile *f, AList *, ATL_VER v );
 		void Writeout( Aoutfile *f );
-		void Report(Areport *,Faction *,int,int,int, int,int,int, int);
+		void Report(Areport *,Faction *,int,int,int, int,int,int, int,int,int);
 
 		void SetName(AString *);
 		void SetDescribe(AString *);
