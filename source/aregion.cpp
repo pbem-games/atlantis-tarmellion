@@ -1358,30 +1358,30 @@ int ARegion::GetRealDirComp(int realDirection)
 
 void ARegion::UpdateProducts()
 {
-//    // to add in buildings which add production even if none present,
-//    // messy
-//    {
-//      forlist (&objects) {
-//        Object *obj = (Object *)elem;
-//        // only do this if we have a base bonus
-//        if (obj->fixedBonus) {
-//  	int present = 0;
-//  	forlist (&products) {
-//  	  Production *prod = (Production *)elem;
-//  	  if (ObjectDefs[obj->type].productionAided ==
-//  	      prod->itemtype) {
-//  	    present = 1;
-//  	    break;
-//  	  }
-//  	}
-//  	if (!present) {
-//  	  // Need to add new product, this will result in products with zero base amounts.
-//  	  Production *p = new Production(ObjectDefs[obj->type].productionAided, 0);
-//  	  products.Add(p);
-//  	}
-//        }
-//      }
-//    }
+    // to add in buildings which add production even if none present,
+    // messy
+    {
+      forlist (&objects) {
+        Object *obj = (Object *)elem;
+        // only do this if we have a base bonus
+        if (ObjectDefs[obj->type].fixedBonus) {
+  	int present = 0;
+  	forlist (&products) {
+  	  Production *prod = (Production *)elem;
+  	  if (ObjectDefs[obj->type].productionAided ==
+	      prod->itemtype) {
+	    present = 1;
+	    break;
+	  }
+	}
+	if (!present) {
+	  // Need to add new product, this will result in products with zero base amounts.
+	  Production *p = new Production(ObjectDefs[obj->type].productionAided, 0);
+	  products.Add(p);
+	}
+      }
+    }
+  }
 	forlist (&products) {
 		Production *prod = (Production *) elem;
 		int lastbonus = prod->baseamount / 2;
@@ -1403,22 +1403,22 @@ void ARegion::UpdateProducts()
 			prod->amount += ((earthlore + clearskies) * 40) / prod->baseamount;
 		}
 	}
-//  	// loop through adding fixed bonuses
-//  	for (int ot=0;ot<NOBJECTS;ot++) {
-//  	  int bonus = ObjectDefs[ot].fixedBonus;
-//  	  int item = ObjectDefs[ot].productionAided;
-//  	  int skill = ItemDefs[item].pSkill;
-//  	  if (bonus != 0 && item != -1) {
-//  	    Production *p = products.GetProd(item,skill);
-//  	    foreach (&objects) {
-//  	      Object *o = (Object *)elem;
-//  	      if (o->type == ot) {
-//  		p->amount += bonus;
-//  		bonus /= 2;
-//  	      }
-//  	    }
-//  	  }
-//  	}
+	// loop through adding fixed bonuses
+	for (int ot=0;ot<NOBJECTS;ot++) {
+	  int bonus = ObjectDefs[ot].fixedBonus;
+	  int item = ObjectDefs[ot].productionAided;
+	  int skill = ItemDefs[item].pSkill;
+	  if (bonus != 0 && item != -1) {
+	    Production *p = products.GetProd(item,skill);
+	    forlist (&objects) {
+	      Object *o = (Object *)elem;
+	      if (o->type == ot) {
+		p->amount += bonus;
+		bonus /= 2;
+	      }
+	    }
+	  }
+	}
 }
 
 AString ARegion::ShortPrint(ARegionList *pRegs)

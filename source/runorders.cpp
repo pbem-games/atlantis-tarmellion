@@ -1455,9 +1455,22 @@ int Game::GetBuyAmount(ARegion * r,Market * m)
 		Object * obj = (Object *) elem;
 		forlist((&obj->units)) {
 			Unit * u = (Unit *) elem;
+			int goodness;
+			if (u->faction->race == -1) {
+			  goodness = (ItemDefs[u->faction->race].flags & ItemType::GOOD ? 1 : 0);
+			  goodness -= (ItemDefs[u->faction->race].flags & ItemType::EVIL ? 1 : 0);
+			}
 			forlist ((&u->buyorders)) {
 				BuyOrder * o = (BuyOrder *) elem;
 				if (o->item == m->item) {
+				  if ((ItemDefs[u->faction->race].flags & ItemType::GOOD) && (ItemDefs[o->item].flags & ItemType::EVIL)) {
+				    u->Error("BUY: Can't buy evil aligned items.");
+				    o->num = 0;
+				  }
+				  if ((ItemDefs[u->faction->race].flags & ItemType::EVIL) && (ItemDefs[o->item].flags & ItemType::GOOD)) {
+				    u->Error("BUY: Can't buy good aligned items.");
+				    o->num = 0;
+				  }
 					if (ItemDefs[o->item].type & IT_MAN) {
 						if (u->type == U_MAGE) {
 							u->Error("BUY: Mages can't recruit more men.");

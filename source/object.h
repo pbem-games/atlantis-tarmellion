@@ -69,6 +69,7 @@ class ObjectType {
 		int monster;
 
 		int productionAided;
+		int fixedBonus;
 		int workersallowed;
 
 		int allowedRegions[5];

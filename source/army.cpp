@@ -198,7 +198,7 @@ Soldier::Soldier(Unit * u,Object * o,int regtype,int r,int ass)
 		if(item == -1) break;
 		weaponType = ItemDefs[item].index;
 		item = unit->GetWeapon(weaponType, riding, ridingBonus, attackBonus,
-				defenseBonus, numAttacks);
+				defenseBonus, numAttacks, ass);
 		if(item != -1) {
 			weapon = item;
 			break;
@@ -207,7 +207,8 @@ Soldier::Soldier(Unit * u,Object * o,int regtype,int r,int ass)
 	if(weapon == -1) {
 		for(weaponType = 1; weaponType < NUMWEAPONS; weaponType++) {
 			item = unit->GetWeapon(weaponType, riding, ridingBonus,
-					attackBonus, defenseBonus, numAttacks);
+					attackBonus, defenseBonus, numAttacks,
+					ass);
 			if(item != -1) {
 				weapon = item;
 				break;

@@ -468,10 +468,22 @@ AString *ObjectDescription(int obj)
 		} else {
 			*temp += ItemDefs[o->productionAided].names;
 		}
-		*temp += " available in the region.";
+		*temp += " available in the region";
+		if(o->fixedBonus) {
+		  *temp += " by a minimum of " + o->fixedBonus;
+		}
+		*temp += ".";
 	}
 	if (o->workersallowed != -1) {
 	  *temp += AString(" This structure allows ") + o->workersallowed + " workers inside.";
+	}
+
+	if (o->populationbonus != 0) {
+	  *temp += AString(" This structure increases the maximum population of a region to ") + o->populationbonus + AString(" above it's normal level, with reducing efficiency.");
+	}
+
+	if (o->wagebonus != 0) {
+	  *temp += AString(" This structure increases the maximum wages of a region to ") + o->wagebonus + AString(" above it's normal level, with reducing efficiency.");
 	}
 
 	if(Globals->DECAY) {
@@ -493,14 +505,6 @@ AString *ObjectDescription(int obj)
 				}
 			}
 		}
-	}
-
-	if (o->populationbonus != 0) {
-	  *temp += AString(" This object increases the maximum population of a region to ") + o->populationbonus + AString(" above it's normal level, with reducing efficiency.");
-	}
-
-	if (o->wagebonus != 0) {
-	  *temp += AString(" This object increases the maximum wages of a region to ") + o->wagebonus + AString(" above it's normal level, with reducing efficiency.");
 	}
 
 	return temp;

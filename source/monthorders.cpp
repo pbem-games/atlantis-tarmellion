@@ -607,6 +607,19 @@ void Game::RunUnitProduce(ARegion *r, Object *obj, Unit *u)
 		return;
 	}
 
+	if ((ItemDefs[u->faction->race].flags & ItemType::GOOD) && (ItemDefs[o->item].flags & ItemType::EVIL)) {
+	  u->Error("BUY: Can't produce evil aligned items.");
+	  delete u->monthorders;
+	  u->monthorders = 0;
+	  return;
+	}
+	if ((ItemDefs[u->faction->race].flags & ItemType::EVIL) && (ItemDefs[o->item].flags & ItemType::GOOD)) {
+	  u->Error("BUY: Can't produce good aligned items.");
+	  delete u->monthorders;
+	  u->monthorders = 0;
+	  return;
+	}
+
 	int input = ItemDefs[o->item].pInput[0].item;
 	if (input == -1) {
 		u->Error("PRODUCE: Can't produce that.");
@@ -771,8 +784,19 @@ int Game::ValidProd(Unit * u, ARegion * r, Object *obj, Production * p)
 			po->productivity = u->GetMen() * p->productivity;
 			return po->productivity;
 		}
+		if ((ItemDefs[u->faction->race].flags & ItemType::GOOD) && (ItemDefs[p->itemtype].flags & ItemType::EVIL)) {
+		  u->Error("BUY: Can't produce evil aligned items.");
+		  delete u->monthorders;
+		  u->monthorders = 0;
+		  return 0;
+		}
+		if ((ItemDefs[u->faction->race].flags & ItemType::EVIL) && (ItemDefs[p->itemtype].flags & ItemType::GOOD)) {
+		  u->Error("BUY: Can't produce good aligned items.");
+		  delete u->monthorders;
+		  u->monthorders = 0;
+		  return 0;
+		}
 		int level = u->GetSkill(p->skill);
-		//	if (level < p->level) {
 		if (level < ItemDefs[p->itemtype].pLevel) {
 			u->Error("PRODUCE: Unit isn't skilled enough.");
 			delete u->monthorders;

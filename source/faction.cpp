@@ -173,6 +173,7 @@ void Faction::Writeout( Aoutfile *f )
 	f->PutStr(*name);
 	f->PutStr(*address);
 	f->PutStr(*password);
+	f->PutInt(race);
 	f->PutInt(times);
 	f->PutInt(temformat);
 
@@ -200,6 +201,11 @@ void Faction::Readin( Ainfile *f, ATL_VER v )
 	name = f->GetStr();
 	address = f->GetStr();
 	password = f->GetStr();
+	if (v <= MAKE_ATL_VER( 4, 0, 10 )) {
+	  race = -1;
+	} else {
+	  race = f->GetInt();
+	}
 	times = f->GetInt();
 	temformat = f->GetInt();
 

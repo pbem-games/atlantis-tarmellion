@@ -1173,11 +1173,18 @@ int Unit::MaintCost()
 	int retval = 0;
 	int i;
 	if (type == U_WMON || type == U_GUARD || type == U_GUARDMAGE) return 0;
-
-	int leaders = GetMen(I_LEADERS);
-	if(leaders < 0) leaders = 0;
-	int nonleaders = GetMen() - leaders;
-	if (nonleaders < 0) nonleaders = 0;
+	int leaders = 0;
+	int nonleaders = 0;
+	forlist(&items) {
+	  Item * i = (Item *) elem;
+	  if (ItemDefs[i->type].type & IT_MAN) {
+	    if ( ManDefs[ItemDefs[i->type].index].flags & ManType::LEADER) {
+	      leaders += items.GetNum(i->type);
+	    } else {
+	      nonleaders += items.GetNum(i->type);
+	    }
+	  }
+	}
 
 	// Handle leaders
 	// Leaders are counted at maintenance_multiplier * skills in all except
@@ -1795,8 +1802,11 @@ int Unit::GetMount(int index, int canFly, int canRide, int &bonus)
 }
 
 int Unit::GetWeapon(int index, int riding, int ridingBonus, int &attackBonus,
-		int &defenseBonus, int &attacks)
+		int &defenseBonus, int &attacks, int ass)
 {
+	if(ass && !(WeaponDefs[index].flags & WeaponType::USEINASSASSINATE))
+		return -1;
+
 	attackBonus = 0;
 	defenseBonus = 0;
 	attacks = 1;

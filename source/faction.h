@@ -164,6 +164,7 @@ public:
     int lastorders;
     int unclaimed;
     AString * name;
+    int race;
     AString * address;
     AString * password;
     int times;

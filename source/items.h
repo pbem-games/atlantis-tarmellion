@@ -86,7 +86,11 @@ class ItemType
 			// A number of items are produced equal to the producer's
 			// skill, based on a fixed number of inputs
 			SKILLOUT = 0x10,
-			// this item is never produced simply a place holder.
+			// this item is only associated with evil.
+			EVIL = 0x20,
+			// this item is only associated with good.
+			GOOD = 0x40,
+			
 		};
 		int flags;
 
@@ -205,6 +209,7 @@ class WeaponType
 			NOATTACKERSKILL = 0x100, // Attacker gets no combat/skill defense.
 			RIDINGBONUS = 0x200, // Unit gets riding bonus on att and def.
 			RIDINGBONUSDEFENSE = 0x400, // Unit gets riding bonus on def only.
+			USEINASSASSINATE = 0x800, // weapon can be used in assination.
 		};
 		int flags;
 

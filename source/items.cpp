@@ -505,6 +505,13 @@ AString *ItemDescription(int item, int full) {
 				" silver to withdraw";
 		}
 	}
+
+	if (ItemDefs[item].flags & ItemType::GOOD) {
+	  *temp += ", evil";
+	}
+	if (ItemDefs[item].flags & ItemType::EVIL) {
+	  *temp += ", good";
+	}
 	*temp += ".";
 
 	if(ItemDefs[item].type & IT_MAN) {
@@ -702,6 +709,10 @@ AString *ItemDescription(int item, int full) {
 				*temp += "1 attack every ";
 				if(atts == 1) *temp += "round .";
 				else *temp += AString(atts) + " rounds.";
+			}
+			if(pW->flags & WeaponType::USEINASSASSINATE) {
+				*temp += " This weapon may be used during assassination "
+					"attempts.";
 			}
 		}
 	}
@@ -923,11 +934,12 @@ AString *ItemDescription(int item, int full) {
 	      } else if (count < max-1) {
 		*temp += AString(", ") + byprod.name;
 	      } else {
-		*temp += AString(", and ") + byprod.name + ".";
+		*temp += AString(", and ") + byprod.name;
 	      }
 	      count++;
  	    }
 	  }
+	  *temp += ".";
 	}
 	if(ItemDefs[item].mSkill != -1 &&
 			!(SkillDefs[ItemDefs[item].mSkill].flags & SkillType::DISABLED)) {
