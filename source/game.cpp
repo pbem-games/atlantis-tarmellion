@@ -769,8 +769,8 @@ int Game::ReadPlayersLine(AString *pToken, AString *pLine, Faction *pFac,
 		int nAmt = pTemp->value();
 		pFac->Event( AString( "Reward of " ) + nAmt + " silver." );
 		pFac->unclaimed += nAmt;
-    } else if( *pToken == "SendTimes:" ) {
-		// get the token, but otherwise ignore it
+	} else if( *pToken == "SendTimes:" ) {
+                // get the token, but otherwise ignore it
 		pTemp = pLine->gettoken();
 		pFac->times = pTemp->value();
 	} else if (*pToken == "LastOrders:" ) {
@@ -991,8 +991,6 @@ int Game::ReadPlayersLine(AString *pToken, AString *pLine, Faction *pFac,
 				}
 			}
 		}
-	} else if( *pToken == "NoStartLeader" ) {
-		pFac->noStartLeader = 1;
 	} else if( *pToken == "Order:" ) {
 		pTemp = pLine->StripWhite();
 		if( *pTemp == "quit" ) {
@@ -1570,17 +1568,20 @@ void Game::DeleteDeadFactions() {
     }
 }
 
-Faction *Game::AddFaction(int setup)
+Faction *Game::AddFaction(int newleader)
 {
 	//
 	// set up faction
 	//
 	Faction *temp = new Faction(factionseq);
+	if (!newleader) {
+	  temp->noStartLeader = 1;
+	}
 	AString x("NoAddress");
 	temp->SetAddress(x);
 	temp->lastorders = TurnNumber();
 
-	if(setup && SetupFaction(temp)) {
+	if(SetupFaction(temp)) {
 		factions.Add(temp);
 		factionseq++;
 		return(temp);
