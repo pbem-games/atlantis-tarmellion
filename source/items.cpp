@@ -507,10 +507,10 @@ AString *ItemDescription(int item, int full) {
 	}
 
 	if (ItemDefs[item].flags & ItemType::GOOD) {
-	  *temp += ", evil";
+	  *temp += ", good";
 	}
 	if (ItemDefs[item].flags & ItemType::EVIL) {
-	  *temp += ", good";
+	  *temp += ", evil";
 	}
 	*temp += ".";
 

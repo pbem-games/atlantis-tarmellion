@@ -1376,7 +1376,7 @@ void ARegion::UpdateProducts()
 		forlist (&objects) {
 			Object *o = (Object *) elem;
 			if (o->incomplete < 1 &&
-					ObjectDefs[o->type].productionAided == prod->itemtype) {
+					ObjectDefs[o->type].productionAided == prod->itemtype && ObjectDefs[o->type].fixedBonus == 0) {
 				lastbonus /= 2;
 				bonus += lastbonus;
 			}
