@@ -389,6 +389,7 @@ void Game::Do1Assassinate(ARegion * r,Object * o,Unit * u) {
 	AList targets;
 	UnitPtr * p = new UnitPtr;
 	p->ptr = tar;
+	targets.Add( p );
 	RunBattle(r,u,&targets,ass);
 }
 
