@@ -1586,6 +1586,17 @@ void Game::Do1SettleOrder(ARegion * pRegion, Unit * pUnit)
 	int minority = ManDefs[ItemDefs[newRace].index].minority;
 	int divisor = 25;
 	while (minority != -1) {
+		// Check race hasn't already been added
+		int ok = 1;
+		forlist( &pRegion->markets ) {
+			Market * m = ( Market * ) elem;
+			if( m->item == minority ) {
+				ok = 0;
+				break;
+			}
+		}
+		if( !ok ) break;
+
 		ratio = ItemDefs[minority].baseprice / (float)Globals->BASE_MAN_COST;
 		int current = pRegion->Population() / divisor;
 		int max = 10000/divisor;
