@@ -83,7 +83,7 @@ void Battle::FreeRound(Army * att,Army * def, int ass)
 void Battle::DoAttack(int round, Soldier *a, Army *attackers, Army *def,
 		int behind, int ass, int canattackback)
 {
-	DoSpecialAttack(round, a, attackers, def, behind);
+	DoSpecialAttack(round, a, attackers, def, behind, canattackback);
 	if (!def->NumAlive()) return;
 
 	if (!behind && (a->riding != -1)) {

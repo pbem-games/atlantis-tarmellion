@@ -75,7 +75,7 @@ class Battle : public AListElem
 		//
 		void UpdateShields(Army *);
 		void DoSpecialAttack( int round, Soldier *a, Army *attackers,
-				Army *def, int behind );
+				Army *def, int behind, int canattackback);
 
 		void WriteSides(ARegion *,Unit *,Unit *,AList *,AList *,int,
 				ARegionList *pRegs );
