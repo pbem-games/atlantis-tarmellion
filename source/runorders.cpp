@@ -1481,8 +1481,10 @@ int Game::GetBuyAmount(ARegion * r,Market * m)
 									"men.");
 							o->num = 0;
 						}
-						if ((o->item == I_LEADERS && u->IsNormal()) ||
-								(o->item != I_LEADERS && u->IsLeader())) {
+						if (
+( (ManDefs[ItemDefs[o->item].index].flags & ManType::LEADER) && u->IsNormal() ) ||
+(!(ManDefs[ItemDefs[o->item].index].flags & ManType::LEADER) && u->IsLeader() ) 
+) {
 							u->Error("BUY: Can't mix leaders and normal men.");
 							o->num = 0;
 						}
@@ -2416,11 +2418,11 @@ int Game::DoGiveOrder(ARegion * r,Unit * u,GiveOrder * o)
 			u->Error("GIVE: Magicians can't transfer men.");
 			return 0;
 		}
-		if (o->item == I_LEADERS && t->IsNormal()) {
+		if ((ManDefs[ItemDefs[o->item].index].flags & ManType::LEADER) && t->IsNormal()) {
 			u->Error("GIVE: Can't mix leaders and normal men.");
 			return 0;
 		} else {
-			if (o->item != I_LEADERS && t->IsLeader()) {
+			if (!(ManDefs[ItemDefs[o->item].index].flags & ManType::LEADER) && t->IsLeader()) {
 				u->Error("GIVE: Can't mix leaders and normal men.");
 				return 0;
 			}

@@ -61,6 +61,7 @@ AString NumToWord(int n)
 int Game::GenRules(const AString &rules, const AString &css,
 		const AString &intro)
 {
+#if 0
 	Ainfile introf;
 	Arules f;
 	AString temp, temp2;
@@ -5440,5 +5441,6 @@ int Game::GenRules(const AString &rules, const AString &css,
 	f.Paragraph(temp);
 	f.Enclose(0, "BODY");
 	f.Enclose(0, "HTML");
+#endif
 	return 1;
 }

@@ -2308,7 +2308,7 @@ void Game::CreateCityMon( ARegion *pReg, int percent, int needmage ) {
 		u->type = U_GUARD;
 		u->guard = GUARD_GUARD;
 		int race;
-		int gitems[7];
+		int *gitems;
 		if (Globals->LEADERS_EXIST == GameDefs::RACIAL_LEADERS) {
 			race = pReg->race;
 			int leader = ManDefs[ItemDefs[race].index].minority;
@@ -2468,7 +2468,7 @@ void Game::AdjustCityMon( ARegion *r, Unit *u ) {
 	}
 
 	int race;
-	int gitems[7];
+	int *gitems;
 	if (Globals->LEADERS_EXIST == GameDefs::RACIAL_LEADERS) {
 	  race = r->race;
 	  int leader = ManDefs[ItemDefs[race].index].minority;
