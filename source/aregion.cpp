@@ -222,14 +222,6 @@ int ARegion::Wages()
 			if (raise) retval++;
 		}
 	}
-	for (int i=0;i<sizeof(ObjectDefs)/sizeof(ObjectType);i++) {
-	  int bonus = ObjectDefs[i].wagebonus;
-	  if (bonus == 0) continue;
-	  forlist(&objects) {
-	    retval += bonus;
-	    bonus /= 2;
-	  }
-	}
 	return retval;
 }
 
@@ -1026,6 +1018,20 @@ void ARegion::PostTurn(ARegionList *pRegs)
 		} else {
 			p->amount = (Wages() * Population()) / Globals->WORK_FRACTION;
 		}
+
+		//
+		// Building bonus for max wages.
+		//
+		if (p->amount) {
+		  for (int i=0;i<sizeof(ObjectDefs)/sizeof(ObjectType);i++) {
+		    int bonus = ObjectDefs[i].wagebonus;
+		    if (bonus == 0) continue;
+		    forlist(&objects) {
+		      p->amount += bonus;
+		      bonus /= 2;
+		    }
+		  }
+		}
 		p->productivity = Wages();
 
 		//
@@ -1360,30 +1366,6 @@ int ARegion::GetRealDirComp(int realDirection)
 
 void ARegion::UpdateProducts()
 {
-    // to add in buildings which add production even if none present,
-    // messy
-    {
-      forlist (&objects) {
-        Object *obj = (Object *)elem;
-        // only do this if we have a base bonus
-        if (ObjectDefs[obj->type].fixedBonus) {
-  	int present = 0;
-  	forlist (&products) {
-  	  Production *prod = (Production *)elem;
-  	  if (ObjectDefs[obj->type].productionAided ==
-	      prod->itemtype) {
-	    present = 1;
-	    break;
-	  }
-	}
-	if (!present) {
-	  // Need to add new product, this will result in products with zero base amounts.
-	  Production *p = new Production(ObjectDefs[obj->type].productionAided, 0);
-	  products.Add(p);
-	}
-      }
-    }
-  }
 	forlist (&products) {
 		Production *prod = (Production *) elem;
 		int lastbonus = prod->baseamount / 2;
@@ -1404,22 +1386,22 @@ void ARegion::UpdateProducts()
 		if (prod->itemtype == I_GRAIN || prod->itemtype == I_LIVESTOCK) {
 			prod->amount += ((earthlore + clearskies) * 40) / prod->baseamount;
 		}
-	}
-	// loop through adding fixed bonuses
-	for (int ot=0;ot<NOBJECTS;ot++) {
-	  int bonus = ObjectDefs[ot].fixedBonus;
-	  int item = ObjectDefs[ot].productionAided;
-	  int skill = ItemDefs[item].pSkill;
-	  if (bonus != 0 && item != -1) {
-	    Production *p = products.GetProd(item,skill);
-	    forlist (&objects) {
-	      Object *o = (Object *)elem;
-	      if (o->type == ot) {
-		p->amount += bonus;
-		bonus /= 2;
-	      }
-	    }
-	  }
+
+		for (int ot=0;ot<NOBJECTS;ot++) {
+		  int bonus = ObjectDefs[ot].fixedBonus;
+		  int item = ObjectDefs[ot].productionAided;
+		  if (prod->itemtype == item && bonus != 0) {
+		    int skill = ItemDefs[item].pSkill;
+		    Production *p = products.GetProd(item,skill);
+		    forlist (&objects) {
+		      Object *o = (Object *)elem;
+		      if (o->type == ot) {
+			p->amount += bonus;
+			bonus /= 2;
+		      }
+		    }
+		  }
+		}
 	}
 }
 
@@ -2065,7 +2047,23 @@ void ARegion::WriteReport(Areport * f,Faction * fac,int month,
 				}
 			}
 		}
-
+		cout << "*** Temporary for removal of extra objects (trash this when bug is found) ***" << endl;
+		{
+		  Object *dummy = (Object *)NULL;
+		  forlist (&objects) {
+		    Object *o = (Object *) elem;
+		    if (dummy == (Object *)NULL && o->type == O_DUMMY) {
+		      dummy = o;
+		    } else if (o->type == O_DUMMY) {
+		      cout << "*** Beep, beep. Duplicate dummy object found in " << ShortPrint(pRegions) << endl;
+		      forlist (&(o->units)) {
+			Unit *unit = (Unit *)elem;
+			unit->MoveUnit(dummy);
+		      }
+		      objects.Remove((AListElem *)o);
+		    }
+		  }
+		}
 		{
 			forlist (&objects) {
 				((Object *) elem)->Report(f, fac, obs, truesight, detfac,
