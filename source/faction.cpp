@@ -119,6 +119,7 @@ Faction::Faction()
 	lastchange = -6;
 	address = 0;
 	password = 0;
+	race = -1;
 	times = 0;
 	temformat = TEMPLATE_OFF;
 	quit = 0;
@@ -141,6 +142,7 @@ Faction::Faction(int n)
 	*name = AString("Faction (") + AString(num) + AString(")");
 	address = new AString("NoAddress");
 	password = new AString("none");
+	race = -1;
 	times = 1;
 	temformat = TEMPLATE_LONG;
 	defaultattitude = A_NEUTRAL;
