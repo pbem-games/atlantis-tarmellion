@@ -22,6 +22,7 @@
 // http://www.prankster.com/project
 //
 // END A3HEADER
+//
 #include "game.h"
 #include <gamedata.h>
 

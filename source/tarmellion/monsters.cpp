@@ -22,10 +22,6 @@
 // http://www.prankster.com/project
 //
 // END A3HEADER
-// MODIFICATIONS
-// Date        Person            Comments
-// ----        ------            --------
-// 2001/Mar/03 Joseph Traub      Moved some of the monster stuff here
 //
 #include <gamedata.h>
 #include "game.h"

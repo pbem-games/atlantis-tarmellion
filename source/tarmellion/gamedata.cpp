@@ -22,8 +22,6 @@
 // http://www.prankster.com/project
 //
 // END A3HEADER
-// modifications removed as they are in cvs
-// 
 //
 #include "items.h"
 #include "skills.h"
