@@ -83,8 +83,6 @@ void Battle::FreeRound(Army * att,Army * def, int ass)
 void Battle::DoAttack(int round, Soldier *a, Army *attackers, Army *def,
 		int behind, int ass, int canattackback)
 {
-  //  KFA need to add canattackback from here (mostly to DoAnAttack).
-
 	DoSpecialAttack(round, a, attackers, def, behind);
 	if (!def->NumAlive()) return;
 
@@ -102,7 +100,7 @@ void Battle::DoAttack(int round, Soldier *a, Army *attackers, Army *def,
 				num  = def->DoAnAttack(pMt->mountSpecial, realtimes,
 						spd->damage[i].type, pMt->specialLev,
 						spd->damage[i].flags, spd->damage[i].dclass,
-						spd->damage[i].effect, 0);
+						spd->damage[i].effect, 0, canattackback);
 				if(num != -1) {
 					if(tot == -1) tot = num;
 					else tot += num;
@@ -147,7 +145,7 @@ void Battle::DoAttack(int round, Soldier *a, Army *attackers, Army *def,
 			attackClass = pWep->weapClass;
 		}
 		def->DoAnAttack( 0, 1, attackType, a->askill, flags, attackClass,
-				0, mountBonus);
+				0, mountBonus, canattackback);
 		if (!def->NumAlive()) break;
 	}
 
@@ -226,10 +224,7 @@ void Battle::GetSpoils(AList * losers, ItemList *spoils, int ass)
 		forlist(&u->items) {
 			Item * i = (Item *) elem;
 			if(IsSoldier(i->type)) continue;
-			// New rule:  Assassins with RINGS cannot get AMTS in spoils
-			// This rule is only meaningful with Proportional AMTS usage
-			// is enabled, otherwise it has no effect.
-			if((ass == 2) && (i->type == I_AMULETOFTS)) continue;
+			if(ItemDefs[i->type].attributes & ItemType::STOP_ASSASINATE) continue;
 			float percent = (float)numdead/(float)(numalive+numdead);
 			int num = (int)(i->num * percent);
 			int num2 = (num + getrandom(2))/2;

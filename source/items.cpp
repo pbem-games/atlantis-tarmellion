@@ -743,67 +743,67 @@ AString *ItemDescription(int item, int full) {
 	}
 
 	if(ItemDefs[item].type & IT_TOOL) {
-		int comma = 0;
-		int last = -1;
-		*temp += " This is a tool";
-		for(i = NITEMS - 1; i > 0; i--) {
-			if(ItemDefs[i].flags & ItemType::DISABLED) continue;
-			if(ItemDefs[i].mult_item == item) {
-				last = i;
-				break;
-			}
-		}
-		for(i = 0; i < NITEMS; i++) {
-		   if(ItemDefs[i].flags & ItemType::DISABLED) continue;
-		   if(ItemDefs[i].mult_item == item) {
-			   if(comma) {
-				   if(last == i) {
-					   if(comma > 1) *temp += ",";
-					   *temp += " and ";
-				   } else {
-					   *temp += ", ";
-				   }
-			   } else
-				*temp += ". This item increases the production of ";
-			   comma++;
-			   if(i == I_SILVER) {
-				   *temp += "entertainment";
-			   } else {
-				   *temp += ItemDefs[i].names;
-			   }
-			   *temp += AString(" by ") + ItemDefs[i].mult_val;
-		   }
-		}
+//		int comma = 0;
+//		int last = -1;
+		*temp += " This is a tool.";
+// 		for(i = NITEMS - 1; i > 0; i--) {
+// 			if(ItemDefs[i].flags & ItemType::DISABLED) continue;
+// 			if(ItemDefs[i].mult_item == item) {
+// 				last = i;
+// 				break;
+// 			}
+// 		}
+// 		for(i = 0; i < NITEMS; i++) {
+// 		   if(ItemDefs[i].flags & ItemType::DISABLED) continue;
+// 		   if(ItemDefs[i].mult_item == item) {
+// 			   if(comma) {
+// 				   if(last == i) {
+// 					   if(comma > 1) *temp += ",";
+// 					   *temp += " and ";
+// 				   } else {
+// 					   *temp += ", ";
+// 				   }
+// 			   } else
+// 				*temp += ". This item increases the production of ";
+// 			   comma++;
+// 			   if(i == I_SILVER) {
+// 				   *temp += "entertainment";
+// 			   } else {
+// 				   *temp += ItemDefs[i].names;
+// 			   }
+// 			   *temp += AString(" by ") + ItemDefs[i].mult_val;
+// 		   }
+// 		}
 		
 		// Sharky
-		comma = 0;
-		last = -1;
-		for(i = NOBJECTS - 1; i > 0; i--) {
-			if(ObjectDefs[i].flags & ObjectType::DISABLED) continue;
-			if(ObjectDefs[i].mult_item == item) {
-				last = i;
-				break;
-			}
-		}
-		for(i = 0; i < NOBJECTS; i++) {
-		   if(ObjectDefs[i].flags & ObjectType::DISABLED) continue;
-		   if(ObjectDefs[i].mult_item == item) {
-			   if(comma) {
-				   if(last == i) {
-					   if(comma > 1) *temp += ",";
-					   *temp += " and ";
-				   } else {
-					   *temp += ", ";
-				   }
-			   } else 
-				*temp += ". This item increases the building of ";
-			                               comma++;
-			   comma++;
-				  *temp += ObjectDefs[i].name;
-			   *temp += AString(" by ") + ObjectDefs[i].mult_val;
-		   }
-		}
-		*temp += ".";
+// 		comma = 0;
+// 		last = -1;
+// 		for(i = NOBJECTS - 1; i > 0; i--) {
+// 			if(ObjectDefs[i].flags & ObjectType::DISABLED) continue;
+// 			if(ObjectDefs[i].mult_item == item) {
+// 				last = i;
+// 				break;
+// 			}
+// 		}
+// 		for(i = 0; i < NOBJECTS; i++) {
+// 		   if(ObjectDefs[i].flags & ObjectType::DISABLED) continue;
+// 		   if(ObjectDefs[i].mult_item == item) {
+// 			   if(comma) {
+// 				   if(last == i) {
+// 					   if(comma > 1) *temp += ",";
+// 					   *temp += " and ";
+// 				   } else {
+// 					   *temp += ", ";
+// 				   }
+// 			   } else 
+// 				*temp += ". This item increases the building of ";
+// 			                               comma++;
+// 			   comma++;
+// 				  *temp += ObjectDefs[i].name;
+// 			   *temp += AString(" by ") + ObjectDefs[i].mult_val;
+// 		   }
+// 		}
+// 		*temp += ".";
 		// fSharky
 	}
 	
@@ -864,6 +864,28 @@ AString *ItemDescription(int item, int full) {
 		}
 	}
 
+	if(ItemDefs[item].attributes & ItemType::CAN_CONSUME) {
+	  *temp += AString(" Can be consumed for maintenance.");
+	}
+	if(ItemDefs[item].attributes & ItemType::CAN_HEAL) {
+	  *temp += AString(" Can be used to heal with a ") +
+	    ItemDefs[item].pValue + AString("% chance.");
+	}
+	if(ItemDefs[item].attributes & ItemType::STOP_THEFT) {
+	  *temp += AString(" Stops attempts of theft.");
+	}
+	if(ItemDefs[item].attributes & ItemType::STOP_ASSASINATE) {
+	  *temp += AString(" Stops attempts of assasination.");
+	}
+	if(ItemDefs[item].attributes & ItemType::OBSE_BONUS) {
+	  *temp += AString(" Provides an observation bonus of ") +
+	    ItemDefs[item].pValue + AString(".");
+	}
+	if(ItemDefs[item].attributes & ItemType::STEA_BONUS) {
+	  *temp += AString(" Provides a stealth bonus of ") +
+	    ItemDefs[item].pValue + AString(".");
+	}
+
 	if(ItemDefs[item].pSkill != -1 &&
 			!(SkillDefs[ItemDefs[item].pSkill].flags & SkillType::DISABLED)) {
 		unsigned int c;
@@ -907,6 +929,11 @@ AString *ItemDescription(int item, int full) {
 						" man-months.";
 				}
 			}
+		}
+		if((ItemDefs[item].mult_item != -1) && !(ItemDefs[ItemDefs[item].mult_item].flags & ItemType::DISABLED)) {
+		  *temp += AString(" Production of this item is increased by ")
+		    + ItemDefs[item].mult_val + AString(" when using ")
+		    + ItemDefs[ItemDefs[item].mult_item].names + AString(".");
 		}
 		if(ItemDefs[item].requiredstructure != -1) {
 		  *temp += AString(" To produce this item a ") + ObjectDefs[ItemDefs[item].requiredstructure].name + " is required.";

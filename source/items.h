@@ -105,6 +105,8 @@ class ItemType
 		  // Item stops assasination attempts.
 		  OBSE_BONUS = 0x10,
 		  // pValue is added to observation.
+		  STEA_BONUS = 0x20,
+		  // pValue is added to stealth
 		};
 		int attributes;
 		int pValue;
@@ -161,10 +163,10 @@ class ManType
   // guarditems[4..6] are for starting city guard,
   // guarditems[2..3] are for both.
   int guarditems[7];
-  int speciallevel[15];
+  int speciallevel[20];
   int defaultlevel;
   int defaultmagiclevel;
-  int specialskills[15];
+  int specialskills[20];
 };
 
 extern ManType * ManDefs;

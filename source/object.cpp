@@ -434,6 +434,11 @@ AString *ObjectDescription(int obj)
 			*temp += ItemDefs[o->item].name;
 		}
 		*temp += " to build.";
+		if((o->mult_item != -1) && !(ItemDefs[o->mult_item].flags & ItemType::DISABLED)) {
+		  *temp += AString(" Production of this object is increased by ")
+		    + o->mult_val + AString(" when using ")
+		    + ItemDefs[o->mult_item].names + AString(".");
+		}
 	}
 
 	int maxcount=0;

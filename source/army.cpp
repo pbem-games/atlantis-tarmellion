@@ -932,9 +932,12 @@ Soldier * Army::GetAttacker(int i,int &behind)
 	return retval;
 }
 
-int Army::GetTargetNum(int special)
+int Army::GetTargetNum(int special, int canAttackBehind)
 {
 	int tars = NumFront();
+	if (canAttackBehind) {
+	  tars += NumBehind();
+	}
 	if (tars == 0) {
 		canfront = canbehind;
 		notfront = notbehind;
@@ -949,14 +952,12 @@ int Army::GetTargetNum(int special)
 		for (i = 0; i < canfront; i++) {
 			if (CheckSpecialTarget(special, i)) {
 				validtargs++;
-				// slight scan optimisation - skip empty initial sequences
 				if (start == -1) start = i;
 			}
 		}
 		for (i = canbehind; i < notfront; i++) {
 			if (CheckSpecialTarget(special, i)) {
 				validtargs++;
-				// slight scan optimisation - skip empty initial sequences
 				if (start == -1) start = i;
 			}
 		}
@@ -971,8 +972,9 @@ int Army::GetTargetNum(int special)
 		}
 	} else {
 		int i = getrandom(tars);
-		if (i<canfront) return i;
-		return i + canbehind - canfront;
+		//		if (i<canfront) return i;
+		//		return i + canbehind - canfront;
+		return i;
 	}
 
 	return -1;
@@ -1057,7 +1059,7 @@ int Army::RemoveEffects(int num, int effect)
 
 int Army::DoAnAttack(int special, int numAttacks, int attackType,
 		int attackLevel, int flags, int weaponClass, int effect,
-		int mountBonus)
+		int mountBonus, int attackbehind)
 {
 	/* 1. Check against Global effects (not sure how yet) */
 	/* 2. Attack shield */
@@ -1103,7 +1105,7 @@ int Army::DoAnAttack(int special, int numAttacks, int attackType,
 	int ret = 0;
 	for(int i = 0; i < numAttacks; i++) {
 		/* 3. Get the target */
-		int tarnum = GetTargetNum(special);
+		int tarnum = GetTargetNum(special,attackbehind);
 		if (tarnum == -1) continue;
 		Soldier * tar = GetTarget(tarnum);
 		int tarFlags = 0;

@@ -350,16 +350,15 @@ void Game::Do1Assassinate(ARegion * r,Object * o,Unit * u)
 	}
 
 	int ass = 1;
-	if(u->items.GetNum(I_RINGOFI)) {
-		ass = 2; // Check if assassin has a ring.
-		// New rule: if a target has an amulet of true seeing they
-		// cannot be assassinated by someone with a ring of invisibility
-		if(tar->AmtsPreventCrime(u)) {
-			tar->Event( "Assassination prevented by amulet of true seeing." );
-			u->Event( AString( "Attempts to assassinate " ) + *(tar->name) +
-					", but is prevented by amulet of true seeing." );
-			return;
-		}
+	int noNoAss = tar->ItemsWithAttribute(ItemType::STOP_ASSASINATE);
+	int noMen = tar->GetMen();
+	if(noNoAss) {
+	  if (getrandom(noMen) < noNoAss) {
+	    tar->Event( "Assassination prevented by magic item." );
+	    u->Event( AString( "Attempts to assassinate " ) + *(tar->name) +
+		      ", but is prevented by magic item." );
+	    return;
+	  }
 	}
 	u->Practise(S_STEALTH);
 	RunBattle(r,u,tar,ass);
@@ -425,15 +424,15 @@ void Game::Do1Steal(ARegion * r,Object * o,Unit * u)
 		return;
 	}
 
-	//
-	// New rule; if a target has an amulet of true seeing they can't be
-	// stolen from by someone with a ring of invisibility
-	//
-	if(tar->AmtsPreventCrime(u)) {
-		tar->Event( "Theft prevented by amulet of true seeing." );
-		u->Event( AString( "Attempts to steal from " ) + *(tar->name) + ", but "
-				"is prevented by amulet of true seeing." );
-		return;
+	int noNoTheft = tar->ItemsWithAttribute(ItemType::STOP_THEFT);
+	int noMen = tar->GetMen();
+	if(noNoTheft) {
+	  if (getrandom(noMen) > noNoTheft) {
+	    tar->Event( "Theft prevented by magic item." );
+	    u->Event( AString( "Attempts to steal from " ) + *(tar->name) + ", but "
+				"is prevented by magic item." );
+	    return;
+	  }
 	}
 
 	int amt = 1;

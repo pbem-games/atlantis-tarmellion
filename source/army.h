@@ -122,12 +122,12 @@ class Army
 		int NumFront();
 		Soldier *GetAttacker( int, int & );
 		int GetEffectNum(int effect);
-		int GetTargetNum( int = SPECIAL_NONE );
+		int GetTargetNum(int special, int attackbehind);
 		Soldier *GetTarget( int );
 		int RemoveEffects(int num, int effect);
 		int DoAnAttack( int special, int numAttacks, int attackType,
 				int attackLevel, int flags, int weaponClass, int effect,
-				int mountBonus);
+				int mountBonus, int attackbehind);
 		void Kill(int);
 		void Reset();
 

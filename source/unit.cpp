@@ -556,10 +556,10 @@ AString * Unit::BattleReport(int obs)
 	*temp += lvl;
   }
 
-  lvl = GetRealSkill(S_LONGBOW);
+  lvl = GetRealSkill(S_ARCHERY);
   if (lvl) {
 	*temp += ", ";
-	*temp += SkillDefs[S_LONGBOW].name;
+	*temp += SkillDefs[S_ARCHERY].name;
 	*temp += " ";
 	*temp += lvl;
   }
@@ -1461,17 +1461,14 @@ int Unit::CanSee(ARegion * r,Unit * u, int practise)
 	return faction->CanSee(r,u, practise);
 }
 
-int Unit::AmtsPreventCrime(Unit *u)
-{
-	if(!u) return 0;
-
-	int amulets = items.GetNum(I_AMULETOFTS);
-	if((u->items.GetNum(I_RINGOFI) < 1) || (amulets < 1)) return 0;
-	int men = GetMen();
-	if(men <= amulets) return 1;
-	if(!Globals->PROPORTIONAL_AMTS_USAGE) return 0;
-	if(getrandom(men) < amulets) return 1;
-	return 0;
+int Unit::ItemsWithAttribute(int att) {
+  int n=0;
+  for (int it;it<NITEMS;it++) {
+    if (ItemDefs[it].attributes & att) {
+      n += items.GetNum(it);
+    }
+  }
+  return n;
 }
 
 int Unit::GetAttitude(ARegion * r,Unit * u)
@@ -1521,7 +1518,7 @@ int Unit::Taxers()
 		((Globals->WHO_CAN_TAX & GameDefs::TAX_COMBAT_SKILL) &&
 		 GetSkill(S_COMBAT)) ||
 		((Globals->WHO_CAN_TAX & GameDefs::TAX_BOW_SKILL) &&
-		 (GetSkill(S_CROSSBOW) || GetSkill(S_LONGBOW))) ||
+		 (GetSkill(S_CROSSBOW) || GetSkill(S_ARCHERY))) ||
 		((Globals->WHO_CAN_TAX & GameDefs::TAX_RIDING_SKILL) &&
 		 GetSkill(S_RIDING)) ||
 		((Globals->WHO_CAN_TAX & GameDefs::TAX_STEALTH_SKILL) &&
@@ -1875,6 +1872,8 @@ void Unit::Error(const AString & s)
 
 int Unit::GetSkillBonus(int sk)
 {
+        int max_bonus = 0;
+	int nitems = 0;
 	int bonus = 0;
 	int men = GetMen();
 	switch(sk) {
@@ -1885,18 +1884,41 @@ int Unit::GetSkillBonus(int sk)
 			} else {
 				bonus = (GetSkill(S_TRUE_SEEING)+1)/2;
 			}
-			if ((bonus < (2 + Globals->IMPROVED_AMTS)) &&
-					items.GetNum(I_AMULETOFTS)) {
-				bonus = 2 + Globals->IMPROVED_AMTS;
+			for(int it=0;it<NITEMS;it++) {
+			  // Item effects OBSE and we have any.
+			  if((ItemDefs[it].attributes & ItemType::OBSE_BONUS) &&
+			     (items.GetNum(it))) {
+			    if (bonus < ItemDefs[it].pValue) {
+			      bonus = ItemDefs[it].pValue;
+			    }
+			  }
 			}
 			break;
 		case S_STEALTH:
 			if(men == 1 && Globals->FULL_INVIS_ON_SELF) {
 				bonus = GetSkill(S_INVISIBILITY);
 			}
-			if((bonus < 3) &&
-					(GetFlag(FLAG_INVIS) || men <= items.GetNum(I_RINGOFI))) {
-				bonus = 3;
+			// find max STEA_BONUS
+			max_bonus = 0;
+			for(int it=0;it<NITEMS;it++) {
+			  if((ItemDefs[it].attributes & ItemType::STEA_BONUS)
+			     && (ItemDefs[it].pValue > max_bonus)) {
+			    max_bonus = ItemDefs[it].pValue;
+			  }
+			}
+			nitems = 0;
+			while (max_bonus > 0) {
+			  for(int it=0;it<NITEMS;it++) {
+			    if((ItemDefs[it].attributes & ItemType::STEA_BONUS)
+			       && (ItemDefs[it].pValue == max_bonus)) {
+			      nitems += items.GetNum(it);
+			    }
+			  }
+			  if (nitems >= men) break;
+			  max_bonus--;
+			}
+			if (max_bonus > bonus) {
+			  bonus = max_bonus;
 			}
 			break;
 		default:

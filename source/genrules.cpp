@@ -3109,7 +3109,7 @@ int Game::GenRules(const AString &rules, const AString &css,
 		"target will generally not get any sort of combat bonus to defense "
 		"against a ranged attack. ";
 	if(!(ItemDefs[I_LONGBOW].flags & ItemType::DISABLED) &&
-			!(SkillDefs[S_LONGBOW].flags & SkillType::DISABLED)) {
+			!(SkillDefs[S_ARCHERY].flags & SkillType::DISABLED)) {
 		temp += "The skill check to hit with a long bow is made against an "
 			"effective defense of ";
 		temp += -(WeaponDefs[WEAPON_LONGBOW].attackBonus);

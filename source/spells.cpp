@@ -835,6 +835,47 @@ void Game::RunMindReading(ARegion *r,Unit *u)
 	u->Event(temp);
 }
 
+// void Game::RunSummonItem(ARegion *r, Unit *u)
+// {
+//   CastItemOrder *order = (CastItemOrder *) u->castorders;
+//   int skill = order->spell;
+//   int level = u->GetSkill(skill);
+//   int item = order->item;
+
+//   if (ItemDefs[item].summon == -1) {
+//     u->Error("CAST: not a valid item");
+//     return;
+//   }
+//   SummonType *st = &SummonDefs[summon];
+//   if (st->mLevel > level) {
+//     u->Error("CAST: insufficent level to summon item.");
+//     return;
+//   }
+
+//   int max = ItemDefs[item].mOut * level;
+
+//   for (int c=0; c<sizeof(st->mInput)/sizeof(Materials); c++) {
+//     int it = st->mInput[c].item;
+//     int amt = st->mInput[c].amt;
+//     if (it != -1) {
+//       if (u->items.GetNum(it)/amt > max) {
+// 	max = u->items.GetNum(it)/amt;
+//       }
+//     }
+//   }
+//   u->items.SetNum(item, u->items.GetNum(item) + max);
+//   for (int c=0; c<sizeof(st->mInput)/sizeof(Materials); c++) {
+//     int it = st->mInput[c].item;
+//     int amt = st->mInput[c].amt;
+//     u->items.SetNum(u->items.GetNum(it) - max * amt);
+//   }
+//   u->Event(AString("Enchants ") + ItemString(item,max) + ".");
+//   u->Practise(skill);
+//   if (st->notify != -1) {
+//     r->NotifySpell(u,st->notify, &regions);
+//   }
+// }
+
 void Game::RunEnchantArmor(ARegion *r,Unit *u)
 {
 	CastItemOrder *order = (CastItemOrder *) u->castorders;

@@ -88,7 +88,7 @@ AString *ShowSkill::Report(Faction *f)
 			if(level > 1) break;
 			*str += "This skill deals with all aspects of production of weapons, armor and metallic goods. It is needed to perfect the arts of weaponcraft or armorcraft";
 			break;
-		case S_CARPENTER:
+		case S_TOOLMAKING:
 			if(level > 1) break;
 			*str += "This skill deals with all aspects of production of wooden goods that are not weapons.";
 			break;
@@ -149,7 +149,7 @@ AString *ShowSkill::Report(Faction *f)
 			*str += "A unit with this skill may use any kind of crossbow, either in battle, or to TAX or PILLAGE a "
 				"region.";
 			break;
-		case S_LONGBOW:
+		case S_ARCHERY:
 			if(level > 1) break;
 			*str += "A unit with this skill may use any kind of bow, either in battle, or to TAX or PILLAGE a "
 				"region.";
@@ -1037,11 +1037,6 @@ AString *ShowSkill::Report(Faction *f)
 				"create a Ring of Invisibility, which grants a 3 bonus to a "
 				"unit's effective Stealth (note that a unit must possess "
 				"one ring for each man to gain this bonus).";
-			if(ITEM_ENABLED(I_AMULETOFTS)) {
-				*str += " A Ring of Invisibility has one limitation; a "
-					"unit possessing a ring cannot assassinate, nor steal "
-					"from, a unit with an Amulet of True Seeing.";
-			}
 			*str += " A mage has a 20 percent times his level chance to "
 				"create a Ring of Invisibility. To use this spell, the mage "
 				"should CAST Create_Ring_of_Invisibility.";
@@ -1084,13 +1079,6 @@ AString *ShowSkill::Report(Faction *f)
 			*str += "A mage with the Create Amulet of Tree Seeing skill may "
 				"create an Amulet of True Seeing. This amulet gives the "
 				"possessor a bonus of 3 to his effective Observation skill.";
-			if(ITEM_ENABLED(I_RINGOFI)) {
-				*str += "Also, a unit with an Amulet of True Seeing cannot "
-					"be assassinated by, nor have items stolen by, a unit "
-					"with a Ring of Invisibility (Note that the unit must "
-					"have at least one Amulet of True Seeing per man to "
-					"repel a unit with a Ring of Invisibility).";
-			}
 			*str += "A mage has a 20 percent times his skill level chance to "
 			   "create an Amulet of True Seeing. To use this spell, CAST "
 			   "Create_Amulet_of_True_Seeing.";

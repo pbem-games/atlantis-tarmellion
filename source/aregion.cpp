@@ -138,8 +138,8 @@ ARegion::ARegion()
 	//
 	// Make the dummy object
 	//
-	Object * obj = new Object(this);
-	objects.Add(obj);
+       	Object * obj = new Object(this);
+       	objects.Add(obj);
 }
 
 ARegion::~ARegion()
@@ -1673,6 +1673,7 @@ void ARegion::Readin(Ainfile * f,AList * facs, ATL_VER v)
 	markets.Readin(f);
 
 	int i = f->GetInt();
+	objects.DeleteAll();
 	for (int j=0; j<i; j++) {
 		Object * temp = new Object(this);
 		temp->Readin(f,facs,v);
@@ -2047,23 +2048,23 @@ void ARegion::WriteReport(Areport * f,Faction * fac,int month,
 				}
 			}
 		}
-		cout << "*** Temporary for removal of extra objects (trash this when bug is found) ***" << endl;
-		{
-		  Object *dummy = (Object *)NULL;
-		  forlist (&objects) {
-		    Object *o = (Object *) elem;
-		    if (dummy == (Object *)NULL && o->type == O_DUMMY) {
-		      dummy = o;
-		    } else if (o->type == O_DUMMY) {
-		      cout << "*** Beep, beep. Duplicate dummy object found in " << ShortPrint(pRegions) << endl;
-		      forlist (&(o->units)) {
-			Unit *unit = (Unit *)elem;
-			unit->MoveUnit(dummy);
-		      }
-		      objects.Remove((AListElem *)o);
-		    }
-		  }
-		}
+		// Code can be removed when bug is found.
+// 		{
+// 		  Object *dummy = (Object *)NULL;
+// 		  forlist (&objects) {
+// 		    Object *o = (Object *) elem;
+// 		    if (dummy == (Object *)NULL && o->type == O_DUMMY) {
+// 		      dummy = o;
+// 		    } else if (o->type == O_DUMMY) {
+// 		      cout << "*** Beep, beep. Duplicate dummy object found in " << ShortPrint(pRegions) << endl;
+// 		      forlist (&(o->units)) {
+// 			Unit *unit = (Unit *)elem;
+// 			unit->MoveUnit(dummy);
+// 		      }
+// 		      objects.Remove((AListElem *)o);
+// 		    }
+// 		  }
+// 		}
 		{
 			forlist (&objects) {
 				((Object *) elem)->Report(f, fac, obs, truesight, detfac,
@@ -3380,7 +3381,7 @@ void ARegionList::MakeShaft(ARegion *reg, ARegionArray *pFrom,
 	o->inner = temp->num;
 	reg->objects.Add(o);
 
-	o = new Object(reg);
+	o = new Object(temp);
 	o->num = temp->buildingseq++;
 	o->name = new AString(AString("Shaft [") + o->num + "]");
 	o->type = O_SHAFT;

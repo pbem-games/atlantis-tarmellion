@@ -74,7 +74,7 @@ class TerrainType
 		int wages;
 		int economy;
 		int movepoints;
-		Product prods[15];
+		Product prods[21];
 		// Race information
 		// A hex near water will have either one of the normal races or one
 		// of the coastal races in it.   Non-coastal hexes will only have one
