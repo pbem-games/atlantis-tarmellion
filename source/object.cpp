@@ -395,7 +395,8 @@ AString *ObjectDescription(int obj) {
 
 	if (o->sailors) {
 		*temp += AString(" This ship requires ") + o->sailors +
-			" total levels of sailing skill to sail.";
+			" total levels of sailing skill to sail ";
+		*temp += AString("with a speed of ") + o->sailSpeed + ".";
 	}
 	if (o->maxMages && Globals->LIMITED_MAGES_PER_BUILDING) {
 		*temp += AString(" This structure will allow up to ") + o->maxMages +
