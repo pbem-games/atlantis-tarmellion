@@ -65,7 +65,6 @@ class ObjectType {
 		int maintFactor;
 
 		int monster;
-
 		int productionAided;
 		int fixedBonus;
 		int workersallowed;

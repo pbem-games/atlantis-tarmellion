@@ -1404,13 +1404,19 @@ void Game::Do1SettleOrder(ARegion * pRegion, Unit * pUnit)
 
 	// Can only change population to one that the same alignment
 	// as that of the settling unit's faction
-	int newRace = ManDefs[ItemDefs[pRegion->race].index].alternaterace;
+	int rand = getrandom(100);
+	int newRace;
+	if (rand<50) 
+		newRace = ManDefs[ItemDefs[pRegion->race].index].alternaterace[0];
+	else if (rand<80)
+		newRace = ManDefs[ItemDefs[pRegion->race].index].alternaterace[1];
+	else
+		newRace = ManDefs[ItemDefs[pRegion->race].index].alternaterace[2];
 
 	if( ( ItemDefs[newRace].flags & ItemType::EVIL &&
 		  !(ItemDefs[pUnit->faction->race].flags & ItemType::EVIL) ) ||
 		( ItemDefs[newRace].flags & ItemType::GOOD &&
- 		  !(ItemDefs[pUnit->faction->race].flags & ItemType::GOOD) ) ) 
-	{
+ 		  !(ItemDefs[pUnit->faction->race].flags & ItemType::GOOD) ) ) {
 		pUnit->Error("SETTLE: Can't change race to one that is of a different alignment to your race.");
 		return;
 	}

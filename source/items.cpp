@@ -541,10 +541,14 @@ AString *ItemDescription(int item, int full) {
 			*temp += AString("all skills to level ") +
 				ManDefs[man].defaultlevel + ".";
 		}
-		int altRace = ManDefs[man].alternaterace;
+		int altRace = ManDefs[man].alternaterace[0];
+		int altRace1 = ManDefs[man].alternaterace[1];
+		int altRace2 = ManDefs[man].alternaterace[2];
 		if( altRace != -1 && full ) {
 			*temp += AString( " A region with this race may be changed to " ) + ItemDefs[altRace].names +
 				" by using the SETTLE command. ";
+			if ((altRace1+altRace2) != -1 && (altRace1 != altRace || altRace2!=altRace))
+				 *temp += AString( " Settling might result to other races as well. ");
 		}
 	}
 	if (ItemDefs[item].type & IT_MONSTER) {

@@ -2063,6 +2063,8 @@ int GetSpellFailureChance( Unit * u, int sk )
 		chance -= ( level * level );
 	} else if( SkillDefs[sk].failType == SkillType::FAIL_MINUS_SKILL_TIMES_TEN ) {
 		chance -= ( level * 10 );
+	} else if( SkillDefs[sk].failType == SkillType::FAIL_MINUS_SKILL_TIMES_TWENTY ) {
+		chance -= ( level * 20 );
 	}
 
 	return chance;

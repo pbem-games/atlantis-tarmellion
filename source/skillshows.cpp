@@ -1448,6 +1448,7 @@ AString *ShowSkill::Report(Faction *f) {
 	AString temp;
 	AString temp1;
 	AString temp2;
+	AString temp3;
 	int comma = 0;
 	int comma1 = 0;
 	int comma2 = 0;
@@ -1588,19 +1589,21 @@ AString *ShowSkill::Report(Faction *f) {
 
 	// Spell failure
 	if (SkillDefs[skill].failChance > 0) {
-		temp += " The chance that this spell will fail is equal to ";
-		temp += AString(SkillDefs[skill].failChance) + " ";
+		temp3 = " The chance that this spell will fail is equal to ";
+		temp3 += AString(SkillDefs[skill].failChance) + " ";
 
 		if (SkillDefs[skill].failType == SkillType::FAIL_MINUS_SKILL ) {
-			temp += "minus the caster's skill level ";
+			temp3 += "minus the caster's skill level ";
 		} else if (SkillDefs[skill].failType == SkillType::FAIL_DIVIDE_SKILL ) {
-			temp += "divided by the caster's skill level ";
+			temp3 += "divided by the caster's skill level ";
 		} else if( SkillDefs[skill].failType == SkillType::FAIL_MINUS_SKILL_SQUARED ) {
-			temp += "minus the caster's skill level squared ";
+			temp3 += "minus the caster's skill level squared ";
 		} else if( SkillDefs[skill].failType == SkillType::FAIL_MINUS_SKILL_TIMES_TEN ) {
-			temp += "minus ten times the caster's skill level ";
+			temp3 += "minus ten times the caster's skill level ";
+		} else if( SkillDefs[skill].failType == SkillType::FAIL_MINUS_SKILL_TIMES_TWENTY ) {
+			temp3 += "minus twenty times the caster's skill level ";
 		}		
-		temp += "percent, per casting.";
+		temp3 += "percent, per casting.";
 	}
 
 	// Buildings
@@ -1676,7 +1679,7 @@ AString *ShowSkill::Report(Faction *f) {
 	if (*str == "") {
 		*str = temp1 + "No skill report.";
 	} else {
-		*str = temp1 + *str;
+		*str = temp1 + *str + temp3;
 	}
 
 	return str;

@@ -186,7 +186,11 @@ class ManType {
 		M_ALL		= 0xFFFF,
 	};
 	int species;
-	int alternaterace;
+	// target race for settle command
+        // alternaterace[0] : 50%
+        // alternaterace[1] : 30%
+        // alternaterace[2] : 20%
+	int alternaterace[3];
 };
 
 extern ManType * ManDefs;
