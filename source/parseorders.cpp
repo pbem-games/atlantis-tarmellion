@@ -2067,7 +2067,7 @@ void Game::ProcessGiveOrder(Unit *unit,AString * o, OrdersCheck *pCheck) {
 				} else if (*token == "special") {
 					item = -IT_SPECIAL;
 					found = 1;
-				} else if (*token == "food") {
+				} else if (*token == "foodstuff") {
 					item = -IT_FOOD;
 					found = 1;
 				} else if ((*token == "tool") || (*token == "tools")) {
