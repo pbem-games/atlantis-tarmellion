@@ -2123,18 +2123,18 @@ int Unit::GetStealthLevel( int activeUse )
 		}
 	}
 
-	// LLS
+	// Scouting acts as stealth+1
+	if (manscout) manscout++;
+
+	// Add stealth bonus from items
 	int bonus = GetSkillBonus(S_STEALTH);
 	manstealth += bonus;
 	manscout += bonus;
-	
-	// Scouting acts as stealth+1
-	manscout++;
 
 	int highest = manstealth;
-	if( activeUse && manscout > manstealth ) highest = manscout;
+	if( !activeUse && manscout > manstealth ) highest = manscout;
 
 	if (monstealth < highest) return monstealth;
-	return manstealth;
+	return highest;
 }
 

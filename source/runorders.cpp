@@ -1281,7 +1281,7 @@ void Game::CheckWMonAttack(ARegion * r,Unit * mon)
 					int num = u->GetMen();
 					int rand = 300 - num;
 					if( rand < 100 ) rand = 100;
-					if( getrandom( rand ) < u->Hostile() ) {
+					if( getrandom( rand ) < mon->Hostile() ) {
 						UnitPtr * p = new UnitPtr;
 						p->ptr = u;
 						targets.Add( p );
