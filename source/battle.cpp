@@ -163,7 +163,6 @@ if( debug ) Awrite("1");
 	if (!def->NumAlive()) return;
 if( debug ) Awrite("2");
 
-	// New Rule: Mounts can use specials even if they are behind 1
 	if (!behind && (a->riding != -1)) {
 		MountType *pMt = &MountDefs[ItemDefs[a->riding].index];
 		if (pMt->mountSpecial != -1) {
@@ -266,9 +265,9 @@ if( debug ) Awrite( "-Done Attack" );
 
 	a->ClearOneTimeEffects();
 
-	// Mount gets to attack too
+	// Mount gets to attack too. They will always attack as if in the frontline
 	if( a->mount )
-		DoAttack(round, a->mount, attackers, def, behind, ass, canattackback);
+		DoAttack(round, a->mount, attackers, def, 0/*behind*/, ass, canattackback);
 	
 }
 
