@@ -496,11 +496,11 @@ AString *ObjectDescription(int obj)
 	}
 
 	if (o->populationbonus != 0) {
-	  *temp += AString(" This object increases the maximum population of a region to ") + o->populationbonus + AString(" above it's normal level, with reducing effieceny.");
+	  *temp += AString(" This object increases the maximum population of a region to ") + o->populationbonus + AString(" above it's normal level, with reducing efficiency.");
 	}
 
 	if (o->wagebonus != 0) {
-	  *temp += AString(" This object increases the maximum wages of a region to ") + o->wagebonus + AString(" above it's normal level, with reducing effieceny.");
+	  *temp += AString(" This object increases the maximum wages of a region to ") + o->wagebonus + AString(" above it's normal level, with reducing efficiency.");
 	}
 
 	return temp;

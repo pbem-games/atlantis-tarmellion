@@ -739,7 +739,6 @@ AString *ItemDescription(int item, int full)
 		int comma = 0;
 		int last = -1;
 		*temp += " This is a tool.";
-		*temp += " This item increases the production of ";
 		for(i = NITEMS - 1; i > 0; i--) {
 			if(ItemDefs[i].flags & ItemType::DISABLED) continue;
 			if(ItemDefs[i].mult_item == item) {
@@ -758,6 +757,8 @@ AString *ItemDescription(int item, int full)
 					   *temp += ", ";
 				   }
 			   }
+			   else
+		     *temp += " This item increases the production of ";
 			   comma++;
 			   if(i == I_SILVER) {
 				   *temp += "entertainment";
@@ -772,7 +773,6 @@ AString *ItemDescription(int item, int full)
 		// Sharky
 		comma = 0;
 		last = -1;
-		*temp += " This item increases the building of ";
 		for(i = NOBJECTS - 1; i > 0; i--) {
 			if(ObjectDefs[i].flags & ObjectType::DISABLED) continue;
 			if(ObjectDefs[i].mult_item == item) {
@@ -791,6 +791,8 @@ AString *ItemDescription(int item, int full)
 					   *temp += ", ";
 				   }
 			   }
+			   else
+		     *temp += " This item increases the building of ";
 			   comma++;
 				  *temp += ObjectDefs[i].name;
 			   *temp += AString(" by ") + ObjectDefs[i].mult_val;
