@@ -1636,6 +1636,7 @@ void Game::DoBuy(ARegion * r,Market * m) {
 							}
 						} else {
 							u->Error("BUY: Faction has no race set.");
+							u->buyorders.Remove(o);
 							delete o;
 							continue;
 						}
@@ -1650,6 +1651,7 @@ void Game::DoBuy(ARegion * r,Market * m) {
 							}
 						} else {
 							u->Error("BUY: Faction has no race set.");
+							u->buyorders.Remove(o);
 							delete o;
 							continue;
 						}
@@ -1661,8 +1663,8 @@ void Game::DoBuy(ARegion * r,Market * m) {
 						u->buyorders.Remove(o);
 						u->Event(AString("Buys ") + ItemString(o->item,temp)
 							 + " at $" + m->price + " each.");
+						delete o;
 					}
-					delete o;
 				}
 			}
 		}

@@ -198,6 +198,7 @@ class ManType {
         // alternaterace[1] : 30%
         // alternaterace[2] : 20%
 	int alternaterace[3];
+	int monster; /* Combat stats */
 };
 
 extern ManType * ManDefs;

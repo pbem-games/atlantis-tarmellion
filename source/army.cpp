@@ -274,7 +274,7 @@ Soldier::Soldier(Unit * u,Object * o,int regtype,int r,int ass) {
 	// If we did not get a weapon, set attack and defense bonuses to
 	// combat skill (and riding bonus if applicable).
 	if (weapon == -1) {
-		attackBonus = unit->GetSkill(S_COMBAT) + ridingBonus;
+ 		attackBonus = unit->GetSkill(S_COMBAT) + ridingBonus;
 		defenseBonus = attackBonus;
 		numAttacks = 1;
 	} else {
@@ -300,6 +300,42 @@ Soldier::Soldier(Unit * u,Object * o,int regtype,int r,int ass) {
 	askill += attackBonus;
 	dskill[ATTACK_COMBAT] += defenseBonus;
 	attacks = numAttacks;
+
+	// Does this race have monster stats?
+	if( ItemDefs[race].type & IT_MAN && ManDefs[ItemDefs[race].index].monster != -1 ) {
+		MonType * mt = &MonDefs[ManDefs[ItemDefs[race].index].monster];
+
+		// Check minimum number of attacks and hits
+		if( mt->numAttacks > attacks ) attacks = mt->numAttacks;
+        if( mt->hits > hits ) {
+			hits = mt->hits;
+			maxhits = hits;
+		}
+
+		// Use race special if one isn't already set
+		if( mt->special != -1 && mt->specialLevel && special == -1 ) {
+			special = mt->special;
+			slevel = mt->specialLevel;
+		}
+
+		// If race has higher defence ratings vs. non-combat attacks, use them
+		if (mt->defense[ATTACK_ENERGY] > dskill[ATTACK_ENERGY]) {
+			dskill[ATTACK_ENERGY] = mt->defense[ATTACK_ENERGY];
+		}
+		if (mt->defense[ATTACK_SPIRIT] > dskill[ATTACK_SPIRIT]) {
+			dskill[ATTACK_SPIRIT] = mt->defense[ATTACK_SPIRIT];
+		}
+		if (mt->defense[ATTACK_WEATHER] > dskill[ATTACK_WEATHER]) {
+			dskill[ATTACK_WEATHER] = mt->defense[ATTACK_WEATHER];
+		}
+		if (mt->defense[ATTACK_RIDING] > dskill[ATTACK_RIDING]) {
+			dskill[ATTACK_RIDING] = mt->defense[ATTACK_RIDING];
+		}
+		if (mt->defense[ATTACK_RANGED] > dskill[ATTACK_RANGED]) {
+			dskill[ATTACK_RANGED] = mt->defense[ATTACK_RANGED];
+		}
+	}
+
 }
 
 void Soldier::SetupSpell() {
