@@ -118,6 +118,7 @@ class Object : public AListElem
 
 		void SetPrevDir(int);
 		void MoveObject( ARegion *toreg );
+		void Notify(AString message);
 
 		AString *name;
 		AString *describe;

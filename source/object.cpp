@@ -505,3 +505,24 @@ AString *ObjectDescription(int obj)
 
 	return temp;
 }
+
+void Object::Notify(AString message)
+{
+  AList flist;
+
+  forlist ((&units)) {
+    Unit *u = (Unit *) elem;
+    if (!GetFaction2(&flist,u->faction->num)) {
+      FactionPtr *fp = new FactionPtr;
+      fp->ptr = u->faction;
+      flist.Add(fp);
+    }
+  }
+
+  {
+    forlist(&flist) {
+      FactionPtr *fp = (FactionPtr *) elem;
+      fp->ptr->Event(message);
+    }
+  }
+}

@@ -518,7 +518,7 @@ private:
     int ValidProd(Unit *,ARegion *,Object *,Production *);
     int FindAttemptedProd(ARegion *,Production *);
     void RunAProduction(ARegion *,Production *);
-    void RunUnitProduce(ARegion *,Unit *);
+    void RunUnitProduce(ARegion *,Object *,Unit *);
     void Run1BuildOrder(ARegion *,Object *,Unit *);
 	void RunBuildHelpers(ARegion *);
     void RunSailOrders();

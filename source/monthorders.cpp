@@ -596,7 +596,7 @@ void Game::RunMonthOrders()
 	}
 }
 
-void Game::RunUnitProduce(ARegion * r,Unit * u)
+void Game::RunUnitProduce(ARegion *r, Object *obj, Unit *u)
 {
 	ProduceOrder * o = (ProduceOrder *) u->monthorders;
 
@@ -649,10 +649,12 @@ void Game::RunUnitProduce(ARegion * r,Unit * u)
 			if(i != -1)
 				count += u->items.GetNum(i) / ItemDefs[o->item].pInput[c].amt;
 		}
+		if (ItemDefs[o->item].requiredstructure == obj->type) {
+		  maxproduced *= (int)obj->productionratio;
+		}
 		if (maxproduced > count)
 			maxproduced = count;
 		count = maxproduced;
-
 		// Deduct the items spent
 		for(c = 0; c < sizeof(ItemDefs->pInput)/sizeof(Materials); c++) {
 			int i = ItemDefs[o->item].pInput[c].item;
@@ -723,17 +725,37 @@ void Game::RunProduceOrders(ARegion * r)
 	{
 		forlist((&r->objects)) {
 			Object * obj = (Object *) elem;
+			int workers = 0;
 			forlist ((&obj->units)) {
-				Unit * u = (Unit *) elem;
-				if (u->monthorders) {
-					if (u->monthorders->type == O_PRODUCE) {
-						RunUnitProduce(r,u);
-					} else {
-						if (u->monthorders->type == O_BUILD) {
-							Run1BuildOrder(r,obj,u);
-						}
-					}
+			  Unit * u = (Unit *) elem;
+			  if (u->monthorders) {
+			    if (u->monthorders->type == O_PRODUCE) {
+			      ProduceOrder *po = (ProduceOrder *)u->monthorders;
+			      if (ItemDefs[po->item].requiredstructure == obj->type) {
+				workers += u->GetMen();
+			      }
+			    }
+			  }
+			}
+			if (workers > ObjectDefs[obj->type].workersallowed) {
+			  obj->productionratio = (float)ObjectDefs[obj->type].workersallowed/(float)workers;
+			  obj->Notify(*(obj->name) + AString(" ") + ObjectDefs[obj->type].name + AString(" is over worked, workers are inefficent."));
+			} else {
+			  obj->productionratio = 1.0;
+			}
+			{
+			  forlist ((&obj->units)) {
+			    Unit * u = (Unit *) elem;
+			    if (u->monthorders) {
+			      if (u->monthorders->type == O_PRODUCE) {
+				RunUnitProduce(r,obj,u);
+			      } else {
+				if (u->monthorders->type == O_BUILD) {
+				  Run1BuildOrder(r,obj,u);
 				}
+			      }
+			    }
+			  }
 			}
 		}
 	}
@@ -809,6 +831,7 @@ int Game::FindAttemptedProd(ARegion * r,Production * p) {
     } else {
       attempted += amt * (workers/men);
       obj->productionratio = (float)workers/(float)men;
+      obj->Notify(*(obj->name) + AString(" ") + ObjectDefs[obj->type].name + AString(" is over worked, workers are inefficent."));
     }
   }
   return attempted;
