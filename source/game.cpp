@@ -2380,13 +2380,6 @@ char Game::GetRChar(ARegion * r) {
 		case R_T_FOREST3:
 		case R_CE_GDFOREST:
 		case R_CE_GDFOREST1:
-			c = 'f'; break;
-		case R_T_FOREST4:
-		case R_T_FOREST5:
-		case R_T_FOREST6:
-		case R_CE_EVFOREST:
-		case R_CE_EVFOREST1:
-			c = 'e'; break;
 		case R_UFOREST:
 		case R_T_UNDERFOREST1:
 		case R_T_UNDERFOREST2:
@@ -2395,7 +2388,15 @@ char Game::GetRChar(ARegion * r) {
 		case R_CE_GDDFOREST:
 		case R_CE_GDDFOREST1:
 		case R_CE_GDUFOREST1:
+		case R_T_MYSTFOREST1:
+		case R_CE_MYSTFOREST:
+		case R_CE_MYSTFOREST1:
 			c = 'f'; break;
+		case R_T_FOREST4:
+		case R_T_FOREST5:
+		case R_T_FOREST6:
+		case R_CE_EVFOREST:
+		case R_CE_EVFOREST1:
 		case R_T_DEEPFOREST1:
 		case R_T_DEEPFOREST2:
 		case R_T_DEEPFOREST3:
@@ -2403,13 +2404,8 @@ char Game::GetRChar(ARegion * r) {
 		case R_CE_EVUFOREST1:
 		case R_CE_EVDFOREST:
 		case R_CE_EVDFOREST1:
-			c = 'e'; break;
-		case R_T_MYSTFOREST1:
-		case R_CE_MYSTFOREST:
-		case R_CE_MYSTFOREST1:
-			c = 'y'; break;
 		case R_T_MYSTFOREST2:
-			c = 'y'; break;
+			c = 'e'; break;
 		case R_MOUNTAIN:
 		case R_ISLAND_MOUNTAIN:
 		case R_T_MOUNTAIN1:
@@ -2481,7 +2477,6 @@ char Game::GetRChar(ARegion * r) {
 		case R_T_DESERT6:
 		case R_CE_EVDESERT:
 		case R_CE_EVDESERT1:
-			c = 'b'; break;
 		case R_CE_WASTELAND:
 		case R_CE_WASTELAND1:
 			c = 'z'; break;
@@ -2545,13 +2540,13 @@ char Game::GetRChar(ARegion * r) {
 		case R_T_CHAMBER4:
 		case R_T_CHAMBER5:
 		case R_T_CHAMBER6:
-			return 'v';
+			c = 'v'; break;
 		case R_T_GROTTO1:
 		case R_T_GROTTO2:
 			c = 'g'; break;
 		case R_CE_ICE:
-			c = 'i'; break;
 		case R_CE_GLACIER:
+			c = 'i'; break;
 		case R_CE_CRYSTALCAVERN:
 		case R_CE_BLUECAVERN:
 		case R_CE_REDCAVERN:
@@ -2602,9 +2597,9 @@ void Game::CreateCityMon(ARegion *pReg, int percent, int needmage) {
 	if (pReg->type == R_NEXUS || pReg->IsStartingCity()) {
 		skilllevel = TOWN_CITY + 1;
 		num = Globals->AMT_START_CITY_GUARDS;
-		if (Globals->SAFE_START_CITIES || (pReg->type == R_NEXUS)) {
+		if (Globals->SAFE_START_CITIES || (pReg->type == R_NEXUS) || (TerrainDefs[pReg->type].flags&TerrainType::ISNEXUS)) {
 			IV = 1;
-			if (pReg->zloc==0)
+			if (TerrainDefs[pReg->type].flags&TerrainType::ISNEXUS)
 				if (pReg->xloc==0&&pReg->yloc==0) num=100;
 				else num=10;
 		}
@@ -2767,9 +2762,9 @@ void Game::AdjustCityMon(ARegion *r, Unit *u) {
 			if (men > Globals->AMT_START_CITY_GUARDS)
 				men = Globals->AMT_START_CITY_GUARDS;
 		}
-		if (Globals->SAFE_START_CITIES || (r->type == R_NEXUS)) {
+		if (Globals->SAFE_START_CITIES || (r->type == R_NEXUS) || (TerrainDefs[r->type].flags&TerrainType::ISNEXUS)) {
 			IV = 1;
-			if (r->zloc==0)
+			if (TerrainDefs[r->type].flags&TerrainType::ISNEXUS)
 				if (r->xloc==0&&r->yloc==0) men=100;
 				else men=10;
 		}

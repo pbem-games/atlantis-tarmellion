@@ -66,6 +66,7 @@ class TerrainType {
 			CANTWALK = 0x10,	// you can only sail or swim here // TODO: allow also flying
 			CANTSAIL = 0x20,	// you cannot sail into this terrain, even if it is coastal // TODO
 			CANTUNNEL = 0x40,	// you can tunnell into this terrain
+			ISNEXUS = 0x80,	        // cityguards in this terrain are invincible and noone can attack here.
 		};
 		int flags;
 
