@@ -60,7 +60,8 @@ enum {
 	IT_BATTLE = 0x0200,
 	IT_SPECIAL = 0x0400,
 	IT_TOOL = 0x0800,
-	IT_FOOD = 0x1000
+	IT_FOOD = 0x1000,
+	IT_ABSTRACT = 0x2000,
 };
 
 struct Materials
@@ -85,6 +86,7 @@ class ItemType
 			// A number of items are produced equal to the producer's
 			// skill, based on a fixed number of inputs
 			SKILLOUT = 0x10,
+			// this item is never produced simply a place holder.
 		};
 		int flags;
 
@@ -116,6 +118,8 @@ class ItemType
 		// LLS
 		int mult_item;
 		int mult_val;
+		int requiredstructure;
+		int byproducts[3];
 };
 
 extern ItemType * ItemDefs;
@@ -123,9 +127,20 @@ extern ItemType * ItemDefs;
 class ManType
 {
 	public:
-		int speciallevel;
-		int defaultlevel;
-		int skills[6];
+
+  enum {
+    NONE    = 0x00,
+    LEADER  = 0x01,
+    POPULUS = 0x02,
+    SCARCE  = 0x04,
+  };
+
+  int flags;
+  int minority; // This is used to point to another race which my ocuppy the hex.
+  int speciallevel[15];
+  int defaultlevel;
+  int defaultmagiclevel;
+  int specialskills[15];
 };
 
 extern ManType * ManDefs;
@@ -149,6 +164,7 @@ class MonType
 
 		int silver;
 		int spoiltype;
+		int spoilitems[5]; /* overrides spoiltype */
 		int hostile; /* Percent */
 		int number;
 		char *name;
@@ -283,7 +299,7 @@ class BattleItemType
 };
 
 extern BattleItemType *BattleItemDefs;
-
+AString AttType(int atype);
 int ParseGiveableItem(AString *);
 int ParseAllItems(AString *);
 int ParseEnabledItem(AString *);

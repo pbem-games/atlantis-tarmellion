@@ -70,10 +70,15 @@ void Market::PostTurn(int population,int wages)
     {
 		float ratio = ItemDefs[item].baseprice / (float)Globals->BASE_MAN_COST;
         price = (int)(wages * 4 * ratio);
-        if (item == I_LEADERS)
-            amount = population / 25;
-        else
-            amount = population / 5;
+
+	// Note no limit checking (ie pop can be greater than maxpop).
+	amount = minamt +
+	  ((maxamt - minamt) * (population - minpop)) /
+	  (maxpop - minpop);
+	//        if (item == I_LEADERS)
+	//            amount = population / 25;
+	//        else
+	//            amount = population / 5;
         return;
     }
 

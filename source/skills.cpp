@@ -60,18 +60,22 @@ int SkillMax(int skill,int race)
 
 	if( !Globals->MAGE_NONLEADERS ) {
 		if( SkillDefs[skill].flags & SkillType::MAGIC ) {
-			if( race != I_LEADERS ) {
+			if( !(ManDefs[race].flags & ManType::LEADER) ) {
 				return( 0 );
 			}
 		}
 	}
 
-	for(unsigned int c=0; c < sizeof(ManDefs[mantype].skills) /
-								sizeof(ManDefs[mantype].skills[0]); c++) {
-		if(ManDefs[mantype].skills[c] == skill)
-			return ManDefs[mantype].speciallevel;
+	for(unsigned int c=0; c < sizeof(ManDefs[mantype].specialskills) /
+								sizeof(ManDefs[mantype].specialskills[0]); c++) {
+		if(ManDefs[mantype].specialskills[c] == skill)
+			return ManDefs[mantype].speciallevel[c];
 	}
-	return ManDefs[mantype].defaultlevel;
+	if( SkillDefs[skill].flags & SkillType::MAGIC ) {
+	  return ManDefs[mantype].defaultmagiclevel;
+	} else {
+	  return ManDefs[mantype].defaultlevel;
+	}
 }
 
 int GetLevelByDays(int dayspermen)

@@ -29,7 +29,7 @@
 #include "object.h"
 #include "gamedata.h"
 
-static AString AttType(int atype)
+AString AttType(int atype)
 {
 	switch(atype) {
 		case ATTACK_COMBAT: return AString("melee");
@@ -287,6 +287,7 @@ AString ShowSpecial(int special, int level, int expandLevel, int fromItem)
 			temp += "only ";
 		}
 		temp += "target creatures which are currently affected by ";
+		last = -1;
 		for(i = 0; i < 3; i++) {
 			if(spd->effects[i] == -1) continue;
 			if(last == -1) {
@@ -512,24 +513,39 @@ AString *ItemDescription(int item, int full)
 
 	if(ItemDefs[item].type & IT_MAN) {
 		int man = ItemDefs[item].index;
+		if (ManDefs[man].flags & ManType::LEADER) {
+		  *temp += " This race may study multiple skills.";
+		} 
 		int found = 0;
 		*temp += " This race may study ";
 		unsigned int c;
-		unsigned int len = sizeof(ManDefs[man].skills) /
-							sizeof(ManDefs[man].skills[0]);
+		unsigned int len = sizeof(ManDefs[man].specialskills) /
+							sizeof(ManDefs[man].specialskills[0]);
+		int first = 1;
 		for(c = 0; c < len; c++) {
-			int skill = ManDefs[man].skills[c];
+			int skill = ManDefs[man].specialskills[c];
 			if(skill != -1) {
 				if(SkillDefs[skill].flags & SkillType::DISABLED) continue;
-				if(found) *temp += ", ";
-				if(found && c == len - 1) *temp += "and ";
+				if(!first) *temp += ", ";
+				int end = (c == len -1 || (c < len -1 && ManDefs[man].speciallevel[c] != ManDefs[man].speciallevel[c+1]) ? 1 : 0);
+				if(!first && end) *temp += "and ";
 				found = 1;
-				*temp += SkillStrs(ManDefs[man].skills[c]);
+				first = 0;
+				*temp += SkillStrs(ManDefs[man].specialskills[c]);
+				if (end) {
+				  first = 1;
+				  if (ManDefs[man].speciallevel[c] > 0) {
+				    *temp += AString(" to level ") + ManDefs[man].speciallevel[c];
+				  } else {
+				    *temp += AString(" are not studyable");
+				  }
+				  *temp += AString(", ");
+				}
 			}
 		}
 		if(found) {
-			*temp += AString(" to level ") + ManDefs[man].speciallevel +
-				" and all others to level " + ManDefs[man].defaultlevel;
+			*temp += AString("all other non-magic skills can be studied to level ") + ManDefs[man].defaultlevel;
+			*temp += AString(" and other magic skills to level ") + ManDefs[man].defaultmagiclevel + ".";
 		} else {
 			*temp += AString("all skills to level ") +
 				ManDefs[man].defaultlevel;
@@ -752,8 +768,38 @@ AString *ItemDescription(int item, int full)
 		   }
 		}
 		*temp += ".";
+		
+		// Sharky
+		comma = 0;
+		last = -1;
+		*temp += " This item increases the building of ";
+		for(i = NOBJECTS - 1; i > 0; i--) {
+			if(ObjectDefs[i].flags & ObjectType::DISABLED) continue;
+			if(ObjectDefs[i].mult_item == item) {
+				last = i;
+				break;
+			}
+		}
+		for(i = 0; i < NOBJECTS; i++) {
+		   if(ObjectDefs[i].flags & ObjectType::DISABLED) continue;
+		   if(ObjectDefs[i].mult_item == item) {
+			   if(comma) {
+				   if(last == i) {
+					   if(comma > 1) *temp += ",";
+					   *temp += " and ";
+				   } else {
+					   *temp += ", ";
+				   }
+			   }
+			   comma++;
+				  *temp += ObjectDefs[i].name;
+			   *temp += AString(" by ") + ObjectDefs[i].mult_val;
+		   }
+		}
+		*temp += ".";
+		// fSharky
 	}
-
+	
 	if(ItemDefs[item].type & IT_TRADE) {
 		*temp += " This is a trade good.";
 		if(full) {
@@ -855,6 +901,36 @@ AString *ItemDescription(int item, int full)
 				}
 			}
 		}
+		if(ItemDefs[item].requiredstructure != -1) {
+		  *temp += AString(" To produce this item a ") + ObjectDefs[ItemDefs[item].requiredstructure].name + " is required.";
+		}
+	}
+	if (ItemDefs[item].type == IT_ABSTRACT) {
+	  *temp += AString(" This is an abstract item.");
+	}
+	int len = sizeof(ItemDefs[item].byproducts)/sizeof(ItemDefs[item].byproducts[0]);
+	int max = 0;
+	for (int by=0;by<len;by++) {
+	  if (ItemDefs[item].byproducts[by] != -1) max++;
+	}
+	if (max > 0) {
+	  int count = 0;
+	  for (int by=0;by<len;by++) {
+	    if (ItemDefs[item].byproducts[by] != -1) {
+	      ItemType byprod = ItemDefs[ItemDefs[item].byproducts[count]];
+	      if (count == 0) {
+		*temp += AString(" By-products produced are ");
+	      }
+	      if (count == 0) {
+		*temp += byprod.name;
+	      } else if (count < max-1) {
+		*temp += AString(", ") + byprod.name;
+	      } else {
+		*temp += AString(", and ") + byprod.name + ".";
+	      }
+	      count++;
+ 	    }
+	  }
 	}
 	if(ItemDefs[item].mSkill != -1 &&
 			!(SkillDefs[ItemDefs[item].mSkill].flags & SkillType::DISABLED)) {

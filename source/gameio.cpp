@@ -101,7 +101,7 @@ int Agetint()
 
 void Awrite(const AString & s)
 {
-    cout << s << ENDLINE;
+    cout << s << ENDLINE << flush;
 }
 
 void Adot()

@@ -351,9 +351,16 @@ int Unit::CanGetSpoil(Item *i)
 	int walk = ItemDefs[i->type].walk;
 
 	if(flags & FLAG_NOSPOILS) return 0;
+	// Sharky. Modified behaviour for weight spoils constraints
+	if ((flags & FLAG_FLYSPOILS)  && !CanFly(Weight() + weight - fly)) return 0;
+	if ((flags & FLAG_RIDESPOILS) && !CanRide(Weight() + weight - ride)) return 0;
+	if ((flags & FLAG_WALKSPOILS) && !CanWalk(Weight() + weight - walk)) return 0;
+	// fSharky
+	/*
 	if((flags & FLAG_FLYSPOILS) && fly < weight) return 0; // only flying
 	if((flags & FLAG_WALKSPOILS) && walk < weight) return 0; // only walking
 	if((flags & FLAG_RIDESPOILS) && ride < weight) return 0; // only riding
+	*/
 	return 1; // all spoils
 }
 
@@ -965,7 +972,17 @@ int Unit::CanStudy(int sk)
 
 	if(SkillDefs[sk].flags & SkillType::DISABLED) return 0;
 
-	unsigned int c;
+	int max = 1000;
+	forlist (&items) {
+	  Item *i = (Item *)elem;
+	  if (ItemDefs[i->type].type & IT_MAN) {
+	    int m = SkillMax(sk, i->type);
+	    if (m < max) max = m;
+	  }
+	}
+	if (curlev >= max) return 0;
+
+  	unsigned int c;
 	for(c = 0; c < sizeof(SkillDefs[sk].depends)/sizeof(SkillDepend); c++) {
 		if(SkillDefs[sk].depends[c].skill == -1) return 1;
 		if(SkillDefs[SkillDefs[sk].depends[c].skill].flags &
@@ -978,31 +995,14 @@ int Unit::CanStudy(int sk)
 
 int Unit::Study(int sk,int days)
 {
-	Skill *s;
 
 	if(Globals->SKILL_LIMIT_NONLEADERS && !IsLeader()) {
 		if (skills.Num()) {
-			s = (Skill *) skills.First();
+			Skill *s = (Skill *) skills.First();
 			if (s->type != sk) {
 				Error("STUDY: Can know only 1 skill.");
 				return 0;
 			}
-		}
-	}
-	forlist(&skills) {
-		s = (Skill *)elem;
-		if (s->type != sk) continue;
-		int max = 1000;
-		forlist (&items) {
-			Item *i = (Item *)elem;
-			if (ItemDefs[i->type].type & IT_MAN) {
-				int m = SkillMax(s->type, i->type);
-				if (m < max) max = m;
-			}
-		}
-		if (GetRealSkill(s->type) >= max) {
-			Error("STUDY: Maximum level for skill reached.");
-			return 0;
 		}
 	}
 
@@ -1072,8 +1072,18 @@ int Unit::Practise(int sk)
 
 int Unit::IsLeader()
 {
-	if (GetMen(I_LEADERS)) return 1;
+
+  forlist(&items) {
+    Item * i = (Item *) elem;
+    if (ItemDefs[i->type].type & IT_MAN) {
+      if ( ManDefs[ItemDefs[i->type].index].flags & ManType::LEADER) {
+	return 1;
+      } else {
 	return 0;
+      }
+    }
+  }
+  return 0;
 }
 
 int Unit::IsNormal()
@@ -1087,14 +1097,23 @@ void Unit::AdjustSkills()
 	//
 	// First, is the unit a leader?
 	//
-	if(IsLeader()) {
+        if(IsLeader()) {
 		//
 		// Unit is all leaders: Make sure no skills are > max
 		//
 		forlist(&skills) {
 			Skill * s = (Skill *) elem;
-			if (GetRealSkill(s->type) >= SkillMax(s->type,I_LEADERS)) {
-				s->days = GetDaysByLevel(SkillMax(s->type,I_LEADERS)) *
+			int max = 100;
+			forlist(&items) {
+				Item * i = (Item *) elem;
+				if (ItemDefs[i->type].type & IT_MAN) {
+					if (SkillMax(s->type,i->type) < max) {
+						max = SkillMax(s->type,i->type);
+					}
+				}
+			}
+			if (GetRealSkill(s->type) >= max) {
+				s->days = GetDaysByLevel(max) *
 					GetMen();
 			}
 		}
@@ -1146,7 +1165,7 @@ void Unit::AdjustSkills()
 				theskill->days = GetDaysByLevel(max) * GetMen();
 			}
 		}
-	}
+       	}
 }
 
 int Unit::MaintCost()
@@ -1886,6 +1905,19 @@ int Unit::GetProductionBonus(int item)
 	if (bonus > GetMen()) bonus = GetMen();
 	return bonus * ItemDefs[item].mult_val;
 }
+
+// Sharky
+int Unit::GetBuildBonus(int object)
+{
+	int bonus = 0;
+	if (ObjectDefs[object].mult_item != -1)
+		bonus = items.GetNum(ObjectDefs[object].mult_item);
+	else
+		bonus = GetMen();
+	if (bonus > GetMen()) bonus = GetMen();
+	return bonus * ObjectDefs[object].mult_val;
+}
+// fSharky
 
 int Unit::SkillLevels()
 {

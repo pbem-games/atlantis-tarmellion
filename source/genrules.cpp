@@ -417,6 +417,9 @@ int Game::GenRules(const AString &rules, const AString &css,
 		"wiped out, you can rejoin the game with a new starting "
 		"character.)";
 	f.Paragraph(temp);
+	temp = "In Tarmellion the starting character is a little different from all the others that can be hired. "
+	  "It is a true hero and will already know a range of skills that are determined by the profession chosen by you at game start. He also has quite a lot more possibilities of studying than all the others. If this character is killed, you will not drop out of the game, but will suffer a severe setback. So kepp him safe!";
+	f.Paragraph(temp);
 	Faction fac;
 	if(Globals->FACTION_LIMIT_TYPE == GameDefs::FACLIM_MAGE_COUNT) {
 		temp = "A faction has one pre-set limit; it may not contain more than ";
@@ -424,7 +427,7 @@ int Game::GenRules(const AString &rules, const AString &css,
 		if(Globals->APPRENTICES_EXIST) {
 			temp += AString("and ") + AllowedApprentices(&fac) + " apprentices";
 		}
-		temp += ". Magic is a rare art, and only a few in the world can "
+		temp += ". Magic is a rare art, and only a few races or their most advanced members in the world can "
 			"master it. Aside from that, there  is no limit to the number "
 			"of units a faction may contain, nor to how many items can be "
 			"produced or regions taxed.";
@@ -577,6 +580,8 @@ int Game::GenRules(const AString &rules, const AString &css,
 	}
 	temp += ".";
 	f.Paragraph(temp);
+	temp = "In Tarmellion I can only encourage you to balance your faction points. A specialized faction might have fun playing this game but I doubt it. I advice that you have at least two Faction Areas. The three Faction Areas are very closely linked and doing without one or even two should be well thought about. Naturally you may decide otherwise and spend you faction points however you like.";
+	f.Paragraph(temp);
 	temp = "An example faction is shown below, consisting of a starting "
 		"character, Merlin the Magician, who has formed two more units, "
 		"Merlin's Guards and Merlin's Workers. Each unit is assigned a "
@@ -590,7 +595,7 @@ int Game::GenRules(const AString &rules, const AString &css,
 	f.Paragraph("");
 	f.Enclose(1, "PRE");
 	f.ClearWrapTab();
-	if(Globals->LEADERS_EXIST) {
+	if(Globals->LEADERS_EXIST == GameDefs::NORMAL_LEADERS) {
 		f.WrapStr("* Merlin the Magician (17), Merlin (27), leader [LEAD].  "
 				"Skills: none.");
 	} else {
@@ -626,22 +631,22 @@ int Game::GenRules(const AString &rules, const AString &css,
 	f.Paragraph(temp);
 	if(Globals->RACES_EXIST) {
 		temp = "There are different races that make up the population of "
-			"Atlantis. (See the section on skills for a list of these.)";
-		if(Globals->LEADERS_EXIST) {
+			"Atlantis. (See the section on skills for a list of these.) In addition there are some special persons in some races that almost make up a new race. They have the possibility to gain higher skills and to learn more than one skill. (You should also see the section on skills about them.)";
+		if(Globals->LEADERS_EXIST == GameDefs::NORMAL_LEADERS) {
 			temp += " In addition, there are \"leaders\", who are presumed "
 				"to be of one of the other races, but are all the same "
 				"in game terms.";
 		}
 	} else {
 		temp = "Units are made of of ordinary people";
-		if(Globals->LEADERS_EXIST) {
+		if(Globals->LEADERS_EXIST == GameDefs::NORMAL_LEADERS) {
 			temp += "as well as leaders";
 		}
 		temp += ".";
 	}
 	if (Globals->LEADERS_EXIST&&Globals->SKILL_LIMIT_NONLEADERS) {
 		temp += " Units made up of normal people may only know one skill, "
-			"and cannot teach other units.  Units made up of leaders "
+			"and cannot teach other units.  Units made up of leaders or special persons or races"
 			"may know as many skills as desired, and may teach other "
 			"units to speed the learning process.";
 	}
@@ -699,8 +704,8 @@ int Game::GenRules(const AString &rules, const AString &css,
 	temp += "Swamp";
 	if(!Globals->CONQUEST_GAME)
 		temp += ", Jungle, Desert, or Tundra";
-	temp += ". (There may be other types of terrain to be discovered as the "
-		"game progresses.)  Regions can contain units belonging to players; "
+	temp += ". (There are other types of terrain to be discovered as the "
+		"game progresses. Some of them may be encountered while reading these rules.)  Regions can contain units belonging to players; "
 		"they can also contain structures such as buildings";
 	if(may_sail)
 		temp += " and ships";
@@ -733,16 +738,16 @@ int Game::GenRules(const AString &rules, const AString &css,
 	f.WrapStr("Wanted: none.");
 	temp = "For Sale: 50 ";
 	if(Globals->RACES_EXIST)
-		temp += "nomads [NOMA]";
+		temp += "nomads [RNOMA]";
 	else
 		temp += "men [MAN]";
 	temp += " at $";
-	float ratio = ItemDefs[(Globals->RACES_EXIST?I_NOMAD:I_MAN)].baseprice/
+	float ratio = ItemDefs[(Globals->RACES_EXIST?I_TRNOMAD:I_MAN)].baseprice/
 		(float)Globals->BASE_MAN_COST;
 	temp += (int)(60*ratio);
 	if(Globals->LEADERS_EXIST) {
 		ratio = ItemDefs[I_LEADERS].baseprice/(float)Globals->BASE_MAN_COST;
-		temp += ", 10 leaders [LEAD] at $";
+		temp += ", 10 nomad leaders [LNOMA] at $";
 		temp += (int)(60*ratio);
 	}
 	temp += ".";
@@ -767,9 +772,9 @@ int Game::GenRules(const AString &rules, const AString &css,
 	f.DropWrapTab();
 	temp = "* Hans Shadowspawn (15), Merry Pranksters (14), ";
 	if(Globals->LEADERS_EXIST)
-		temp2 = "leader [LEAD]";
+		temp2 = "nomad leader [LNOMA]";
 	else if(Globals->RACES_EXIST)
-		temp2 = "nomad [NOMA]";
+		temp2 = "nomad [RNOMA]";
 	else
 		temp2 = "man [MAN]";
 	temp += temp2 + ", 500 silver [SILV]. Skills: none.";
@@ -843,9 +848,9 @@ int Game::GenRules(const AString &rules, const AString &css,
 	f.WrapStr(temp);
 	temp = "- Rowing Doom (188), ";
 	if(Globals->RACES_EXIST)
-		temp += "10 nomads [NOMA]";
+		temp += "10 nomads [RNOMA]";
 	else if(Globals->LEADERS_EXIST)
-		temp += "10 leaders [LEAD]";
+		temp += "10 nomad leaders [LNOMA]";
 	else
 		temp += "10 men [MAN]";
 	temp += ", 10 swords [SWOR].";
@@ -977,7 +982,7 @@ int Game::GenRules(const AString &rules, const AString &css,
 		temp += ". This is due to the transportation from the Nexus to the "
 			"starting city being magical in nature.";
 		if(!Globals->SAFE_START_CITIES)
-			temp += " Once in the starting city however, no gaurentee of "
+			temp += " Once in the starting city however, no guarantee of "
 				"safety is given.";
 		f.Paragraph(temp);
 		int num_methods = 1 + (Globals->GATES_EXIST?1:0) + (may_sail?1:0);
@@ -1020,7 +1025,11 @@ int Game::GenRules(const AString &rules, const AString &css,
 			"lead to the central island within a few regions.";
 		f.Paragraph(temp);
 	}
-
+	f.Paragraph(temp);
+	f.TagText("H3", "The World of Tarmellion");
+	temp = "In Tarmellion each player starts in one of the large cities of the world. Which it will be will be decided by the profession and race of the starting character. (If I cannot get rid of the nexus it might be that you get another unit there, but I will destroy it in the next turn, so don´t spend time and effort on it.)";
+	f.Paragraph(temp);
+	temp = "These starting cities are the capitols of existing nations on Tarmellion. They will be surrounded by lands also under the rule of the ruler of the city. That will ensure a little bit of safe space for players to roam around in before braving the unknown and continuing into the wilderness beyond. It will also be possible to make a career inside these nations, if a player wants to.";
 	f.LinkRef("movement");
 	f.ClassTagText("DIV", "rule", "");
 	f.TagText("H2", "Movement");
@@ -1071,7 +1080,7 @@ int Game::GenRules(const AString &rules, const AString &css,
 	if(!(ItemDefs[I_HORSE].flags & ItemType::DISABLED)) {
 		if(!(ItemDefs[I_WAGON].flags & ItemType::DISABLED)) temp += ", ";
 		else temp += " and ";
-		temp += "horses";
+		temp += "mounts";
 	}
 	if(!(ItemDefs[I_WAGON].flags & ItemType::DISABLED) &&
 			(!(ItemDefs[I_HORSE].flags & ItemType::DISABLED))) {
@@ -1152,13 +1161,7 @@ int Game::GenRules(const AString &rules, const AString &css,
 		"northwest.  Moving from one region to another normally takes one "
 		"movement point, except that the following terrain types take two "
 		"movement points for riding or walking units to enter:";
-	temp += " Forest, Mountain, ";
-	if(Globals->CONQUEST_GAME)
-		temp += "and ";
-	temp += "Swamp";
-	if(!Globals->CONQUEST_GAME)
-		temp += ", Jungle, and Tundra";
-	temp += ".";
+	temp += " Forest, Mountain, Hill, Jungle, Swamp, Tundra, Mystforest, Underforest, Grotto, Deepforest and Tunnel";
 	if (Globals->WEATHER_EXISTS) {
 		temp += " Also, during certain seasons (depending on the latitude "
 			"of the region), all units (including flying ones) have a "
@@ -1167,6 +1170,7 @@ int Game::GenRules(const AString &rules, const AString &css,
 			"in the tropics, seasonal hurricane winds and torrential "
 			"rains have a similar effect.";
 	}
+	temp += " Some Lake, Swamp or Tunnel regions may have differing movement costs, because they are more or less difficult to cross.";
 	temp += " Units may not move through ocean regions ";
 	if(may_sail) {
 		temp += "without using the ";
@@ -1204,7 +1208,7 @@ int Game::GenRules(const AString &rules, const AString &css,
 	temp += cap;
 	temp += " and the weight of the man and other items is ";
 	int weight = ItemDefs[I_MAN].weight + ItemDefs[I_SWORD].weight +
-			ItemDefs[I_CHAINARMOR].weight;
+			ItemDefs[I_IRONCHAINARMOR].weight;
 	temp += weight;
 	if(cap > weight)
 		temp += ", so he can ride";
@@ -1427,8 +1431,8 @@ int Game::GenRules(const AString &rules, const AString &css,
 	f.LinkRef("skills_limitations");
 	f.TagText("H3", "Limitations:");
 	if (Globals->LEADERS_EXIST && Globals->SKILL_LIMIT_NONLEADERS) {
-		temp = "A unit made up of leaders may know one or more skills; "
-			"for the rest of this section, the word \"leader\" will refer "
+		temp = "A unit made up of leaders may know one or more skills. In Tarmellion there are some races or special persons of a given race who can know more than one skill. Either their name contains the word leader or at least their abreviation starts with an L.; "
+			"For the rest of this section, the word \"leader\" will refer "
 			"to such a unit.  Other units, those which contain "
 			"non-leaders, will be refered to as normal units. A normal "
 			"unit may only know one skill.";
@@ -1465,9 +1469,9 @@ int Game::GenRules(const AString &rules, const AString &css,
 		f.Enclose(1, "TABLE BORDER=1");
 		f.Enclose(1, "TR");
 		f.TagText("TH", "Race/Type");
-		f.TagText("TH", "Specilized Skills");
-		f.TagText("TH", "Max Level (specialized skills)");
-		f.TagText("TH", "Max Level (non-specialized skills)");
+		f.TagText("TH", "Specilized Skills (level)");
+		f.TagText("TH", "Default Level");
+		f.TagText("TH", "Default Magic Level");
 		f.Enclose(0, "TR");
 		for(i = 0; i < NITEMS; i++) {
 			if(ItemDefs[i].flags & ItemType::DISABLED) continue;
@@ -1481,27 +1485,27 @@ int Game::GenRules(const AString &rules, const AString &css,
 			int spec = 0;
 			comma = 0;
 			temp = "";
-			for(j = 0; j < (int)(sizeof(ManDefs->skills) /
-						 sizeof(ManDefs->skills[0])); j++) {
-				if(ManDefs[m].skills[j] < 0) continue;
-				if(SkillDefs[ManDefs[m].skills[j]].flags & SkillType::DISABLED)
+			for(j = 0; j < (int)(sizeof(ManDefs->specialskills) /
+						 sizeof(ManDefs->specialskills[0])); j++) {
+				if(ManDefs[m].specialskills[j] < 0) continue;
+				if(SkillDefs[ManDefs[m].specialskills[j]].flags & SkillType::DISABLED)
 					continue;
 				spec = 1;
 				if(comma) temp += ", ";
-				temp += SkillDefs[ManDefs[m].skills[j]].name;
+				temp += SkillDefs[ManDefs[m].specialskills[j]].name;
+				temp += " (";
+				temp += ManDefs[m].speciallevel[j];
+				temp += ")";
 				comma++;
 			}
 			if(!spec) temp = "None.";
 			f.PutStr(temp);
 			f.Enclose(0, "TD");
 			f.Enclose(1, "TD ALIGN=LEFT NOWRAP");
-			if(spec)
-				f.PutStr(ManDefs[m].speciallevel);
-			else
-				f.PutStr("--");
+			f.PutStr(ManDefs[m].defaultlevel);
 			f.Enclose(0, "TD");
 			f.Enclose(1, "TD ALIGN=LEFT NOWRAP");
-			f.PutStr(ManDefs[m].defaultlevel);
+			f.PutStr(ManDefs[m].defaultmagiclevel);
 			f.Enclose(0, "TD");
 			f.Enclose(0, "TR");
 		}
@@ -1550,10 +1554,16 @@ int Game::GenRules(const AString &rules, const AString &css,
 	// XXX -- This is not as nice as it could be and could cause problems
 	// if the skills are given disparate costs.   This should probably be
 	// a table of all skills/costs.
-	temp = "Most skills cost $";
+	temp = "The basic skills (like combat or farming) cost $";
 	temp += SkillDefs[S_COMBAT].cost;
 	temp += " per person per month to study (in addition to normal "
-		"maintenance costs).  The exceptions are ";
+	  "maintenance costs).";
+	f.Paragraph(temp);
+	temp = "Skills that produce things out of ressources (like smithing or building) cost $";
+	temp += SkillDefs[S_SMITHING].cost;
+	temp += ".";
+	f.Paragraph(temp);
+	temp = "The exceptions are ";
 	if(has_stea || has_obse) {
 		if(has_stea) temp += "Stealth";
 		if(has_obse) {
@@ -1568,6 +1578,12 @@ int Game::GenRules(const AString &rules, const AString &css,
 		temp += SkillDefs[S_STEALTH].cost;
 		temp += "), ";
 	}
+	temp += "Animaltaming and Monstertaming (which cost $";
+	temp += SkillDefs[S_ANIMALTAMING].cost;
+	temp += "), ";
+	temp += "Weaponcraft and Armorcraft (which cost $";
+	temp += SkillDefs[S_WEAPONCRAFT].cost;
+	temp += "), ";
 	temp += "Magic skills (which cost $";
 	temp += SkillDefs[S_FORCE].cost;
 	temp += ")";
@@ -1576,6 +1592,10 @@ int Game::GenRules(const AString &rules, const AString &css,
 		temp += SkillDefs[S_TACTICS].cost;
 		temp += ")";
 	}
+	temp += ".";
+	f.Paragraph(temp);
+	temp = "But the study costs for each skill are given in the skill report after first studying. So if you have trouble remembering the exact cost of a given skill, remember that there is no skill more expensive than $";
+	temp += SkillDefs[S_TACTICS].cost;
 	temp += ".";
 	f.Paragraph(temp);
 	f.LinkRef("skills_teaching");
@@ -1732,7 +1752,7 @@ int Game::GenRules(const AString &rules, const AString &css,
 	}
 	temp += ".";
 	if (Globals->FOOD_ITEMS_EXIST) {
-		temp += " Units may substitute one unit of grain, livestock, or "
+		temp += " Units may substitute one unit of rations, food, delicatessen, meat, mushroom, grain, small livestock, small lizards, livestock, lizards, or "
 			"fish for each ";
 		temp += Globals->UPKEEP_FOOD_VALUE;
 		temp += " silver of maintenance owed. ";
@@ -1750,9 +1770,10 @@ int Game::GenRules(const AString &rules, const AString &css,
 		temp += "A unit may use the ";
 		temp += f.Link("#consume", "CONSUME") + " order to specify that it "
 			"wishes to use food items in preference to silver.  Note that ";
-		temp += "these items are worth more when sold in towns, so selling "
-			"them and using the money is more economical than using them for "
-			"maintenance.";
+		temp += "these items may be worth more when sold in towns, so selling "
+			"them and using the money might be more economical than using them for "
+			"maintenance. ";
+		temp += "As multiple items of rations and food can be made out of the other types of edibles, it makes sense to rely on these others only in emergencies. ";
 	};
 	f.Paragraph(temp);
 	f.LinkRef("economy_recruiting");
@@ -1937,6 +1958,25 @@ int Game::GenRules(const AString &rules, const AString &css,
 				temp += AString("+") + ItemDefs[j].mult_val +
 					" bonus when producing " + ItemDefs[j].names + ".<BR>";
 			}
+			// Sharky
+			for (j = 0; j < NOBJECTS; j++)
+			{
+			 if (ObjectDefs[j].flags & ObjectType::DISABLED) continue;
+			 if (ObjectDefs[j].mult_item != i) continue;
+			 k = ObjectDefs[j].skill;
+			 if (k != -1 && (SkillDefs[k].flags & SkillType::DISABLED))
+			  continue;
+			 l = ObjectDefs[j].item;
+			 if (l != -1 &&
+			     l != I_WOOD_OR_STONE &&
+							!(ItemDefs[l].flags & ItemType::DISABLED) &&
+							!(ItemDefs[l].type & IT_NORMAL))
+				 continue;
+				
+				temp += AString("+") + ObjectDefs[j].mult_val +
+					" bonus when building a " + ObjectDefs[j].name + ".<BR>";
+			}
+			// fSharky
 		}
 		f.PutStr(temp);
 		f.Enclose(0, "TD");
@@ -1944,7 +1984,7 @@ int Game::GenRules(const AString &rules, const AString &css,
 	}
 	f.Enclose(0, "TABLE");
 	f.Enclose(0, "CENTER");
-	temp = "All items except silver and trade goods are produced with the ";
+	temp = "All items except silver, some magical items and monster drops are produced with the ";
 	temp += f.Link("#produce", "PRODUCE") + " order.";
 	if(!(ItemDefs[I_SWORD].flags & ItemType::DISABLED)) {
 		last = -1;
@@ -2019,10 +2059,10 @@ int Game::GenRules(const AString &rules, const AString &css,
 			(ItemDefs[I_LONGBOW].pOut == 1)) {
 		temp += "; thus, 5 longbows could be produced by a 5-man unit of "
 			"skill 1, or a 1-man unit of skill 5.";
-		if(!(ItemDefs[I_PLATEARMOR].flags & ItemType::DISABLED) &&
-			(ItemDefs[I_PLATEARMOR].pMonths==ItemDefs[I_PLATEARMOR].pLevel)) {
+		if(!(ItemDefs[I_IRONPLATEARMOR].flags & ItemType::DISABLED) &&
+			(ItemDefs[I_IRONPLATEARMOR].pMonths==ItemDefs[I_IRONPLATEARMOR].pLevel)) {
 			temp += " (Plate armor is an exception; a unit must have skill ";
-			temp += ItemDefs[I_PLATEARMOR].pLevel;
+			temp += ItemDefs[I_IRONPLATEARMOR].pLevel;
 			temp += " to be able to produce it at all, and each man can only "
 				"produce 1 plate armor per month.";
 			last = -1;
@@ -2030,12 +2070,12 @@ int Game::GenRules(const AString &rules, const AString &css,
 			k = 0;
 			for(i = 0; i < (int) (sizeof(ItemDefs->pInput) /
 					sizeof(ItemDefs->pInput[0])); i++) {
-				j = ItemDefs[I_PLATEARMOR].pInput[i].item;
+				j = ItemDefs[I_IRONPLATEARMOR].pInput[i].item;
 				if(j == -1) continue;
 				if(ItemDefs[j].flags & ItemType::DISABLED) continue;
 				if(last == -1) {
 					last = j;
-					k = ItemDefs[I_PLATEARMOR].pInput[i].amt;
+					k = ItemDefs[I_IRONPLATEARMOR].pInput[i].amt;
 					continue;
 				}
 				temp2 += AString(k);
@@ -2043,14 +2083,14 @@ int Game::GenRules(const AString &rules, const AString &css,
 				temp2 += ItemDefs[last].names;
 				temp2 += " and ";
 				last = j;
-				k = ItemDefs[I_PLATEARMOR].pInput[i].amt;
+				k = ItemDefs[I_IRONPLATEARMOR].pInput[i].amt;
 			}
 			if(last != -1) {
 				temp2 += AString(k);
 				temp2 += " units of ";
 				temp2 += ItemDefs[last].names;
 			}
-			j = ItemDefs[I_PLATEARMOR].pSkill;
+			j = ItemDefs[I_IRONPLATEARMOR].pSkill;
 			if(last != -1 && !(SkillDefs[j].flags & SkillType::DISABLED)) {
 				temp += " Plate armor also takes ";
 				temp += temp2;
@@ -2100,7 +2140,7 @@ int Game::GenRules(const AString &rules, const AString &css,
 			"of the region they are in. ";
 		if(Globals->FOOD_ITEMS_EXIST) {
 			temp += "Also, villages will have an additional market for "
-				"grain, livestock, and fish. ";
+				"grain, mushrooms, livestock, lizards and fish. ";
 		}
 		temp += "As the village's demand for these goods is met, the "
 			"population will increase. When the population reaches a "
@@ -2203,19 +2243,19 @@ int Game::GenRules(const AString &rules, const AString &css,
 	temp += ".  To construct these structures requires a high skill level in "
 		"the production skill related to the item that the structure will "
 		"help produce. ";
-	if(!(ObjectDefs[O_INN].flags & ObjectType::DISABLED)) {
-		temp += "(Inns are an exception to this rule, requiring the Building "
-			"skill, not the Entertainment skill.) ";
-	}
 	temp += "This bonus in production is available to any unit in the "
 		"region; there is no need to be inside the structure.";
 	f.Paragraph(temp);
-	temp = "The first structure built in a region will increase the maximum "
+	temp = "There are two ways how this bonus is gotten.";
+	f.Paragraph(temp);
+	temp = "The first possibility is that the first structure built in a region will increase the maximum "
 		"production of the related product by 25%; the amount added by each "
 		"additional structure will be half of the the effect of the previous "
 		"one.  (Note that if you build enough of the same type of structure "
 		"in a region, the new structures may not add _any_ to the production "
 		"level).";
+	f.Paragraph(temp);
+	temp = "The second possibility is that the first structure boosts the production of the related item by a fixed amount. The maount added by each additional structure will be half that amount.";
 	f.Paragraph(temp);
 	f.LinkRef("tabletradestructures");
 	f.Enclose(1, "CENTER");
@@ -3046,10 +3086,10 @@ int Game::GenRules(const AString &rules, const AString &css,
 		temp += "Possession of a horse, and Riding skill, also confers a "
 			"bonus to effective Combat skill equal to the Riding skill "
 			"level (up to a maximum of ";
-		temp += MountDefs[MOUNT_HORSE].maxBonus;
+		temp += MountDefs[MOUNT_HORS].maxBonus;
 		temp += ") provided that the terrain allows horses to be used in "
 			"combat. ";
-		if(!(ItemDefs[I_WHORSE].flags & ItemType::DISABLED)) {
+		if(!(ItemDefs[I_WINGEDHORSE].flags & ItemType::DISABLED)) {
 			temp += "Winged horse are better yet, but require more basic "
 				"Riding skill to gain any advantage. ";
 		}
@@ -3138,7 +3178,7 @@ int Game::GenRules(const AString &rules, const AString &css,
 	f.Paragraph(temp);
 	/* XXX -- Here is where to put the ROUT information */
 	if(!(SkillDefs[S_HEALING].flags & SkillType::DISABLED) &&
-			!(ItemDefs[I_HERBS].flags & SkillType::DISABLED)) {
+			!(ItemDefs[I_HERB].flags & SkillType::DISABLED)) {
 		temp = "Units with the Healing skill have a chance of being able "
 			"to heal casualties of the winning side, so that they recover "
 			"rather than dying.  Each character with this skill can attempt "
@@ -3468,25 +3508,24 @@ int Game::GenRules(const AString &rules, const AString &css,
 	/* XXX -- This needs better handling! */
 	/* Add each foundation here if it exists */
 	if(!(SkillDefs[S_FORCE].flags & SkillType::DISABLED)) {
-		temp += " Force indicates the quantity of magical energy that a "
-			"mage is able to channel (a Force rating of 0 does not mean "
-			"that the mage can channel no magical energy at all, but only "
-			"a minimal amount).";
+		temp += " Force is the skill dealing with the magical manipulation of energy.";
 	}
 	if(!(SkillDefs[S_PATTERN].flags & SkillType::DISABLED)) {
-		temp += " Pattern indicates ability to handle complex patterns, and "
-			"is important for things like healing and nature spells. ";
+		temp += " Pattern is the skill dealing with the magical manipulation of matter.";
 	}
 	if(!(SkillDefs[S_SPIRIT].flags & SkillType::DISABLED)) {
-		temp += " Spirit deals with meta-effects that lie outside the scope "
-			"of the physical world.";
+		temp += " Spirit is the skill dealing with the magical manipulation of the mind.";
 	}
 	f.Paragraph(temp);
 	f.LinkRef("magic_furtherstudy");
 	f.TagText("H3", "Further Magic Study:");
 	temp = "Once a mage has begun study of one or more Foundations, more "
 		"skills that he may study will begin to show up on his report. "
-		"These skills are the skills that give a mage his power.  As with "
+		"These skills are the skills that give a mage his power.  ";
+	f.Paragraph(temp);
+	temp = "In Tarmellion most leaders cannot learn all magical skills. Only the starting character can choose freely from all available skills. In either case the skills he can study will show up on the report.";
+	f.Paragraph(temp);
+	temp = "As with "
 		"normal skills, when a mage achieves a new level of a magic skill, "
 		"he will be given a skill report, describing the new powers (if "
 		"any) that the new skill confers.  The ";
@@ -3615,7 +3654,7 @@ int Game::GenRules(const AString &rules, const AString &css,
 					temp += "Amulets of Invincibility ";
 				if(Globals->START_CITY_GUARDS_PLATE) {
 					if(Globals->SAFE_START_CITIES) temp += "and ";
-					temp += "plate armor ";
+					temp += "plate armor or other equipment ";
 				}
 				temp += "in addition to being more numerous and ";
 				if(Globals->SAFE_START_CITIES)
@@ -3650,7 +3689,7 @@ int Game::GenRules(const AString &rules, const AString &css,
 	}
 	f.LinkRef("nonplayers_controlled");
 	f.TagText("H3", "Controlled Monsters:");
-	temp = "Through various magical methods, you may gain control of "
+	temp = "Through various methods, you may gain control of "
 		"certain types of monsters. These monsters are just another item "
 		"in a unit's inventory, with a few special rules. Monsters will "
 		"be able to carry things at their speed of movement; use the ";
@@ -5185,7 +5224,7 @@ int Game::GenRules(const AString &rules, const AString &css,
 	f.Paragraph(temp);
 	temp = "If you can see a unit, you can see any large items it is "
 		"carrying.  This means all items other than silver";
-	if(!(ItemDefs[I_HERBS].flags & ItemType::DISABLED))
+	if(!(ItemDefs[I_HERB].flags & ItemType::DISABLED))
 		temp += ", herbs,";
 	temp += " and other small items (which are of zero size units, and are "
 		"small enough to be easily concealed). Items carried by your own "

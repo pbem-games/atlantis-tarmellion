@@ -82,11 +82,15 @@ Soldier::Soldier(Unit * u,Object * o,int regtype,int r,int ass)
 	if (o->capacity) {
 		building = o->type;
 		for (int i=0; i<NUM_ATTACK_TYPES; i++) {
-			dskill[i] += 2;
+			dskill[i] += ObjectDefs[building].protection[i];
 		}
 		if (o->runes) {
-			dskill[ATTACK_ENERGY] = o->runes;
-			dskill[ATTACK_SPIRIT] = o->runes;
+		  if (dskill[ATTACK_ENERGY] < o->runes) {
+		    dskill[ATTACK_ENERGY] = o->runes;
+		  }
+		  if (dskill[ATTACK_SPIRIT] < o->runes) {
+		    dskill[ATTACK_SPIRIT] = o->runes;
+		  }
 		}
 		o->capacity--;
 	}
@@ -421,10 +425,10 @@ int Soldier::ArmorProtect(int weaponClass)
 void Soldier::RestoreItems()
 {
 	if (healing && healitem != -1) {
-		if(healitem == I_HERBS) {
+		if(healitem == I_HERB) {
 			unit->items.SetNum(healitem,
 					unit->items.GetNum(healitem) + healing);
-		} else if(healitem == I_HEALPOTION) {
+		} else if(healitem == I_HEALINGPOTION) {
 			unit->items.SetNum(healitem,
 					unit->items.GetNum(healitem)+healing/10);
 		}
@@ -621,33 +625,41 @@ void Army::GetMonSpoils(ItemList *spoils,int monitem, int free)
 	}
 	spoils->SetNum(I_SILVER,spoils->GetNum(I_SILVER) + getrandom(silv));
 
-	int thespoil = MonDefs[ItemDefs[monitem].index].spoiltype;
+	int spoiltype = MonDefs[ItemDefs[monitem].index].spoiltype;
+	// check for an item from the spoils list, if empty continue.
+	int thespoil = MonDefs[ItemDefs[monitem].index].spoilitems[getrandom(sizeof(MonDefs[ItemDefs[monitem].index].spoilitems)/sizeof(MonDefs[ItemDefs[monitem].index].spoilitems[0]))];
 
-	if (thespoil == -1) return;
-	if (thespoil == IT_NORMAL && getrandom(2)) thespoil = IT_TRADE;
-
-	int count = 0;
-	int i;
-	for (i=0; i<NITEMS; i++) {
-		if ((ItemDefs[i].type & thespoil) &&
-				!(ItemDefs[i].type & IT_SPECIAL) &&
-				!(ItemDefs[i].flags & ItemType::DISABLED)) {
-			count ++;
-		}
+	if (ItemDefs[thespoil].flags & ItemType::DISABLED) {
+	  thespoil = -1;
 	}
 
-	count = getrandom(count) + 1;
+	if (thespoil == -1) {
+	  if (spoiltype == -1) return;
+	  if (spoiltype == IT_NORMAL && getrandom(2)) spoiltype = IT_TRADE;
 
-	for (i=0; i<NITEMS; i++) {
-		if ((ItemDefs[i].type & thespoil) &&
-				!(ItemDefs[i].type & IT_SPECIAL) &&
-				!(ItemDefs[i].flags & ItemType::DISABLED)) {
-			count--;
-			if (count == 0) {
-				thespoil = i;
-				break;
-			}
-		}
+	  int count = 0;
+	  int i;
+	  for (i=0; i<NITEMS; i++) {
+	    if ((ItemDefs[i].type & spoiltype) &&
+		!(ItemDefs[i].type & IT_SPECIAL) &&
+		!(ItemDefs[i].flags & ItemType::DISABLED)) {
+	      count ++;
+	    }
+	  }
+
+	  count = getrandom(count) + 1;
+	  
+	  for (i=0; i<NITEMS; i++) {
+	    if ((ItemDefs[i].type & spoiltype) &&
+		!(ItemDefs[i].type & IT_SPECIAL) &&
+		!(ItemDefs[i].flags & ItemType::DISABLED)) {
+	      count--;
+	      if (count == 0) {
+		thespoil = i;
+		break;
+	      }
+	    }
+	  }
 	}
 
 	int val = getrandom(MonDefs[ItemDefs[monitem].index].silver * 2);
@@ -755,7 +767,7 @@ void Army::DoHealLevel(Battle *b, int type, int useItems)
 		if(!s->healing) continue;
 		if(useItems) {
 			if(s->healitem == -1) continue;
-			if (s->healitem != I_HEALPOTION) s->unit->Practise(S_HEALING);
+			if (s->healitem != I_HEALINGPOTION) s->unit->Practise(S_HEALING);
 		} else {
 			if(s->healitem != -1) continue;
 			s->unit->Practise(S_MAGICAL_HEALING);

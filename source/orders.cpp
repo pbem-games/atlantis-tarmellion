@@ -283,6 +283,14 @@ CastMindOrder::~CastMindOrder()
 	delete id;
 }
 
+CastEnchantOrder::CastEnchantOrder()
+{
+}
+
+CastEnchantOrder::~CastEnchantOrder()
+{
+}
+
 TeleportOrder::TeleportOrder()
 {
 }

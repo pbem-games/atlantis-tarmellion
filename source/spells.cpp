@@ -58,9 +58,13 @@ void Game::ProcessCastOrder(Unit * u,AString * o, OrdersCheck *pCheck )
 			case S_MIND_READING:
 				ProcessMindReading(u,o, pCheck );
 				break;
-			case S_CONSTRUCT_PORTAL:
-			case S_ENCHANT_SWORDS:
+			case S_ENCHANT_WEAPONS:
+			  ProcessEnchantSwords(u,o,pCheck);
+			  break;
 			case S_ENCHANT_ARMOR:
+			  ProcessEnchantArmor(u,o,pCheck);
+			  break;
+			case S_CONSTRUCT_PORTAL:
 			case S_CONSTRUCT_GATE:
 			case S_ENGRAVE_RUNES_OF_WARDING:
 			case S_SUMMON_IMPS:
@@ -119,6 +123,45 @@ void Game::ProcessCastOrder(Unit * u,AString * o, OrdersCheck *pCheck )
 				break;
 		}
 	}
+}
+
+void Game::ProcessEnchantSwords(Unit *u, AString *o, OrdersCheck *pCheck )
+{
+  AString *token = o->StripWhite();
+  int item = ParseEnabledItem(token);
+  delete token;
+
+  if (item == -1) {
+    u->Error("CAST: Invalid item specified");
+    return;
+  }
+  
+  CastEnchantOrder *order = new CastEnchantOrder;
+  order->item = item;
+  order->spell = S_ENCHANT_WEAPONS;
+  order->level = 1;
+
+  u->ClearCastOrders();
+  u->castorders = order;
+}
+
+void Game::ProcessEnchantArmor(Unit *u, AString *o, OrdersCheck *pCheck)
+{
+  AString *token = o->StripWhite();
+  int item = ParseEnabledItem(token);
+  delete token;
+  if (item == -1) {
+    u->Error("CAST: Invalid item specified");
+    return;
+  }
+  
+  CastEnchantOrder *order = new CastEnchantOrder;
+  order->item = item;
+  order->spell = S_ENCHANT_ARMOR;
+  order->level = 1;
+
+  u->ClearCastOrders();
+  u->castorders = order;
 }
 
 void Game::ProcessMindReading(Unit *u,AString *o, OrdersCheck *pCheck )
@@ -601,7 +644,7 @@ void Game::RunACastOrder(ARegion * r,Object *o,Unit * u)
 		case S_ENCHANT_ARMOR:
 			RunEnchantArmor(r,u);
 			break;
-		case S_ENCHANT_SWORDS:
+		case S_ENCHANT_WEAPONS:
 			RunEnchantSwords(r,u);
 			break;
 		case S_CONSTRUCT_GATE:
@@ -617,7 +660,7 @@ void Game::RunACastOrder(ARegion * r,Object *o,Unit * u)
 			RunCreateArtifact(r,u,sk,I_RINGOFI);
 			break;
 		case S_CREATE_CLOAK_OF_INVULNERABILITY:
-			RunCreateArtifact(r,u,sk,I_CLOAKOFI);
+			RunCreateArtifact(r,u,sk,I_CLOAKOFINVULNERABILITY);
 			break;
 		case S_CREATE_STAFF_OF_FIRE:
 			RunCreateArtifact(r,u,sk,I_STAFFOFF);
@@ -641,7 +684,7 @@ void Game::RunACastOrder(ARegion * r,Object *o,Unit * u)
 			RunCreateArtifact(r,u,sk,I_MCARPET);
 			break;
 		case S_CREATE_FLAMING_SWORD:
-			RunCreateArtifact(r,u,sk,I_FSWORD);
+			RunCreateArtifact(r,u,sk,I_FLAMINGSWORD);
 			break;
 		case S_SUMMON_IMPS:
 			RunSummonImps(r,u);
@@ -807,25 +850,38 @@ void Game::RunMindReading(ARegion *r,Unit *u)
 
 void Game::RunEnchantArmor(ARegion *r,Unit *u)
 {
+	CastEnchantOrder *order = (CastEnchantOrder *) u->castorders;
 	int level = u->GetSkill(S_ENCHANT_ARMOR);
-	int max = ItemDefs[I_MPLATE].mOut * level;
+	int item = order->item;
+
+	// First check skill and level
+	if (ItemDefs[item].mSkill != S_ENCHANT_ARMOR) {
+	  u->Error("CAST: item can not be enchanted.");
+	  return;
+	}
+	if (ItemDefs[item].mLevel > level) {
+	  u->Error("CAST: insufficent level to enchant.");
+	  return;
+	}
+
+	int max = ItemDefs[item].mOut * level;
 	int num = 0;
 	int count = 0;
 	unsigned int c;
 	int found;
 
 	// Figure out how many components there are
-	for(c=0; c<sizeof(ItemDefs[I_MPLATE].mInput)/sizeof(Materials); c++) {
-		if(ItemDefs[I_MPLATE].mInput[c].item != -1) count++;
+	for(c=0; c<sizeof(ItemDefs[item].mInput)/sizeof(Materials); c++) {
+		if(ItemDefs[item].mInput[c].item != -1) count++;
 	}
 
 	while(max) {
 		int i, a;
 		found = 0;
 		// See if we have enough of all items
-		for(c=0; c<sizeof(ItemDefs[I_MPLATE].mInput)/sizeof(Materials); c++) {
-			i = ItemDefs[I_MPLATE].mInput[c].item;
-			a = ItemDefs[I_MPLATE].mInput[c].amt;
+		for(c=0; c<sizeof(ItemDefs[item].mInput)/sizeof(Materials); c++) {
+			i = ItemDefs[item].mInput[c].item;
+			a = ItemDefs[item].mInput[c].amt;
 			if(i != -1) {
 				if(u->items.GetNum(i) >= a) found++;
 			}
@@ -834,9 +890,9 @@ void Game::RunEnchantArmor(ARegion *r,Unit *u)
 		if(found != count) break;
 
 		// Decrement our inputs
-		for(c=0; c<sizeof(ItemDefs[I_MPLATE].mInput)/sizeof(Materials); c++) {
-			i = ItemDefs[I_MPLATE].mInput[c].item;
-			a = ItemDefs[I_MPLATE].mInput[c].amt;
+		for(c=0; c<sizeof(ItemDefs[item].mInput)/sizeof(Materials); c++) {
+			i = ItemDefs[item].mInput[c].item;
+			a = ItemDefs[item].mInput[c].amt;
 			if(i != -1) {
 				u->items.SetNum(i, u->items.GetNum(i) - a);
 			}
@@ -846,33 +902,46 @@ void Game::RunEnchantArmor(ARegion *r,Unit *u)
 		max--;
 	}
 
-	u->items.SetNum(I_MPLATE,u->items.GetNum(I_MPLATE) + num);
-	u->Event(AString("Enchants ") + num + " mithril armor.");
+	u->items.SetNum(item,u->items.GetNum(item) + num);
+	u->Event(AString("Enchants ") + ItemString(item,num) + ".");
 	u->Practise(S_ENCHANT_ARMOR);
 	r->NotifySpell(u,S_ARTIFACT_LORE, &regions );
 }
 
 void Game::RunEnchantSwords(ARegion *r,Unit *u)
 {
-	int level = u->GetSkill(S_ENCHANT_SWORDS);
-	int max = ItemDefs[I_MSWORD].mOut * level;
+	CastEnchantOrder *order = (CastEnchantOrder *) u->castorders;
+	int level = u->GetSkill(S_ENCHANT_WEAPONS);
+	int item = order->item;
+
+	// First check skill and level
+	if (ItemDefs[item].mSkill != S_ENCHANT_WEAPONS) {
+	  u->Error("CAST: item can not be enchanted.");
+	  return;
+	}
+	if (ItemDefs[item].mLevel > level) {
+	  u->Error("CAST: insufficent level to enchant.");
+	  return;
+	}
+
+	int max = ItemDefs[item].mOut * level;
 	int num = 0;
 	int count = 0;
 	unsigned int c;
 	int found;
 
 	// Figure out how many components there are
-	for(c=0; c<sizeof(ItemDefs[I_MSWORD].mInput)/sizeof(Materials); c++) {
-		if(ItemDefs[I_MSWORD].mInput[c].item != -1) count++;
+	for(c=0; c<sizeof(ItemDefs[item].mInput)/sizeof(Materials); c++) {
+		if(ItemDefs[item].mInput[c].item != -1) count++;
 	}
 
 	while(max) {
 		int i, a;
 		found = 0;
 		// See if we have enough of all items
-		for(c=0; c<sizeof(ItemDefs[I_MSWORD].mInput)/sizeof(Materials); c++) {
-			i = ItemDefs[I_MSWORD].mInput[c].item;
-			a = ItemDefs[I_MSWORD].mInput[c].amt;
+		for(c=0; c<sizeof(ItemDefs[item].mInput)/sizeof(Materials); c++) {
+			i = ItemDefs[item].mInput[c].item;
+			a = ItemDefs[item].mInput[c].amt;
 			if(i != -1) {
 				if(u->items.GetNum(i) >= a) found++;
 			}
@@ -881,9 +950,9 @@ void Game::RunEnchantSwords(ARegion *r,Unit *u)
 		if(found != count) break;
 
 		// Decrement our inputs
-		for(c=0; c<sizeof(ItemDefs[I_MSWORD].mInput)/sizeof(Materials); c++) {
-			i = ItemDefs[I_MSWORD].mInput[c].item;
-			a = ItemDefs[I_MSWORD].mInput[c].amt;
+		for(c=0; c<sizeof(ItemDefs[item].mInput)/sizeof(Materials); c++) {
+			i = ItemDefs[item].mInput[c].item;
+			a = ItemDefs[item].mInput[c].amt;
 			if(i != -1) {
 				u->items.SetNum(i, u->items.GetNum(i) - a);
 			}
@@ -893,9 +962,9 @@ void Game::RunEnchantSwords(ARegion *r,Unit *u)
 		max--;
 	}
 
-	u->items.SetNum(I_MSWORD,u->items.GetNum(I_MSWORD) + num);
-	u->Event(AString("Enchants ") + num + " mithril swords.");
-	u->Practise(S_ENCHANT_SWORDS);
+	u->items.SetNum(item,u->items.GetNum(item) + num);
+	u->Event(AString("Enchants ") + ItemString(item,num)  + ".");
+	u->Practise(S_ENCHANT_WEAPONS);
 	r->NotifySpell(u,S_ARTIFACT_LORE, &regions );
 }
 
@@ -995,14 +1064,14 @@ void Game::RunEngraveRunes(ARegion *r,Object *o,Unit *u)
 
 	switch (level) {
 		case 5:
-			if (o->type == O_MFORTRESS) break;
+			if (o->type == O_MAGICALFORTRESS) break;
 		case 4:
 			if (o->type == O_CITADEL) break;
 		case 3:
 			if (o->type == O_CASTLE) break;
 		case 2:
 			if (o->type == O_FORT) break;
-			if (o->type == O_MTOWER) break;
+			if (o->type == O_MAGICALTOWER) break;
 		case 1:
 			if (o->type == O_TOWER) break;
 		default:
@@ -1017,9 +1086,9 @@ void Game::RunEngraveRunes(ARegion *r,Object *o,Unit *u)
 	}
 
 	u->SetMoney(u->GetMoney() - 600);
-	if( o->type == O_MFORTRESS ) {
+	if( o->type == O_MAGICALFORTRESS ) {
 		o->runes = 5;
-	} else if(o->type == O_MTOWER) {
+	} else if(o->type == O_MAGICALTOWER) {
 		o->runes = 4;
 	} else {
 		o->runes = 3;
@@ -1136,7 +1205,7 @@ void Game::RunDragonLore(ARegion *r, Unit *u)
 {
 	int level = u->GetSkill(S_DRAGON_LORE);
 
-	int num = u->items.GetNum(I_DRAGON);
+	int num = u->items.GetNum(I_REDDRAGON);
 	if (num >= level) {
 		u->Error("Mage may not summon more dragons.");
 		return;
@@ -1144,7 +1213,7 @@ void Game::RunDragonLore(ARegion *r, Unit *u)
 
 	int chance = level * level * 4;
 	if (getrandom(100) < chance) {
-		u->items.SetNum(I_DRAGON,num + 1);
+		u->items.SetNum(I_REDDRAGON,num + 1);
 		u->Event("Summons a dragon.");
 	} else {
 		u->Event("Attempts to summon a dragon, but fails.");
@@ -1186,7 +1255,7 @@ void Game::RunBirdLore(ARegion *r,Unit *u)
 	}
 
 	int level = u->GetSkill(S_BIRD_LORE);
-	int max = (level - 2) * (level - 2);
+	int max = (level) * (level);
 
 	if (u->items.GetNum(I_EAGLE) >= max) {
 		u->Error("CAST: Mage can't summon more eagles.");
@@ -1202,9 +1271,10 @@ void Game::RunBirdLore(ARegion *r,Unit *u)
 void Game::RunWolfLore(ARegion *r,Unit *u)
 {
 	if (TerrainDefs[r->type].similar_type != R_MOUNTAIN &&
+		TerrainDefs[r->type].similar_type != R_TUNDRA && 
 		TerrainDefs[r->type].similar_type != R_FOREST) {
-		u->Error("CAST: Can only summon wolves in mountain and "
-				 "forest regions.");
+		u->Error("CAST: Can only summon wolves in hill, mountain, "
+                                 "tundra and forest regions.");
 		return;
 	}
 
@@ -1756,3 +1826,4 @@ void Game::RunTeleportOrders()
 		}
 	}
 }
+

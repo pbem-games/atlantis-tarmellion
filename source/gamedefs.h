@@ -145,6 +145,13 @@ public:
 
 	int TOWNS_EXIST;
 	int LEADERS_EXIST;
+
+	enum {
+	  NO_LEADERS = 0,
+	  NORMAL_LEADERS = 1,
+	  RACIAL_LEADERS = 2,
+	};
+
 	int SKILL_LIMIT_NONLEADERS;
 	int MAGE_NONLEADERS;
 	int RACES_EXIST;
@@ -577,6 +584,9 @@ public:
 	// If we are preventing sail through, should we also prevent the 'easy
 	// portage' that the above allows by default?
 	int ALLOW_TRIVIAL_PORTAGE;
+
+	// Decide whether food stuffs will be added;
+	int AUTOMATIC_FOOD;
 };
 
 extern GameDefs * Globals;

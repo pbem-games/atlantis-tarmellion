@@ -1936,6 +1936,7 @@ void Game::MonsterCheck(ARegion *r, Unit *u)
 			Item *i = (Item *) elem;
 			if(!i->num) continue;
 			/* XXX -- This should be genericized -- heavily! */
+			/* GGO: how about the new monsters? */
 			level = 1;
 			if(i->type == I_IMP || i->type == I_DEMON || i->type == I_BALROG) {
 				top = i->num * i->num;
@@ -1963,10 +1964,12 @@ void Game::MonsterCheck(ARegion *r, Unit *u)
 				totlosses += losses;
 			}
 
-			if (i->type==I_WOLF || i->type==I_EAGLE || i->type==I_DRAGON) {
+			// GGO: giant eagle must be replaced by bird lore monster
+			if (i->type==I_WOLF || i->type==I_GIANTEAGLE || i->type==I_REDDRAGON) {
 				if(i->type == I_WOLF) skill = S_WOLF_LORE;
-				if(i->type == I_EAGLE) skill = S_BIRD_LORE;
-				if(i->type == I_DRAGON) skill = S_DRAGON_LORE;
+				if(i->type == I_GIANTEAGLE) skill = S_BIRD_LORE;
+				if(i->type == I_REDDRAGON) skill = S_SUMMON_DRAGON;
+				if(i->type == I_REDDRAGON) skill = S_SUMMON_WYRM;
 				level = u->GetSkill(skill);
 				if(!level) {
 					if(Globals->WANDERING_MONSTERS_EXIST &&
@@ -2002,7 +2005,7 @@ void Game::MonsterCheck(ARegion *r, Unit *u)
 				Faction *mfac = GetFaction(&factions,monfaction);
 				if (u->items.GetNum(I_IMP)) {
 					Unit *mon = GetNewUnit( mfac, 0 );
-					mon->MakeWMon(MonDefs[MONSTER_IMP].name,I_IMP,
+					mon->MakeWMon(MonDefs[MONSTER_IMPS].name,I_IMP,
 							u->items.GetNum(I_IMP));
 					mon->MoveUnit( r->GetDummy() );
 					u->items.SetNum(I_IMP,0);
@@ -2013,7 +2016,7 @@ void Game::MonsterCheck(ARegion *r, Unit *u)
 				}
 				if (u->items.GetNum(I_DEMON)) {
 					Unit *mon = GetNewUnit( mfac, 0 );
-					mon->MakeWMon(MonDefs[MONSTER_DEMON].name,I_DEMON,
+					mon->MakeWMon(MonDefs[MONSTER_DEMONS].name,I_DEMON,
 							u->items.GetNum(I_DEMON));
 					mon->MoveUnit( r->GetDummy() );
 					u->items.SetNum(I_DEMON,0);
@@ -2093,65 +2096,60 @@ char Game::GetRChar(ARegion * r)
 	char c;
 	switch (t) {
 		case R_OCEAN: return '-';
+		case R_T_OCEAN1: return '-';
 		case R_LAKE: return '-';
+		case R_T_LAKE3: c = '-'; break;
 		case R_PLAIN: c = 'p'; break;
-		case R_CERAN_PLAIN1: c = 'p'; break;
-		case R_CERAN_PLAIN2: c = 'p'; break;
-		case R_CERAN_PLAIN3: c = 'p'; break;
-		case R_FOREST: c = 'f'; break;
-		case R_CERAN_FOREST1: c = 'f'; break;
-		case R_CERAN_FOREST2: c = 'f'; break;
-		case R_CERAN_FOREST3: c = 'f'; break;
-		case R_CERAN_MYSTFOREST: c = 'y'; break;
-		case R_CERAN_MYSTFOREST1: c = 'y'; break;
-		case R_CERAN_MYSTFOREST2: c = 'y'; break;
-		case R_MOUNTAIN: c = 'm'; break;
-		case R_CERAN_MOUNTAIN1: c = 'm'; break;
-		case R_CERAN_MOUNTAIN2: c = 'm'; break;
-		case R_CERAN_MOUNTAIN3: c = 'm'; break;
-		case R_CERAN_HILL: c = 'h'; break;
-		case R_CERAN_HILL1: c = 'h'; break;
-		case R_CERAN_HILL2: c = 'h'; break;
-		case R_SWAMP: c = 's'; break;
-		case R_CERAN_SWAMP1: c = 's'; break;
-		case R_CERAN_SWAMP2: c = 's'; break;
-		case R_CERAN_SWAMP3: c = 's'; break;
-		case R_JUNGLE: c = 'j'; break;
-		case R_CERAN_JUNGLE1: c = 'j'; break;
-		case R_CERAN_JUNGLE2: c = 'j'; break;
-		case R_CERAN_JUNGLE3: c = 'j'; break;
-		case R_DESERT: c = 'd'; break;
-		case R_CERAN_DESERT1: c = 'd'; break;
-		case R_CERAN_DESERT2: c = 'd'; break;
-		case R_CERAN_DESERT3: c = 'd'; break;
-		case R_CERAN_WASTELAND: c = 'z'; break;
-		case R_CERAN_WASTELAND1: c = 'z'; break;
-		case R_CERAN_LAKE: c = 'l'; break;
-		case R_TUNDRA: c = 't'; break;
-		case R_CERAN_TUNDRA1: c = 't'; break;
-		case R_CERAN_TUNDRA2: c = 't'; break;
-		case R_CERAN_TUNDRA3: c = 't'; break;
-		case R_CAVERN: c = 'c'; break;
-		case R_CERAN_CAVERN1: c = 'c'; break;
-		case R_CERAN_CAVERN2: c = 'c'; break;
-		case R_CERAN_CAVERN3: c = 'c'; break;
-		case R_UFOREST: c = 'u'; break;
-		case R_CERAN_UFOREST1: c = 'u'; break;
-		case R_CERAN_UFOREST2: c = 'u'; break;
-		case R_CERAN_UFOREST3: c = 'u'; break;
-		case R_TUNNELS: c = 't'; break;
-		case R_CERAN_TUNNELS1: c = 't'; break;
-		case R_CERAN_TUNNELS2: c = 't'; break;
 		case R_ISLAND_PLAIN: c = 'a'; break;
+		case R_T_PLAIN2: c = 'p'; break;
+		case R_T_PLAIN3: c = 'p'; break;
+		case R_FOREST: c = 'f'; break;
+		case R_T_FOREST1: c = 'f'; break;
+		case R_T_FOREST2: c = 'f'; break;
+		case R_T_FOREST3: c = 'f'; break;
+		case R_T_MYSTFOREST1: c = 'y'; break;
+		case R_MOUNTAIN: c = 'm'; break;
 		case R_ISLAND_MOUNTAIN: c = 'n'; break;
+		case R_T_MOUNTAIN1: c = 'm'; break;
+		case R_T_MOUNTAIN2: c = 'm'; break;
+		case R_T_MOUNTAIN3: c = 'm'; break;
+		case R_T_HILL1: c = 'h'; break;
+		case R_T_HILL2: c = 'h'; break;
+		case R_T_HILL3: c = 'h'; break;
+		case R_SWAMP: c = 's'; break;
 		case R_ISLAND_SWAMP: c = 'w'; break;
+		case R_T_SWAMP1: c = 's'; break;
+		case R_T_SWAMP2: c = 's'; break;
+		case R_T_SWAMP3: c = 's'; break;
+		case R_JUNGLE: c = 'j'; break;
+		case R_T_JUNGLE1: c = 'j'; break;
+		case R_T_JUNGLE2: c = 'j'; break;
+		case R_T_JUNGLE3: c = 'j'; break;
+		case R_DESERT: c = 'd'; break;
+		case R_T_DESERT1: c = 'd'; break;
+		case R_T_DESERT2: c = 'd'; break;
+		case R_T_DESERT3: c = 'd'; break;
+		case R_T_LAKE1: c = 'l'; break;
+		case R_T_LAKE2: c = 'l'; break;
+		case R_TUNDRA: c = 't'; break;
+		case R_T_TUNDRA1: c = 't'; break;
+		case R_T_TUNDRA2: c = 't'; break;
+		case R_T_TUNDRA3: c = 't'; break;
+		case R_CAVERN: c = 'c'; break;
+		case R_T_CAVERN1: c = 'c'; break;
+		case R_T_CAVERN2: c = 'c'; break;
+		case R_T_CAVERN3: c = 'c'; break;
+		case R_UFOREST: c = 'u'; break;
+		case R_T_UNDERFOREST1: c = 'u'; break;
+		case R_T_UNDERFOREST2: c = 'u'; break;
+		case R_T_UNDERFOREST3: c = 'u'; break;
+		case R_TUNNELS: c = 't'; break;
+		case R_T_TUNNELS1: c = 't'; break;
+		case R_T_TUNNELS2: c = 't'; break;
+		case R_T_TUNNELS3: c = 't'; break;
 		case R_VOLCANO: c = 'v'; break;
-		case R_CHASM: c = 'l'; break;
-		case R_CERAN_CHASM1: c = 'l'; break;
-		case R_GROTTO: c = 'g'; break;
-		case R_CERAN_GROTTO1: c = 'g'; break;
-		case R_DFOREST: c = 'e'; break;
-		case R_CERAN_DFOREST1: c = 'e'; break;
+		case R_T_VOLCANO1: c = 'v'; break;
+		case R_T_GROTTO1: c = 'g'; break;
 		default: return '?';
 	}
 	if (r->town) {
@@ -2202,46 +2200,58 @@ void Game::CreateCityMon( ARegion *pReg, int percent, int needmage )
 		skilllevel = pReg->town->TownType() + 1;
 		num = Globals->CITY_GUARD * skilllevel;
 	}
-	num = num * percent / 100;
-	Faction *pFac = GetFaction( &factions, guardfaction );
-	Unit *u = GetNewUnit( pFac );
-	AString *s = new AString("City Guard");
-	u->SetName( s );
-	u->type = U_GUARD;
-	u->guard = GUARD_GUARD;
-	u->SetMen(I_LEADERS,num);
-	u->items.SetNum(I_SWORD,num);
-	if (IV) u->items.SetNum(I_AMULETOFI,num);
-	u->SetMoney(num * Globals->GUARD_MONEY);
-	u->SetSkill(S_COMBAT,skilllevel);
-	if (AC) {
-		if(Globals->START_CITY_GUARDS_PLATE)
-			u->items.SetNum(I_PLATEARMOR, num);
-		u->SetSkill(S_OBSERVATION,10);
-		if(Globals->START_CITY_TACTICS)
-			u->SetSkill(S_TACTICS, Globals->START_CITY_TACTICS);
-	} else {
-		u->SetSkill(S_OBSERVATION,skilllevel);
-	}
-	u->SetFlag(FLAG_HOLDING,1);
-	u->MoveUnit( pReg->GetDummy() );
+	if (pReg->race != -1) {
+	  num = num * percent / 100;
+	  Faction *pFac = GetFaction( &factions, guardfaction );
+	  Unit *u = GetNewUnit( pFac );
+	  AString *s = new AString("City Guard");
+	  u->SetName( s );
+	  u->type = U_GUARD;
+	  u->guard = GUARD_GUARD;
+	  int race;
+	  if (Globals->LEADERS_EXIST == GameDefs::RACIAL_LEADERS) {
+	    race = pReg->race;
+	    int leader = ManDefs[ItemDefs[race].index].minority;
+	    race = (leader == -1 ? race : leader);
+	  } else if (Globals->LEADERS_EXIST == GameDefs::NORMAL_LEADERS) {
+	    race = I_LEADERS;
+	  } else {
+	    race = pReg->race;
+	  }
+	  u->SetMen(race,num);
+	  u->items.SetNum(I_SWORD,num);
+	  if (IV) u->items.SetNum(I_AMULETOFI,num);
+	  u->SetMoney(num * Globals->GUARD_MONEY);
+	  u->SetSkill(S_COMBAT,skilllevel);
+	  if (AC) {
+	    if(Globals->START_CITY_GUARDS_PLATE)
+	      u->items.SetNum(I_IRONPLATEARMOR, num);
+	    u->SetSkill(S_OBSERVATION,10);
+	    if(Globals->START_CITY_TACTICS)
+	      u->SetSkill(S_TACTICS, Globals->START_CITY_TACTICS);
+	  } else {
+	    u->SetSkill(S_OBSERVATION,skilllevel);
+	  }
+	  u->SetFlag(FLAG_HOLDING,1);
+	  u->MoveUnit( pReg->GetDummy() );
 
-	if(AC && Globals->START_CITY_MAGES && needmage) {
-		u = GetNewUnit( pFac );
-		s = new AString("City Mage");
-		u->SetName(s);
-		u->type = U_GUARDMAGE;
-		u->SetMen(I_LEADERS,1);
-		if(IV) u->items.SetNum(I_AMULETOFI,1);
-		u->SetMoney(Globals->GUARD_MONEY);
-		u->SetSkill(S_FORCE,Globals->START_CITY_MAGES);
-		u->SetSkill(S_FIRE,Globals->START_CITY_MAGES);
-		if(Globals->START_CITY_TACTICS)
-			u->SetSkill(S_TACTICS, Globals->START_CITY_TACTICS);
-		u->combat = S_FIRE;
-		u->SetFlag(FLAG_BEHIND, 1);
-		u->SetFlag(FLAG_HOLDING, 1);
-		u->MoveUnit(pReg->GetDummy());
+	  if(AC && Globals->START_CITY_MAGES && needmage) {
+	    u = GetNewUnit( pFac );
+	    s = new AString("City Mage");
+	    u->SetName(s);
+	    u->type = U_GUARDMAGE;
+	    u->SetMen(race,1);
+	    if(IV) u->items.SetNum(I_AMULETOFI,1);
+	    u->SetMoney(Globals->GUARD_MONEY);
+	    u->SetSkill(S_FORCE,Globals->START_CITY_MAGES);
+	    u->SetSkill(S_FIRE,Globals->START_CITY_MAGES);
+	    if(Globals->START_CITY_TACTICS)
+	      u->SetSkill(S_TACTICS, Globals->START_CITY_TACTICS);
+	    u->combat = S_FIRE;
+	    u->SetFlag(FLAG_BEHIND, 1);
+	    u->SetFlag(FLAG_HOLDING, 1);
+	    u->MoveUnit(pReg->GetDummy());
+	  }
 	}
 }
 
@@ -2313,7 +2323,7 @@ void Game::AdjustCityMon( ARegion *r, Unit *u )
 			if(Globals->START_CITY_TACTICS)
 				u->SetSkill(S_TACTICS, Globals->START_CITY_TACTICS);
 			if(Globals->START_CITY_GUARDS_PLATE)
-				u->items.SetNum(I_PLATEARMOR,men);
+				u->items.SetNum(I_IRONPLATEARMOR,men);
 		} else {
 			u->SetSkill(S_OBSERVATION,towntype + 1);
 		}

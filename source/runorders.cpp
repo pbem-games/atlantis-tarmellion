@@ -1094,6 +1094,7 @@ void Game::MidProcessTurn()
 
 void Game::PostProcessTurn()
 {
+	Awrite ("vor der Regionlist");
 	forlist(&regions) {
 		ARegion * r = (ARegion *) elem;
 		r->PostTurn(&regions);
@@ -1110,11 +1111,16 @@ void Game::PostProcessTurn()
 		}
 	}
 
+	Awrite ("nach der Regionlist");
+
 	if(Globals->WANDERING_MONSTERS_EXIST) GrowWMons(Globals->WMON_FREQUENCY);
+	Awrite ("nach GrowWMons");
 
 	if(Globals->LAIR_MONSTERS_EXIST) GrowLMons(Globals->LAIR_FREQUENCY);
+	Awrite ("nach GrowLMons");
 
 	if(Globals->LAIR_MONSTERS_EXIST) GrowVMons();
+	Awrite ("nach GrowVMons");
 
 	//
 	// Check if there are any factions left.
@@ -1129,6 +1135,7 @@ void Game::PostProcessTurn()
 			}
 		}
 	}
+	Awrite ("nach Faction Check");
 
 	if(!livingFacs)
 		EndGame(0);
@@ -2412,10 +2419,10 @@ int Game::DoGiveOrder(ARegion * r,Unit * u,GiveOrder * o)
 			}
 		}
 		// Small hack for Ceran
-		if(o->item == I_MERC && t->GetMen()) {
-			u->Error("GIVE: Can't mix mercenaries with other men.");
-			return 0;
-		}
+//  		if(o->item == I_MERCENARY && t->GetMen()) {
+//  			u->Error("GIVE: Can't mix mercenaries with other men.");
+//  			return 0;
+//  		}
 
 		if (u->faction != t->faction) {
 			u->Error("GIVE: Can't give men to another faction.");

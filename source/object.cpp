@@ -376,6 +376,11 @@ AString *ObjectDescription(int obj)
 	if(o->protect) {
 		*temp += AString(" This structure provides defense to the first ") +
 			o->protect + " men inside it.";
+		*temp += AString(" It provides a bonus of ");
+		for (int i=0;i<NUM_ATTACK_TYPES-1;i++) {
+		  *temp += AString(o->protection[i]) + AString(" against ") + AttType(i) + AString(", ");
+		}
+		*temp += AString("and ") + AString(o->protection[NUM_ATTACK_TYPES-1]) + AString(" against ") + AttType(NUM_ATTACK_TYPES-1) + AString(".");
 	}
 
 	/*
@@ -431,6 +436,30 @@ AString *ObjectDescription(int obj)
 		*temp += " to build.";
 	}
 
+	int maxcount=0;
+	for (unsigned int index=0;index<sizeof(o->allowedRegions)/sizeof(int);index++) {
+	  if (o->allowedRegions[index] != -1) {
+	    maxcount++;
+	  }
+	}
+	int count=0;
+	for (unsigned int index=0;index<sizeof(o->allowedRegions)/sizeof(int);index++) {
+	  if (o->allowedRegions[index] != -1) {
+	    if (count == 0) {
+	      *temp += " This building can only be built in ";
+	    } else if (count == maxcount-1) {
+	      *temp += ", or ";
+	    } else {
+	      *temp += ", ";
+	    }
+	    *temp += TerrainDefs[o->allowedRegions[index]].name;
+	    if (count == maxcount-1) {
+	      *temp += ".";
+	    }
+	    count++;
+	  }
+	}
+
 	if(o->productionAided != -1 &&
 			!(ItemDefs[o->productionAided].flags & ItemType::DISABLED)) {
 		*temp += " This trade structure increases the amount of ";
@@ -440,6 +469,9 @@ AString *ObjectDescription(int obj)
 			*temp += ItemDefs[o->productionAided].names;
 		}
 		*temp += " available in the region.";
+	}
+	if (o->workersallowed != -1) {
+	  *temp += AString(" This structure allows ") + o->workersallowed + " workers inside.";
 	}
 
 	if(Globals->DECAY) {
@@ -461,6 +493,14 @@ AString *ObjectDescription(int obj)
 				}
 			}
 		}
+	}
+
+	if (o->populationbonus != 0) {
+	  *temp += AString(" This object increases the maximum population of a region to ") + o->populationbonus + AString(" above it's normal level, with reducing effieceny.");
+	}
+
+	if (o->wagebonus != 0) {
+	  *temp += AString(" This object increases the maximum wages of a region to ") + o->wagebonus + AString(" above it's normal level, with reducing effieceny.");
 	}
 
 	return temp;

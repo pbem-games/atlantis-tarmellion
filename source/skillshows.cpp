@@ -53,69 +53,49 @@ AString *ShowSkill::Report(Faction *f)
 	switch (skill) {
 		case S_FARMING:
 			if(level > 1) break;
-			*str += "This skill deals with all aspects of grain production.";
+			*str += "This skill deals with all aspects of agricultural production of plants and their derivates.";
 			break;
 		case S_RANCHING:
 			if(level > 1) break;
-			*str += "This skill deals with all aspects of livestock "
-				"production.";
+			*str += "This skill deals with all aspects raising and exploiting all kinds of livestock.";
 			break;
 		case S_MINING:
 			if(level > 1) break;
 			*str += "This skill deals with all aspects of extracting raw "
-				"metals and gems from the earth. Metals and gems tend to be "
-				"found more often in mountainous regions, but may be found "
-				"elsewhere as well.";
+				"metals and gems from the earth.";
 			break;
 		case S_LUMBERJACK:
 			if(level > 1) break;
-			*str += "This skill deals with all aspects of various wood "
-			    "production. Woods are more often found in forests, but "
-				"may also be found elsewhere.";
+			*str += "This skill deals with all aspects of various wood production.";
 			break;
 		case S_QUARRYING:
 			if(level > 1) break;
-			*str += "This skill deals with all aspects of various stone "
-				"production. Mountains are the main producers of stone, but "
-				"it may be found in other regions as well.";
+			*str += "This skill deals with all aspects of various stone production.";
 			break;
 		case S_HUNTING:
 			if(level > 1) break;
-			*str += "This skill deals with all aspects of animal hide "
-				"production.";
+			*str += "This skill deals with all aspects of hunting down useful ressources in the wilderness.";
 			break;
 		case S_FISHING:
 			if(level > 1) break;
-			*str += "This skill deals with all aspects of fish production.";
+			*str += "This skill deals with all aspects of extracting ressources from the water.";
 			break;
 		case S_HERBLORE:
 			if(level > 1) break;
-			*str += "This skill deals with all aspects of herb production.";
+			*str += "This skill deals with all aspects of finding wild plantlife.";
 			break;
-		case S_HORSETRAINING:
+		case S_SMITHING:
 			if(level > 1) break;
-			*str += "This skill deals with all aspects of horse production.";
-			break;
-		case S_WEAPONSMITH:
-			if(level > 1) break;
-			*str += "This skill deals with all aspects of weapon "
-				"construction and production.";
-			break;
-		case S_ARMORER:
-			if(level > 1) break;
-			*str += "This skill deals with all aspects of armor construction "
-				"and production.";
+			*str += "This skill deals with all aspects of production of weapons, armor and metallic goods. It is needed to perfect the arts of weaponcraft or armorcraft";
 			break;
 		case S_CARPENTER:
 			if(level > 1) break;
-			*str += "This skill deals with all aspects of wood based item "
-				"production other than for use as weapons.";
+			*str += "This skill deals with all aspects of production of wooden goods that are not weapons.";
 			break;
 		case S_BUILDING:
 			if(level > 1) break;
 			*str += "This skill deals with the construction of "
-				"fortifications, roads and other buildings, except for "
-				"most trade structures.";
+				"fortifications, roads and other buildings, except for trade structures.";
 			break;
 		case S_SHIPBUILDING:
 			if(level > 1) break;
@@ -143,6 +123,18 @@ AString *ShowSkill::Report(Faction *f)
 			*str += "This skill gives the unit a bonus in hand to hand "
 				"combat. Also, a unit with this skill may TAX or PILLAGE.";
 			break;
+		case S_ANIMALTRAINING:
+			if(level > 1) break;
+			*str += "This skill deals with all aspects of animal husbandry. It is used to train mounts."; 
+			break;
+		case S_ANIMALTAMING:
+			if(level > 1) break;
+			*str += "This skill deals with all aspects of taming wild animals. It is used to tame and train dangerous animals that can aid the owner in combat.";
+			break;
+		case S_MONSTERTAMING:
+			if(level > 1) break;
+			*str += "This skill deals with all aspects of taming wild beasts. It is used to tame and train monsters that can aid the owner in combat.";
+			break;
 		case S_RIDING:
 			if(level > 1) break;
 			*str += "A unit with this skill, if possessing a mount, may "
@@ -154,14 +146,12 @@ AString *ShowSkill::Report(Faction *f)
 			break;
 		case S_CROSSBOW:
 			if(level > 1) break;
-			*str += "A unit with this skill may use a crossbow or other bow "
-				"derived from one, either in battle, or to TAX or PILLAGE a "
+			*str += "A unit with this skill may use any kind of crossbow, either in battle, or to TAX or PILLAGE a "
 				"region.";
 			break;
 		case S_LONGBOW:
 			if(level > 1) break;
-			*str += "A unit with this skill may use a longbow or other bow "
-				"derived from one, either in battle, or to TAX or PILLAGE a "
+			*str += "A unit with this skill may use any kind of bow, either in battle, or to TAX or PILLAGE a "
 				"region.";
 			break;
 		case S_STEALTH:
@@ -194,46 +184,47 @@ AString *ShowSkill::Report(Faction *f)
 			break;
 		case S_FORCE:
 			if(level > 1) break;
-			*str += "The Force skill is not directly useful to a mage, but "
-				"is rather one of the Foundation skills on which other "
-				"magical skills are based. The Force skill determines the "
-				"power of the magical energy that a mage is able to use. "
-				"Note that a Force skill level of 0 does not indicate that "
-				"a mage cannot use magical energy, but rather can only "
-				"perform magical acts that do not require great amounts of "
-				"power.";
+			*str += "The Force skill is one of the three fundamental skills of magic. It deals with the astral force a mage may wield. Mages of the Force Path are often called Sorcerers. They excel in destructive battle magic, weather spells and the summoning of demons.";
 			break;
 		case S_PATTERN:
 			if(level > 1) break;
-			*str += "The Pattern skill is not directly useful to a mage, but "
-				"is rather one of the Foundation skills on which other "
-				"magical skills are based. A mage's Pattern skill indicates "
-				"the ability to handle complex magical patterns, and is "
-				"important for complicated tasks such as healing and "
-				"controlling nature.";
+			*str += "The Pattern skill is one of the three fundamental skills of magic. It deals with the magical ability to influence matter. Mages of the Pattern Path are often called Druids. They excel in nature magic, the production of artifacts and the use of magical gates. Good druids of high skill can even bond with good dragons, while evil druids of same might may control evil dragons.";
 			break;
 		case S_SPIRIT:
 			if(level > 1) break;
-			*str += "The Spirit skill is not directly useful to a mage, but "
-				"is rather one of the Foundation skills on which other "
-				"magical skills are based. Spirit skill indicates the mage's "
-				"ability to control and affect magic and other powers beyond "
-				"the material world.";
+			*str += "The Spirit skill is one of the three fundamental skills of magic. It deals with the power of the mind. Mages of the Spirit Path are often called Enchanters or Priests. They excel in discerning hidden things, harming or tricking the minds of other people and they may delve into the dark art of necromancy.";
 			break;
 		case S_FIRE:
 			if(level > 1) break;
+			*str += "The Fire skill is an offensive skill for the use in combat. It allows the mage to channel his force into the shape of fire.";
+			break;
+		case S_ICE:
+			if(level > 1) break;
+			*str += "The Ice skill is an offensive skill for the use in combat. It allows the mage to create a cone of extreme coldness.";
+			break;
+		case S_MIND:
+			if(level > 1) break;
+			*str += "The Mindstrike skill is an offensive skill for the use in combat. It allows the mage to lash out with his psychic power to harm his enemies.";
 			break;
 		case S_EARTHQUAKE:
 			if(level > 1) break;
+			*str += "The Earthquake skill is an offensive skill for use in combat. It allows the mage to influence the very rocks his enemies hide behind.";
 			break;
 		case S_FORCE_SHIELD:
 			if(level > 1) break;
+			*str += "The Force Shield skill is a defensive skill for use in combat. It allows the mage to shield his allies from nonmagical harm.";
 			break;
 		case S_ENERGY_SHIELD:
 			if(level > 1) break;
+			*str += "The Energy Shield skill is a defensive skill for use in combat. It allows the mage to shield his allies from harmful magical energy.";
 			break;
 		case S_SPIRIT_SHIELD:
 			if(level > 1) break;
+			*str += "The Spirit Shield skill is a defensive skill for use in combat. It allows the mage to shield his allies from attacks on their minds.";
+			break;
+		case S_WEATHER_SHIELD:
+			if(level > 1) break;
+			*str += "The Weather Shield skill is a defensive skill for use in combat. It allows the mage to shield his allies from weather attacks.";
 			break;
 		case S_MAGICAL_HEALING:
 			/* XXX -- This should be cleaner somehow. */
@@ -548,8 +539,11 @@ AString *ShowSkill::Report(Faction *f)
 					   "up the powers of the wind to aid him in sea or "
 					   "air travel. Usage of this spell is automatic.";
 				if(OBJECT_ENABLED(O_LONGBOAT)) {
-					*str += " At level 1, if the mage is in a Longboat, that "
-						   "ship will get 2 extra movement points.";
+					*str += " At level 1, if the mage is in a Longboat";
+					if(OBJECT_ENABLED(O_ROWINGBOAT)) {
+					  *str += " or Rowing Boat";
+					}
+					*str += ", that ship will get 2 extra movement points.";
 				}
 				*str += " If the mage is flying, he will receive 2 extra "
 					   "movement points.";
@@ -567,12 +561,15 @@ AString *ShowSkill::Report(Faction *f)
 			break;
 		case S_SUMMON_STORM:
 			if(level > 1) break;
+			*str += "The Summon Storm skill is an offensive skill for use in combat. It allows the mage to hinder his enemies in personal combat.";
 			break;
 		case S_SUMMON_TORNADO:
 			if(level > 1) break;
+			*str += "The Summon Tornado skill is a mighty offensive skill for use in combat. It allows the mage to decimate his enemies with his powers over the weather.";
 			break;
 		case S_CALL_LIGHTNING:
 			if(level > 1) break;
+			*str += "The Call Lightning skill is a mighty offensive skill for use in combat. It allows the mage to decimate his enemies by drowning them in rain and blasting them with lightning.";
 			break;
 		case S_CLEAR_SKIES:
 			/* XXX -- this range stuff needs cleaning up */
@@ -647,12 +644,20 @@ AString *ShowSkill::Report(Faction *f)
 			*str += "Earth Lore is the study of nature, plants, and animals. "
 				"A mage with knowledge of Earth Lore can use his knowledge "
 				"of nature to aid local farmers, raising money for himself, "
-				"and aiding the production of grain or livestock in the "
+				"and aiding the agricultural production in the "
 				"region. To use the spell, CAST Earth_Lore; the mage will "
 				"receive an amount of money based on his level, and the "
 				"economy of the region. Also, a mage with knowledge of Earth "
 				"Lore will detect the use of Earth Lore by any other mage in "
 				"the same region.";
+			break;
+		case S_DRAGON_LORE:
+			if(level > 1) break;
+			*str += "Dragon Lore is the study of good dragons. It has no direct magical applications, but is needed to understand good dragons good enough to bond with them after more study.";
+			break;
+		case S_WYRM_LORE:
+			if(level > 1) break;
+			*str += "Wyrm Lore is the study of evil dragons. It has no direct magical applications, but is needed to know enough about evil dragons to be able to control them after more study.";
 			break;
 		case S_WOLF_LORE:
 			/* XXX -- This should be cleaner somehow. */
@@ -663,7 +668,7 @@ AString *ShowSkill::Report(Faction *f)
 				"wolves equal to his skill level, and control a total number "
 				"of his skill level squared times 4 wolves; the wolves will "
 				"be placed in the mages inventory. Note, however, that wolves "
-				"may only be summoned in mountain and forest regions. To "
+				"may only be summoned in hill, mountain and any kind of forest regions. To "
 				"summon wolves, the mage should issue the order CAST "
 				"Wolf_Lore.";
 			break;
@@ -683,23 +688,36 @@ AString *ShowSkill::Report(Faction *f)
 				*str += "A mage with Bird Lore 3 can summon eagles to join "
 					"him, who will aid him in combat, and provide for flying "
 					"transportation. A mage may summon a number of eagles "
-					"equal to his skill level minus 2, squared; the eagles "
+					"equal to his skill level squared; the eagles "
 					"will appear in his inventory. To summon an eagle, issue "
 					"the order CAST Bird_Lore EAGLE.";
 			}
 			break;
-		case S_DRAGON_LORE:
+		case S_SUMMON_DRAGON:
 			/* XXX -- This should be cleaner somehow. */
 			if(level > 1) break;
-			if(ITEM_DISABLED(I_DRAGON)) break;
-			*str += "A mage with Dragon Lore skill can summon dragons to "
+			if(ITEM_DISABLED(I_REDDRAGON)) break;
+			*str += "A mage with Summon Dragon skill can summon good dragons to "
 				"join him, to aid in battle, and provide flying "
 				"transportation. A mage at level 1 has a low chance of "
 				"successfully summoning a dragon, gradually increasing until "
 				"at level 5 he may summon one dragon per turn; the total "
 				"number of dragons that a mage may control at one time is "
 				"equal to his skill level. To attempt to summon a dragon, "
-				"CAST Dragon_Lore.";
+				"CAST Summon_Dragon.";
+			break;
+		case S_SUMMON_WYRM:
+			/* XXX -- This should be cleaner somehow. */
+			if(level > 1) break;
+			if(ITEM_DISABLED(I_REDDRAGON)) break;
+			*str += "A mage with Summon Wyrm skill can summon evil dragons to "
+				"join him, to aid in battle, and provide flying "
+				"transportation. A mage at level 1 has a low chance of "
+				"successfully summoning a dragon, gradually increasing until "
+				"at level 5 he may summon one dragon per turn; the total "
+				"number of dragons that a mage may control at one time is "
+				"equal to his skill level. To attempt to summon a dragon, "
+				"CAST Summon_Wyrm.";
 			break;
 		case S_NECROMANCY:
 			if(level > 1) break;
@@ -751,12 +769,15 @@ AString *ShowSkill::Report(Faction *f)
 			break;
 		case S_CREATE_AURA_OF_FEAR:
 			if(level > 1) break;
+			*str += "The Create Aura of Fear skill is an offensive skill for use in combat. It allows the mage to impress his enemies with fear of himself, reducing their effectiveness in combat.";
 			break;
 		case S_SUMMON_BLACK_WIND:
 			if(level > 1) break;
+			*str += "The Summon Black Wind skill is a mighty offensive skill for use in combat. It allows the mage to send a cloud of obnoxious gases to his enemies, that will kill them if touched.";
 			break;
 		case S_BANISH_UNDEAD:
 			if(level > 1) break;
+			*str += "The Banish Undead skill is a defensive skill for use in combat. It allows the mage to send undead creatures back to their graves.";
 			break;
 		case S_DEMON_LORE:
 			if(level > 1) break;
@@ -815,6 +836,7 @@ AString *ShowSkill::Report(Faction *f)
 			break;
 		case S_BANISH_DEMONS:
 			if(level > 1) break;
+			*str += "The Banish Demons skill is a defensive skill for use in combat. It allows the mage to send demonic creatures back to hell.";
 			break;
 		case S_ILLUSION:
 			if(level > 1) break;
@@ -974,6 +996,11 @@ AString *ShowSkill::Report(Faction *f)
 				"the units that the mage wishes to render invisible. A mage "
 				"may render invisible a number of men or creatures equal to "
 				"his skill level squared.";
+			if(SKILL_ENABLED(S_OBSERVATION)) {
+				*str += "In addition, a mage with the Invisibility skill "
+					"receives a bonus to his Stealth skill equal to his "
+					"Invisibility skill.";
+			}
 			break;
 		case S_TRUE_SEEING:
 			if(level > 1) break;
@@ -986,17 +1013,18 @@ AString *ShowSkill::Report(Faction *f)
 			if(SKILL_ENABLED(S_OBSERVATION)) {
 				*str += "In addition, a mage with the True Seeing skill "
 					"receives a bonus to his Observation skill equal to his "
-					"True Seeing skill divided by 2, rounded up.";
+					"True Seeing skill.";
 			}
 			break;
 		case S_DISPEL_ILLUSIONS:
 			if(level > 1) break;
+			*str += "The Dispel Illusion skill is used to counter the use of illusions by another mage.";
 			break;
 		case S_ARTIFACT_LORE:
 			if(level > 1) break;
 			*str += "Artifact Lore is one of the most advanced forms of "
 				"magic; in general, creation of an artifact requires both "
-				"Artifact Lore, and the appropriate skill for the item being "
+				"Artifact Lore, and an appropriate skill for the item being "
 				"created. A mage with knowledge of the Artifact Lore skill "
 				"will detect the use of Artifact Lore by any other mage in "
 				"the region.";
@@ -1020,7 +1048,7 @@ AString *ShowSkill::Report(Faction *f)
 			break;
 		case S_CREATE_CLOAK_OF_INVULNERABILITY:
 			/* XXX -- This should be cleaner somehow. */
-			if(ITEM_DISABLED(I_CLOAKOFI)) break;
+			if(ITEM_DISABLED(I_CLOAKOFINVULNERABILITY)) break;
 			if(level > 1) break;
 			*str += "A mage with the Create Cloak of Invulnerability skill "
 				"may create a Cloak of Invulnerability. A mage has a 20 "
@@ -1055,7 +1083,7 @@ AString *ShowSkill::Report(Faction *f)
 			if(level > 1) break;
 			*str += "A mage with the Create Amulet of Tree Seeing skill may "
 				"create an Amulet of True Seeing. This amulet gives the "
-				"possessor a bonus of 2 to his effective Observation skill.";
+				"possessor a bonus of 3 to his effective Observation skill.";
 			if(ITEM_ENABLED(I_RINGOFI)) {
 				*str += "Also, a unit with an Amulet of True Seeing cannot "
 					"be assassinated by, nor have items stolen by, a unit "
@@ -1129,7 +1157,7 @@ AString *ShowSkill::Report(Faction *f)
 				}
 			} else if (level == 2) {
 				int comma = 0;
-				if(OBJECT_DISABLED(O_FORT) && OBJECT_DISABLED(O_MTOWER))
+				if(OBJECT_DISABLED(O_FORT) && OBJECT_DISABLED(O_MAGICALTOWER))
 					break;
 				*str += "At this level, the mage may engrave runes of "
 					"warding upon ";
@@ -1137,7 +1165,7 @@ AString *ShowSkill::Report(Faction *f)
 					*str += "a Fort";
 					comma = 1;
 				}
-				if(OBJECT_ENABLED(O_MTOWER)) {
+				if(OBJECT_ENABLED(O_MAGICALTOWER)) {
 					if(comma) *str += ", and ";
 					*str += "a Magic Tower";
 				}
@@ -1153,7 +1181,7 @@ AString *ShowSkill::Report(Faction *f)
 						"warding upon a Citadel.";
 				}
 			} else if(level == 5) {
-				if(OBJECT_ENABLED(O_MFORTRESS)) {
+				if(OBJECT_ENABLED(O_MAGICALFORTRESS)) {
 					*str += "At this level, the mage may engrave runes of "
 						"warding upon a Magical Fortress, which grants "
 						"the inhabitants an Energy Shield and Spirit "
@@ -1170,28 +1198,24 @@ AString *ShowSkill::Report(Faction *f)
 				"silver. To use this spell, the mage should issue the order "
 				"CAST Construct_Gate.";
 			break;
-		case S_ENCHANT_SWORDS:
+		case S_ENCHANT_WEAPONS:
 			/* XXX -- This should be cleaner somehow. */
 			if(level > 1) break;
-			if(ITEM_DISABLED(I_MSWORD)) break;
-			*str += "A mage with the Enchant Swords skill may magically "
-				"create mithril swords. A mage may create 5 times his "
-				"skill level mithril swords per turn. The mage should "
-				"issue the order CAST Enchant_Swords to cast this spell.";
+			if(ITEM_DISABLED(I_ENCHANTEDSWORD)) break;
+			*str += "The Enchant Weapons skill enables the mage to create enchanted weapons. Because only wood and iron can be modified by the mage, only wooden or iron weapons can be enchanted. The mage should "
+				"issue the order CAST Enchant_Weapons <weapon> to cast this spell, where <weapon> is the desired item.";
 			break;
 		case S_ENCHANT_ARMOR:
 			/* XXX -- This should be cleaner somehow. */
 			if(level > 1) break;
-			if(ITEM_DISABLED(I_MPLATE)) break;
-			*str += "A mage with the Enchant Armor skill may magically "
-				"create mithril armor. A mage may create 5 times his skill "
-				"level mithril armors per turn. The mage should issue the "
-				"order CAST Enchant_Armor to cast this spell.";
+			if(ITEM_DISABLED(I_ENCHANTEDPLATEARMOR)) break;
+			*str += "The Enchant Armor skill enables the mage to create enchanted armor. Because mithril and admantium are not influenced by magic, he can only enchant armor out of normal ressources like iron or hide. The mage should issue the "
+				"order CAST Enchant_Armor <armor>to cast this spell, where <armour> is the desired item.";
 			break;
 		case S_CONSTRUCT_PORTAL:
 			/* XXX -- This should be cleaner somehow. */
 			if(level > 1) break;
-			if(ITEM_DISABLED(I_MPLATE)) break;
+			if(ITEM_DISABLED(I_PORTAL)) break;
 			*str += "A mage with the Construct Portal skill may construct a "
 				"Portal";
 			if(SKILL_ENABLED(S_PORTAL_LORE)) {
@@ -1212,26 +1236,17 @@ AString *ShowSkill::Report(Faction *f)
 		case S_WEAPONCRAFT:
 			if(level > 1) break;
 			*str += "The weaponcraft skill is an advanced version of the "
-				"weaponsmith skill.";
+				"smithing skill. It allows the production of the most advanced weapons.";
 			break;
 		case S_ARMORCRAFT:
 			if(level > 1) break;
 			*str += "The armorcraft skill is an advanced version of the "
-				"armorsmith skill.";
-			break;
-		case S_CAMELTRAINING:
-			if(level > 1) break;
-			*str += "This skill deals with all aspects of camel production.";
+				"smithing skill. It allows the production of the most advanced armors.";
 			break;
 		case S_GEMCUTTING:
 			if(level > 1) break;
 			*str += "This skill enables a unit to fashion higher quality "
 				"gems from lower quality ones.";
-			break;
-		case S_MONSTERTRAINING:
-			if(level > 1) break;
-			*str += "This skill deals with all aspects of traking monster "
-				"mounts.";
 			break;
 		case S_COOKING:
 			if(level > 1) break;

@@ -1463,7 +1463,7 @@ void Game::ProcessBuildOrder(Unit *unit, AString *o, OrdersCheck *pCheck)
 				return;
 			}
 
-			if (ObjectIsShip(ot) && ot != O_BALLOON) {
+			if (ObjectIsShip(ot) && ot != O_AIRSHIP) {
 				if (!reg->IsCoastalOrLakeside()) {
 					unit->Error("BUILD: Can't build ship in "
 							"non-coastal or lakeside region.");
@@ -2288,7 +2288,7 @@ void Game::ProcessNameOrder(Unit *unit,AString * o, OrdersCheck *pCheck)
 				case TOWN_CITY:
 					if(unit->object->type == O_CASTLE) ok = 1;
 					if(unit->object->type == O_CITADEL) ok = 1;
-					if(unit->object->type == O_MFORTRESS) ok = 1;
+					if(unit->object->type == O_MAGICALFORTRESS) ok = 1;
 			}
 			if(!ok) {
 				unit->Error(AString("NAME: Unit is not in a large ")+

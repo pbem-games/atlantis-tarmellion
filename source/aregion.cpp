@@ -218,6 +218,14 @@ int ARegion::Wages()
 			if (raise) retval++;
 		}
 	}
+	for (int i=0;i<sizeof(ObjectDefs)/sizeof(ObjectType);i++) {
+	  int bonus = ObjectDefs[i].wagebonus;
+	  if (bonus == 0) continue;
+	  forlist(&objects) {
+	    retval += bonus;
+	    bonus /= 2;
+	  }
+	}
 	return retval;
 }
 
@@ -246,9 +254,9 @@ void ARegion::SetupPop()
 		money = 0;
 		return;
 	}
+
 	int noncoastalraces = sizeof(typer->races)/sizeof(int);
 	int allraces = noncoastalraces + sizeof(typer->coastal_races)/sizeof(int);
-
 	race = -1;
 	while (race == -1 || (ItemDefs[race].flags & ItemType::DISABLED)) {
 		int n = getrandom(IsCoastal() ? allraces : noncoastalraces);
@@ -298,7 +306,9 @@ void ARegion::SetupPop()
 		int townprob = TerrainDefs[type].economy * 4 /
 			(Globals->TOWN_SPREAD+1) + 50 * Globals->TOWN_SPREAD;
 		if (adjacent == 0)
-			if (getrandom(townch) < townprob) AddTown();
+			if (getrandom(townch) < townprob) {
+			  AddTown();
+			}
 	}
 
 	Production * p = new Production;
@@ -327,11 +337,32 @@ void ARegion::SetupPop()
 							Population()/5, 0, 10000, 0, 2000);
 	markets.Add(m);
 
-	if(Globals->LEADERS_EXIST) {
+	if(Globals->LEADERS_EXIST == GameDefs::NORMAL_LEADERS) {
 		ratio = ItemDefs[I_LEADERS].baseprice / (float)Globals->BASE_MAN_COST;
 		m = new Market(M_BUY, I_LEADERS, (int)(Wages()*4*ratio),
 						Population()/25, 0, 10000, 0, 400);
 		markets.Add(m);
+	} else if (Globals->LEADERS_EXIST == GameDefs::RACIAL_LEADERS) {
+	  int minority = ManDefs[ItemDefs[race].index].minority;
+	  int divisor = 25;
+	  while (minority != -1) {
+		ratio = ItemDefs[minority].baseprice / (float)Globals->BASE_MAN_COST;
+		int current = Population()/divisor;
+		int max = 10000/divisor;
+		if (ManDefs[ItemDefs[minority].index].flags | ManType::POPULUS) {
+		  current *= 2;
+		  max *= 2;
+		} else if (ManDefs[ItemDefs[minority].index].flags | ManType::SCARCE) {
+		  current /= 2;
+		  max /= 2;
+		}
+		m = new Market(M_BUY, race-1, (int)(Wages()*4*ratio),
+			       current, 0, 10000, 0, max);
+		markets.Add(m);
+		minority = ManDefs[ItemDefs[minority].index].minority;
+		divisor *= 5;
+		if (divisor > 10000) break; // sanity check
+	  }
 	}
 }
 
@@ -669,7 +700,7 @@ void ARegion::SetupProds()
 	Production * p;
 	TerrainType * typer = &(TerrainDefs[type]);
 
-	if(Globals->FOOD_ITEMS_EXIST) {
+	if(Globals->FOOD_ITEMS_EXIST && Globals->AUTOMATIC_FOOD) {
 		if (typer->economy) {
 			if (getrandom(2)&&!(ItemDefs[I_GRAIN].flags & ItemType::DISABLED)){
 				p = new Production(I_GRAIN,typer->economy);
@@ -844,12 +875,32 @@ void ARegion::UpdateTown()
 			Market *m = new Market(M_BUY, race, (int)(Wages()*4*ratio),
 					Population()/5, 0, 10000, 0, 2000);
 			markets.Add(m);
-			if(Globals->LEADERS_EXIST) {
+			if(Globals->LEADERS_EXIST == GameDefs::NORMAL_LEADERS) {
 				ratio = ItemDefs[I_LEADERS].baseprice /
 					(float)Globals->BASE_MAN_COST;
 				m = new Market(M_BUY, I_LEADERS, (int)(Wages()*4*ratio),
 						Population()/25, 0, 10000, 0, 400);
 				markets.Add(m);
+			} else if(Globals->LEADERS_EXIST == GameDefs::RACIAL_LEADERS) {
+			  int minority = ManDefs[ItemDefs[race].index].minority;
+			  int divsor = 25;
+			  while (minority != -1) {
+			    ratio = ItemDefs[minority].baseprice / (float)Globals->BASE_MAN_COST;
+			    int current = Population()/divsor;
+			    int max = 10000/divsor;
+			    if (ManDefs[ItemDefs[minority].index].flags | ManType::POPULUS) {
+			      current *= 2;
+			      max *= 2;
+			    } else if (ManDefs[ItemDefs[minority].index].flags | ManType::SCARCE) {
+			      current /= 2;
+			      max /= 2;
+			    }
+			    m = new Market(M_BUY, race-1, (int)(Wages()*4*ratio),
+					   current, 0, 10000, 0, max);
+			    markets.Add(m);
+			    minority = ManDefs[ItemDefs[minority].index].minority;
+			    divsor *= 5;
+			  }
 			}
 		}
 	}
@@ -908,7 +959,9 @@ void ARegion::PostTurn(ARegionList *pRegs)
 	//
 	int activity = 0;
 	int amount = 0;
+
 	if (basepopulation) {
+	  {
 		forlist(&products) {
 			Production * p = (Production *) elem;
 			if (ItemDefs[p->itemtype].type & IT_NORMAL &&
@@ -917,8 +970,20 @@ void ARegion::PostTurn(ARegionList *pRegs)
 				amount += p->amount;
 			}
 		}
+	  }
+		amount = (amount > 0 ? amount : 1);
 		int tarpop = basepopulation + (basepopulation * activity) /
 			(2 * amount);
+
+		for (int i=0;i<sizeof(ObjectDefs)/sizeof(ObjectType);i++) {
+		  int bonus = ObjectDefs[i].populationbonus;
+		  if (bonus == 0) continue;
+		  forlist(&objects) {
+		    tarpop += bonus;
+		    bonus /= 2;
+		  }
+		}
+
 		int diff = tarpop - population;
 
 		if(Globals->VARIABLE_ECONOMY) {
@@ -1039,29 +1104,25 @@ AString ARegion::GetDecayFlavor()
 	int badWeather = 0;
 	if (weather != W_NORMAL && !clearskies) badWeather = 1;
 	if (!Globals->WEATHER_EXISTS) badWeather = 0;
-	switch (type) {
+	switch (TerrainDefs[type].similar_type) {
 		case R_PLAIN:
+		case R_LAKE:
 		case R_ISLAND_PLAIN:
-		case R_CERAN_PLAIN1:
-		case R_CERAN_PLAIN2:
-		case R_CERAN_PLAIN3:
-		case R_CERAN_LAKE:
+                case R_T_PLAIN1:                
+                case R_T_PLAIN2:
+                case R_T_PLAIN3:
+                case R_T_LAKE1:
+                case R_T_LAKE2:
+                case R_T_LAKE3:
 			flavor = AString("Floods have damaged ");
 			break;
 		case R_DESERT:
-		case R_CERAN_DESERT1:
-		case R_CERAN_DESERT2:
-		case R_CERAN_DESERT3:
 			flavor = AString("Flashfloods have damaged ");
 			break;
-		case R_CERAN_WASTELAND:
-		case R_CERAN_WASTELAND1:
-			flavor = AString("Magical radiation has damaged ");
-			break;
+			//		case R_CE_WASTELAND:
+			//			flavor = AString("Magical radiation has damaged ");
+			//			break;
 		case R_TUNDRA:
-		case R_CERAN_TUNDRA1:
-		case R_CERAN_TUNDRA2:
-		case R_CERAN_TUNDRA3:
 			if (badWeather) {
 				flavor = AString("Ground freezing has damaged ");
 			} else {
@@ -1069,56 +1130,33 @@ AString ARegion::GetDecayFlavor()
 			}
 			break;
 		case R_MOUNTAIN:
-		case R_ISLAND_MOUNTAIN:
-		case R_CERAN_MOUNTAIN1:
-		case R_CERAN_MOUNTAIN2:
-		case R_CERAN_MOUNTAIN3:
 			if (badWeather) {
 				flavor = AString("Avalanches have damaged ");
 			} else {
 				flavor = AString("Rockslides have damaged ");
 			}
 			break;
-		case R_CERAN_HILL:
-		case R_CERAN_HILL1:
-		case R_CERAN_HILL2:
-			flavor = AString("Quakes have damaged ");
-			break;
+			//		case R_CE_GDHILL:
+			//			flavor = AString("Quakes have damaged ");
+			//			break;
 		case R_FOREST:
 		case R_SWAMP:
-		case R_ISLAND_SWAMP:
 		case R_JUNGLE:
-		case R_CERAN_FOREST1:
-		case R_CERAN_FOREST2:
-		case R_CERAN_FOREST3:
-		case R_CERAN_MYSTFOREST:
-		case R_CERAN_MYSTFOREST1:
-		case R_CERAN_MYSTFOREST2:
-		case R_CERAN_SWAMP1:
-		case R_CERAN_SWAMP2:
-		case R_CERAN_SWAMP3:
-		case R_CERAN_JUNGLE1:
-		case R_CERAN_JUNGLE2:
-		case R_CERAN_JUNGLE3:
+		case R_T_MYSTFOREST1:
 			flavor = AString("Encroaching vegetation has damaged ");
 			break;
 		case R_CAVERN:
 		case R_UFOREST:
 		case R_TUNNELS:
-		case R_CERAN_CAVERN1:
-		case R_CERAN_CAVERN2:
-		case R_CERAN_CAVERN3:
-		case R_CERAN_UFOREST1:
-		case R_CERAN_UFOREST2:
-		case R_CERAN_UFOREST3:
-		case R_CERAN_TUNNELS1:
-		case R_CERAN_TUNNELS2:
-		case R_CHASM:
-		case R_CERAN_CHASM1:
-		case R_GROTTO:
-		case R_CERAN_GROTTO1:
-		case R_DFOREST:
-		case R_CERAN_DFOREST1:
+		case R_T_CAVERN1:
+		case R_T_CAVERN2:
+		case R_T_CAVERN3:
+		case R_T_UNDERFOREST1:
+		case R_T_UNDERFOREST2:
+		case R_T_UNDERFOREST3:
+		case R_T_TUNNELS1:
+		case R_T_TUNNELS2:
+		case R_T_TUNNELS3:
 			if (badWeather) {
 				flavor = AString("Lava flows have damaged ");
 			} else {
@@ -1142,28 +1180,30 @@ int ARegion::GetMaxClicks()
 	int maxClicks;
 	if (weather != W_NORMAL && !clearskies) badWeather = 1;
 	if (!Globals->WEATHER_EXISTS) badWeather = 0;
-	switch (type) {
+	switch (TerrainDefs[type].similar_type) {
 		case R_PLAIN:
 		case R_ISLAND_PLAIN:
 		case R_TUNDRA:
-		case R_CERAN_PLAIN1:
-		case R_CERAN_PLAIN2:
-		case R_CERAN_PLAIN3:
-		case R_CERAN_LAKE:
-		case R_CERAN_TUNDRA1:
-		case R_CERAN_TUNDRA2:
-		case R_CERAN_TUNDRA3:
+                case R_T_PLAIN1:                
+                case R_T_PLAIN2:
+                case R_T_PLAIN3:
+                case R_T_LAKE1:
+                case R_T_LAKE2:
+                case R_T_LAKE3:
+                case R_T_TUNDRA1:
+                case R_T_TUNDRA2:
+                case R_T_TUNDRA3:
 			terrainAdd = -1;
 			if (badWeather) weatherAdd = 4;
 			break;
 		case R_MOUNTAIN:
 		case R_ISLAND_MOUNTAIN:
-		case R_CERAN_MOUNTAIN1:
-		case R_CERAN_MOUNTAIN2:
-		case R_CERAN_MOUNTAIN3:
-		case R_CERAN_HILL:
-		case R_CERAN_HILL1:
-		case R_CERAN_HILL2:
+                case R_T_HILL1:
+                case R_T_HILL2:
+                case R_T_HILL3:
+                case R_T_MOUNTAIN1:
+                case R_T_MOUNTAIN2:
+                case R_T_MOUNTAIN3:
 			terrainMult = 2;
 			if (badWeather) weatherAdd = 4;
 			break;
@@ -1171,45 +1211,38 @@ int ARegion::GetMaxClicks()
 		case R_SWAMP:
 		case R_ISLAND_SWAMP:
 		case R_JUNGLE:
-		case R_CERAN_FOREST1:
-		case R_CERAN_FOREST2:
-		case R_CERAN_FOREST3:
-		case R_CERAN_MYSTFOREST:
-		case R_CERAN_MYSTFOREST1:
-		case R_CERAN_MYSTFOREST2:
-		case R_CERAN_SWAMP1:
-		case R_CERAN_SWAMP2:
-		case R_CERAN_SWAMP3:
-		case R_CERAN_JUNGLE1:
-		case R_CERAN_JUNGLE2:
-		case R_CERAN_JUNGLE3:
+                case R_T_FOREST1:
+                case R_T_FOREST2:
+                case R_T_FOREST3:
+                case R_T_SWAMP1:
+                case R_T_SWAMP2:
+                case R_T_SWAMP3:
+                case R_T_JUNGLE1:
+                case R_T_JUNGLE2:
+                case R_T_JUNGLE3:
+			//4711
 			terrainAdd = -1;
 			terrainMult = 2;
 			if (badWeather) weatherAdd = 1;
 			break;
 		case R_DESERT:
-		case R_CERAN_DESERT1:
-		case R_CERAN_DESERT2:
-		case R_CERAN_DESERT3:
+                case R_T_DESERT1:
+                case R_T_DESERT2:
+                case R_T_DESERT3:
 			terrainAdd = -1;
 			if (badWeather) weatherAdd = 5;
 		case R_CAVERN:
 		case R_UFOREST:
 		case R_TUNNELS:
-		case R_CERAN_CAVERN1:
-		case R_CERAN_CAVERN2:
-		case R_CERAN_CAVERN3:
-		case R_CERAN_UFOREST1:
-		case R_CERAN_UFOREST2:
-		case R_CERAN_UFOREST3:
-		case R_CERAN_TUNNELS1:
-		case R_CERAN_TUNNELS2:
-		case R_CHASM:
-		case R_CERAN_CHASM1:
-		case R_GROTTO:
-		case R_CERAN_GROTTO1:
-		case R_DFOREST:
-		case R_CERAN_DFOREST1:
+                case R_T_CAVERN1:
+                case R_T_CAVERN2:
+                case R_T_CAVERN3:
+                case R_T_UNDERFOREST1:
+                case R_T_UNDERFOREST2:
+                case R_T_UNDERFOREST3:
+                case R_T_TUNNELS1:
+                case R_T_TUNNELS2:
+                case R_T_TUNNELS3:
 			terrainAdd = 1;
 			terrainMult = 2;
 			if (badWeather) weatherAdd = 6;
@@ -3279,7 +3312,6 @@ void ARegionList::FinalSetup(ARegionArray *pArr)
 				else
 					reg->wages = -1;
 			}
-
 			reg->Setup();
 		}
 	}

@@ -35,6 +35,7 @@ class Object;
 #include "fileio.h"
 #include "gamedefs.h"
 #include "faction.h"
+#include "items.h"
 
 #define I_WOOD_OR_STONE -2
 
@@ -51,6 +52,7 @@ class ObjectType {
 		int flags;
 
 		int protect;
+		int protection[NUM_ATTACK_TYPES];
 		int capacity;
 		int sailors;
 		int maxMages;
@@ -67,6 +69,16 @@ class ObjectType {
 		int monster;
 
 		int productionAided;
+		int workersallowed;
+
+		int allowedRegions[5];
+		int populationbonus;
+		int wagebonus;
+		
+		// Sharky
+		int mult_item;
+		int mult_val;
+		// fSharky
 };
 
 extern ObjectType * ObjectDefs;
@@ -118,6 +130,7 @@ class Object : public AListElem
 		int runes;
 		int prevdir;
 		int mages;
+		float productionratio;
 		AList units;
 };
 

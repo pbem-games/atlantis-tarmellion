@@ -187,7 +187,7 @@ void Game::MakeLMon( Object *pObj )
 
 	int montype = ObjectDefs[ pObj->type ].monster;
 
-	if (montype == I_TRENT) {
+	if (montype == I_LIVINGTREE) {
 		montype = TerrainDefs[ pObj->region->type].bigmon;
 	}
 	if (montype == I_CENTAUR) {
@@ -202,58 +202,58 @@ void Game::MakeLMon( Object *pObj )
 	switch(montype) {
 		case I_IMP:
 			u->MakeWMon( "Demons", I_IMP,
-					getrandom( MonDefs[MONSTER_IMP].number + 1 ));
+					getrandom( MonDefs[MONSTER_IMPS].number + 1 ));
 			u->items.SetNum( I_DEMON,
-					getrandom( MonDefs[MONSTER_DEMON].number + 1 ));
+					getrandom( MonDefs[MONSTER_DEMONS].number + 1 ));
 			u->items.SetNum( I_BALROG,
 					getrandom( MonDefs[MONSTER_BALROG].number + 1 ));
 			break;
 		case I_SKELETON:
 			u->MakeWMon( "Undead", I_SKELETON,
-					getrandom( MonDefs[MONSTER_SKELETON].number + 1 ));
+					getrandom( MonDefs[MONSTER_SKELETONS].number + 1 ));
 			u->items.SetNum( I_UNDEAD,
 					getrandom( MonDefs[MONSTER_UNDEAD].number + 1 ));
 			u->items.SetNum( I_LICH,
 					getrandom( MonDefs[MONSTER_LICH].number + 1 ));
 			break;
-		case I_MAGICIANS:
-			u->MakeWMon(MonDefs[MONSTER_WARRIORS].name, I_WARRIORS,
-					(MonDefs[MONSTER_WARRIORS].number +
-					 getrandom( MonDefs[MONSTER_WARRIORS].number ) + 1) / 2);
+		case I_EVILMAGICIAN:
+			u->MakeWMon(MonDefs[MONSTER_EVILWARRIORS].name, I_EVILWARRIOR,
+					(MonDefs[MONSTER_EVILWARRIORS].number +
+					 getrandom( MonDefs[MONSTER_EVILWARRIORS].number ) + 1) / 2);
 			u->MoveUnit( pObj );
 			u = GetNewUnit( monfac, 0 );
-			u->MakeWMon( "Evil Mages", I_MAGICIANS,
-					(MonDefs[MONSTER_MAGICIANS].number +
-					 getrandom( MonDefs[MONSTER_MAGICIANS].number ) + 1) / 2);
-			u->items.SetNum( I_SORCERERS,
-					getrandom( MonDefs[MONSTER_SORCERERS].number + 1));
+			u->MakeWMon( "Evil Mages", I_EVILMAGICIAN,
+					(MonDefs[MONSTER_EVILMAGICIANS].number +
+					 getrandom( MonDefs[MONSTER_EVILMAGICIANS].number ) + 1) / 2);
+			u->items.SetNum( I_EVILSORCERER,
+					getrandom( MonDefs[MONSTER_EVILSORCERERS].number + 1));
 			u->SetFlag(FLAG_BEHIND, 1);
 			break;
-		case I_DARKMAGE:
-			u->MakeWMon( MonDefs[MONSTER_DROW].name, I_DROW,
-					(MonDefs[MONSTER_DROW].number +
-					 getrandom( MonDefs[MONSTER_DROW].number ) + 1) / 2);
-			u->MoveUnit( pObj );
-			u = GetNewUnit( monfac, 0 );
-			u->MakeWMon( "Dark Mages", I_MAGICIANS,
-					(MonDefs[MONSTER_MAGICIANS].number +
-					 getrandom( MonDefs[MONSTER_MAGICIANS].number ) + 1) / 2);
-			u->items.SetNum( I_SORCERERS,
-					getrandom( MonDefs[MONSTER_SORCERERS].number + 1));
-			u->items.SetNum( I_DARKMAGE,
-					getrandom( MonDefs[MONSTER_DARKMAGE].number + 1));
-			u->SetFlag(FLAG_BEHIND, 1);
-			break;
+//  		   	case I_DARKMAGE:
+//  		       		u->MakeWMon( MonDefs[MONSTER_DROWWARRIORS].name, I_DROWWARRIOR,
+//  					(MonDefs[MONSTER_DROWWARRIORS].number +
+//  					 getrandom( MonDefs[MONSTER_DROWWARRIORS].number ) + 1) / 2);
+//  			u->MoveUnit( pObj );
+//  			u = GetNewUnit( monfac, 0 );
+//  			u->MakeWMon( "Dark Mages", I_EVILMAGICIAN,
+//  					(MonDefs[MONSTER_EVILMAGICIANS].number +
+//  					 getrandom( MonDefs[MONSTER_EVILMAGICIANS].number ) + 1) / 2);
+//  			u->items.SetNum( I_EVILSORCERER,
+//  					getrandom( MonDefs[MONSTER_EVILSORCERERS].number + 1));
+//  			u->items.SetNum( I_DARKMAGE,
+//  					getrandom( MonDefs[MONSTER_DARKMAGE].number + 1));
+//  			u->SetFlag(FLAG_BEHIND, 1);
+//  			break;
         case I_ILLYRTHID:
 			u->MakeWMon( "Undead", I_SKELETON,
-					getrandom( MonDefs[MONSTER_SKELETON].number + 1 ));
+					getrandom( MonDefs[MONSTER_SKELETONS].number + 1 ));
 			u->items.SetNum( I_UNDEAD,
 					getrandom( MonDefs[MONSTER_UNDEAD].number + 1 ));
 			u->MoveUnit( pObj );
 			u = GetNewUnit( monfac, 0 );
-			u->MakeWMon( MonDefs[MONSTER_ILLYRTHID].name, I_ILLYRTHID,
-					(MonDefs[MONSTER_ILLYRTHID].number +
-					 getrandom( MonDefs[MONSTER_ILLYRTHID].number ) + 1) / 2);
+			u->MakeWMon( MonDefs[MONSTER_ILLYRTHIL].name, I_ILLYRTHID,
+					(MonDefs[MONSTER_ILLYRTHIL].number +
+					 getrandom( MonDefs[MONSTER_ILLYRTHIL].number ) + 1) / 2);
 			u->SetFlag(FLAG_BEHIND, 1);
 			break;
         case I_STORMGIANT:

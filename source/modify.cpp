@@ -200,23 +200,23 @@ void Game::ModifyItemMagicInput(int it, int i, int input, int amount)
 	ItemDefs[it].mInput[i].amt = amount;
 }
 
-void Game::ModifyRaceSkillLevels(int r, int spec, int def)
+void Game::ModifyRaceSkillLevels(int r, int def, int magicdef)
 {
 	if(r < 0 || r > (NUMMAN-1)) return;
-	if(spec < 0) spec = 0;
 	if(def < 0) def = 0;
-	ManDefs[r].speciallevel = spec;
 	ManDefs[r].defaultlevel = def;
+	ManDefs[r].defaultmagiclevel = magicdef;
 }
 
-void Game::ModifyRaceSkills(int r, int i, int sk)
+void Game::ModifyRaceSkills(int r, int i, int sk, int lvl)
 {
 	if(r < 0 || r > (NUMMAN-1)) return;
-	if(i < 0 || i >= (int)(sizeof(ManDefs[r].skills) /
-							sizeof(ManDefs[r].skills[0]))) return;
+	if(i < 0 || i >= (int)(sizeof(ManDefs[r].specialskills) /
+							sizeof(ManDefs[r].specialskills[0]))) return;
 	if(sk < -1 || sk > (NSKILLS-1)) sk = -1;
 
-	ManDefs[r].skills[i] = sk;
+	ManDefs[r].specialskills[i] = sk;
+	ManDefs[r].speciallevel[i] = lvl;
 }
 
 void Game::ModifyMonsterAttackLevel(int mon, int lev)
@@ -400,6 +400,16 @@ void Game::ModifyObjectProduction(int ob, int it)
 	if(it < -1 || it > (NITEMS -1)) return;
 	ObjectDefs[ob].productionAided = it;
 }
+
+// Sharky
+void Game::ModifyObjectConstructionBooster(int ob, int item, int bonus)
+{
+	if(ob < 0 || ob > (NOBJECTS-1)) return;
+	if(item < -1 || item > (NITEMS-1)) return;
+	ObjectDefs[ob].mult_item = item;
+	ObjectDefs[ob].mult_val = bonus;
+}
+// fSharky
 
 void Game::ModifyObjectMonster(int ob, int monster)
 {

@@ -202,8 +202,8 @@ private:
 	void ModifyItemMagicOutput(int it, int count);
 	void ModifyItemMagicInput(int it, int i, int input, int amount);
 
-	void ModifyRaceSkillLevels(int race, int special, int def);
-	void ModifyRaceSkills(int race, int i, int sk);
+	void ModifyRaceSkillLevels(int race, int def, int magicdef);
+	void ModifyRaceSkills(int race, int i, int sk, int lvl);
 
 	void ModifyMonsterAttackLevel(int mon, int lev);
 	void ModifyMonsterDefense(int mon, int defenseType, int level);
@@ -234,6 +234,7 @@ private:
 	void ModifyObjectProduction(int ob, int it);
 	void ModifyObjectMonster(int ob, int monster);
 	void ModifyObjectConstruction(int ob, int it, int num, int sk, int lev);
+	void ModifyObjectConstructionBooster(int ob, int item, int bonus);
 	void ModifyObjectManpower(int ob, int prot, int cap, int sail, int mages);
 
 	void ClearTerrainRaces(int t);
@@ -514,7 +515,7 @@ private:
     void RunTeachOrders();
     void Do1TeachOrder(ARegion *,Unit *);
     void RunProduceOrders(ARegion *);
-    int ValidProd(Unit *,ARegion *,Production *);
+    int ValidProd(Unit *,ARegion *,Object *,Production *);
     int FindAttemptedProd(ARegion *,Production *);
     void RunAProduction(ARegion *,Production *);
     void RunUnitProduce(ARegion *,Unit *);

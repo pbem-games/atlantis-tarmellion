@@ -171,6 +171,7 @@ class Unit : public AListElem
 		// LLS
 		int GetSkillBonus(int);
 		int GetProductionBonus(int);
+		int GetBuildBonus(int); // Sharky
 
 		int GetSkill(int);
 		void SetSkill(int,int);

@@ -118,7 +118,7 @@ ARegion * Game::Do1SailOrder(ARegion * reg,Object * ship,Unit * cap)
 					unit->Practise(S_SUMMON_WIND);
 					break;
 				case O_CLIPPER:
-				case O_BALLOON:
+				case O_AIRSHIP:
 					if (windlevel > 1) {
 						movepoints = Globals->SHIP_SPEED + 2;
 						unit->Event("Casts Summon Wind to aid the ship's "
@@ -161,12 +161,12 @@ ARegion * Game::Do1SailOrder(ARegion * reg,Object * ship,Unit * cap)
 					if (newreg->weather != W_NORMAL) cost = 2;
 				}
 
-				if (ship->type != O_BALLOON && !newreg->IsCoastal()) {
+				if (ship->type != O_AIRSHIP && !newreg->IsCoastal()) {
 					cap->Error("SAIL: Can't sail inland.");
 					break;
 				}
 
-				if ((ship->type != O_BALLOON) &&
+				if ((ship->type != O_AIRSHIP) &&
 					(TerrainDefs[reg->type].similar_type != R_OCEAN) &&
 					(TerrainDefs[newreg->type].similar_type != R_OCEAN)) {
 					cap->Error("SAIL: Can't sail inland.");
@@ -176,7 +176,7 @@ ARegion * Game::Do1SailOrder(ARegion * reg,Object * ship,Unit * cap)
 				// Check to see if sailing THROUGH land!
 				// always allow retracing steps
 				if (Globals->PREVENT_SAIL_THROUGH &&
-						(ship->type != O_BALLOON) &&
+						(ship->type != O_AIRSHIP) &&
 						(ship->prevdir != -1) &&
 						(ship->prevdir != reg->GetRealDirComp(i))) {
 					int blocked1 = 0;
@@ -317,12 +317,12 @@ void Game::Do1TeachOrder(ARegion * reg,Unit * unit)
 	/* First pass, find how many to teach */
 	if(Globals->LEADERS_EXIST && !unit->IsLeader()) {
 		/* small change to handle Ceran's mercs */
-		if(!unit->GetMen(I_MERC)) {
+	  //		if(!unit->GetMen(I_MERCENARY)) {
 			// Mercs can teach even though they are not leaders.
 			// They cannot however improve their own skills
 			unit->Error("TEACH: Only leaders can teach.");
 			return;
-		}
+			//		}
 	}
 
 	int students = 0;
@@ -418,6 +418,24 @@ void Game::Run1BuildOrder(ARegion * r,Object * obj,Unit * u)
 		return;
 	}
 
+	int restrictedRegion = 0;
+	int allowedRegion = 0;
+	for (unsigned int index=0;index<sizeof(ObjectDefs[obj->type].allowedRegions)/sizeof(int);index++) {
+	  if (ObjectDefs[obj->type].allowedRegions[index] != -1) {
+	    restrictedRegion = 1;
+	  }
+	  if (ObjectDefs[obj->type].allowedRegions[index] == TerrainDefs[r->type].similar_type) {
+	    allowedRegion = 1;
+	    break;
+	  }
+	}
+	if (restrictedRegion && (allowedRegion == 0)) {
+	  u->Error("BUILD: Can't build that in this region.");
+	  delete u->monthorders;
+	  u->monthorders = 0;
+	  return;
+	}
+
 	int needed = obj->incomplete;
 	int type = obj->type;
 	// AS
@@ -452,7 +470,7 @@ void Game::Run1BuildOrder(ARegion * r,Object * obj,Unit * u)
 		return;
 	}
 
-	int num = u->GetMen() * usk;
+	int num = u->GetMen() * usk + u->GetBuildBonus(type); // Sharky (added the "+ u->...")
 
 	// JLT
 	if(obj->incomplete == ObjectDefs[type].cost) {
@@ -679,7 +697,16 @@ void Game::RunUnitProduce(ARegion * r,Unit * u)
 	int output = maxproduced * ItemDefs[o->item].pOut;
 	if (ItemDefs[o->item].flags & ItemType::SKILLOUT)
 		output *= level;
-	u->items.SetNum(o->item,u->items.GetNum(o->item) + output);
+	if (ItemDefs[o->item].type != IT_ABSTRACT) {
+	  u->items.SetNum(o->item,u->items.GetNum(o->item) + output);
+	}
+	for (unsigned int by=0;by<sizeof(ItemDefs[o->item].byproducts)
+	       /sizeof(ItemDefs[o->item].byproducts[0]);by++) {
+	  int byproduct = ItemDefs[o->item].byproducts[by];
+	  if (byproduct != -1) {
+	    u->items.SetNum(byproduct,u->items.GetNum(byproduct) + output);
+	  }
+	}
 	u->Event(AString("Produces ") + ItemString(o->item,output) + " in " +
 			r->ShortPrint(&regions) + ".");
 	u->Practise(o->skill);
@@ -712,7 +739,7 @@ void Game::RunProduceOrders(ARegion * r)
 	}
 }
 
-int Game::ValidProd(Unit * u,ARegion * r,Production * p)
+int Game::ValidProd(Unit * u, ARegion * r, Object *obj, Production * p)
 {
 	if (u->monthorders->type != O_PRODUCE) return 0;
 
@@ -742,6 +769,15 @@ int Game::ValidProd(Unit * u,ARegion * r,Production * p)
 			return 0;
 		}
 
+		if (ItemDefs[p->itemtype].requiredstructure != -1) {
+		  if (ItemDefs[p->itemtype].requiredstructure != obj->type) {
+		    u->Error("PRODUCE: Not inside correct building.");
+		    delete u->monthorders;
+		    u->monthorders = 0;
+		    return 0;
+		  }
+		}
+
 		/* check for bonus production */
 		// LLS
 		int bonus = u->GetProductionBonus(p->itemtype);
@@ -754,13 +790,26 @@ int Game::ValidProd(Unit * u,ARegion * r,Production * p)
 int Game::FindAttemptedProd(ARegion * r,Production * p) {
   int attempted = 0;
   forlist((&r->objects)) {
-	Object * obj = (Object *) elem;
-	forlist((&obj->units)) {
-	  Unit * u = (Unit *) elem;
-	  if (u->monthorders) {
-	attempted += ValidProd(u,r,p);
-	  }
-	}
+    int amt = 0;
+    int men = 0;
+    Object * obj = (Object *) elem;
+    forlist((&obj->units)) {
+      Unit * u = (Unit *) elem;
+      if (u->monthorders) {
+	amt += ValidProd(u,r,obj,p);
+	men += u->GetMen();
+      }
+    }
+    int workers = ObjectDefs[obj->type].workersallowed;
+    if (workers != -1 || men <= workers || ItemDefs[p->itemtype].requiredstructure != obj->type) {
+      attempted += amt;
+      obj->productionratio = 1.0;
+    } else if (men == 0) {
+      obj->productionratio = 1.0;
+    } else {
+      attempted += amt * (workers/men);
+      obj->productionratio = (float)workers/(float)men;
+    }
   }
   return attempted;
 }
@@ -795,8 +844,7 @@ void Game::RunAProduction(ARegion * r,Production * p)
 			uatt = po->productivity;
 			if (uatt && amt && attempted)
 			{
-				double dUbucks = ((double) amt) * ((double) uatt)
-					/ ((double) attempted);
+				double dUbucks = ((double)obj->productionratio)*((double) amt) * ((double) uatt) / ((double) attempted);
 				ubucks = (int) dUbucks;
 			}
 			else
@@ -806,8 +854,18 @@ void Game::RunAProduction(ARegion * r,Production * p)
 
 			amt -= ubucks;
 			attempted -= uatt;
-			u->items.SetNum(po->item,u->items.GetNum(po->item)
+			if (ItemDefs[po->item].type != IT_ABSTRACT) {
+			  u->items.SetNum(po->item,u->items.GetNum(po->item)
 							+ ubucks);
+			}
+			for (unsigned int by=0;by<sizeof(ItemDefs[po->item].byproducts)/
+			       sizeof(ItemDefs[po->item].byproducts[0]);by++) {
+			  int byproduct = ItemDefs[po->item].byproducts[by];
+			  if (byproduct != -1) {
+			    u->items.SetNum(byproduct,u->items.GetNum(byproduct) + ubucks);
+			  }
+			}
+
 			p->activity += ubucks;
 
 			/* Show in unit's events section */
@@ -876,11 +934,11 @@ void Game::Do1StudyOrder(Unit *u,Object *obj)
 		return;
 	}
 
-	// Small patch for Ceran Mercs
-	if(u->GetMen(I_MERC)) {
-		u->Error("STUDY: Mercenaries are not allowed to study.");
-		return;
-	}
+	//Small patch for Ceran Mercs
+	//	if(u->GetMen(I_MERCENARY)) {
+	//		u->Error("STUDY: Mercenaries are not allowed to study.");
+	//		return;
+	//	}
 
 	if((SkillDefs[sk].flags & SkillType::MAGIC) && u->type != U_MAGE) {
 		if(u->type == U_APPRENTICE) {

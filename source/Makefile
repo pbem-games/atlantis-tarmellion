@@ -27,7 +27,7 @@ OBJECTS = $(patsubst %.o,$(GAME)/obj/%.o,$(RULESET_OBJECTS)) \
 $(GAME)-m: objdir $(OBJECTS)
 	$(CPLUS) $(CFLAGS) -o $(GAME)/$(GAME) $(OBJECTS)
 
-all: conquest ceran realms standard wyreth
+all: conquest ceran realms standard wyreth tarmellion
 
 conquest: FORCE
 	$(MAKE) GAME=conquest
@@ -44,10 +44,13 @@ standard: FORCE
 wyreth: FORCE
 	$(MAKE) GAME=wyreth
 
+tarmellion: FORCE
+	$(MAKE) GAME=tarmellion
+
 $(GAME)/$(GAME): FORCE
 	$(MAKE) GAME=$(GAME)
 
-all-clean: conquest-clean ceran-clean realms-clean standard-clean wyreth-clean
+all-clean: conquest-clean ceran-clean realms-clean standard-clean wyreth-clean tarmellion-clean
 
 conquest-clean:
 	$(MAKE) GAME=conquest clean
@@ -64,13 +67,16 @@ standard-clean:
 wyreth-clean:
 	$(MAKE) GAME=wyreth clean
 
+tarmellion-clean:
+	$(MAKE) GAME=tarmellion clean
+
 clean:
 	rm -f $(OBJECTS)
 	if [ -d $(GAME)/obj ]; then rmdir $(GAME)/obj; fi
 	rm -f $(GAME)/html/$(GAME).html
 	rm -f $(GAME)/$(GAME)
 
-all-rules: conquest-rules ceran-rules realms-rules standard-rules wyreth-rules
+all-rules: conquest-rules ceran-rules realms-rules standard-rules wyreth-rules tarmellion-rules
 
 conquest-rules:
 	$(MAKE) GAME=conquest rules
@@ -86,6 +92,9 @@ standard-rules:
 
 wyreth-rules:
 	$(MAKE) GAME=wyreth rules
+
+tarmellion-rules:
+	$(MAKE) GAME=tarmellion rules
 
 rules: $(GAME)/$(GAME)
 	(cd $(GAME); \
@@ -106,3 +115,11 @@ $(patsubst %.o,$(GAME)/obj/%.o,$(ENGINE_OBJECTS)): $(GAME)/obj/%.o: %.cpp
 
 $(GAME)/obj/i_rand.o: i_rand.c
 	$(CC) $(CFLAGS) -c -o $@ $<
+
+
+
+
+
+
+
+
