@@ -2030,45 +2030,183 @@ void Game::MonsterCheck(ARegion *r, Unit *u) {
 }
 
 void Game::CheckUnitMaintenance(int consume) {
-	CheckUnitMaintenanceItem(I_FOOD, Globals->UPKEEP_FOOD_VALUE, consume);
-	CheckUnitMaintenanceItem(I_GRAIN, Globals->UPKEEP_FOOD_VALUE, consume);
-	CheckUnitMaintenanceItem(I_LIVESTOCK, Globals->UPKEEP_FOOD_VALUE, consume);
-	CheckUnitMaintenanceItem(I_FISH, Globals->UPKEEP_FOOD_VALUE, consume);
+  int max = -1;
+  int lastmax = -1;
+  // Find maximum priority.
+  for (int it=0;it<sizeof(ItemDefs)/sizeof(ItemDefs[0]);it++) {
+    if (ItemDefs[it].attributes & ItemType::CAN_CONSUME) {
+      if (max < 0 || ItemDefs[it].pValue > max) {
+	max = ItemDefs[it].pValue;
+      }
+    }
+  }
+  // While priority found
+  while (max >= 0) {
+    lastmax = max;
+    max = -1;
+    for (int it=0;it<sizeof(ItemDefs)/sizeof(ItemDefs[0]);it++) {
+      if (ItemDefs[it].attributes & ItemType::CAN_CONSUME) {
+	// Consume items of present priority.
+	if (ItemDefs[it].pValue == lastmax) {
+	  CheckUnitMaintenanceItem(it, Globals->UPKEEP_FOOD_VALUE, consume);
+	}
+	// Find next priority.
+	if (ItemDefs[it].pValue > max && ItemDefs[it].pValue < lastmax) {
+	  max = ItemDefs[it].pValue;
+	}
+      }
+    }
+  }
 }
 
 void Game::CheckFactionMaintenance(int con) {
-	CheckFactionMaintenanceItem(I_FOOD, Globals->UPKEEP_FOOD_VALUE, con);
-	CheckFactionMaintenanceItem(I_GRAIN, Globals->UPKEEP_FOOD_VALUE, con);
-	CheckFactionMaintenanceItem(I_LIVESTOCK, Globals->UPKEEP_FOOD_VALUE, con);
-	CheckFactionMaintenanceItem(I_FISH, Globals->UPKEEP_FOOD_VALUE, con);
+  int max = -1;
+  int lastmax = -1;
+  // Find maximum priority.
+  for (int it=0;it<sizeof(ItemDefs)/sizeof(ItemDefs[0]);it++) {
+    if (ItemDefs[it].attributes & ItemType::CAN_CONSUME) {
+      if (max < 0 || ItemDefs[it].pValue > max) {
+	max = ItemDefs[it].pValue;
+      }
+    }
+  }
+  // While priority found
+  while (max >= 0) {
+    lastmax = max;
+    max = -1;
+    for (int it=0;it<sizeof(ItemDefs)/sizeof(ItemDefs[0]);it++) {
+      if (ItemDefs[it].attributes & ItemType::CAN_CONSUME) {
+	// Consume items of present priority.
+	if (ItemDefs[it].pValue == lastmax) {
+	  CheckFactionMaintenanceItem(it, Globals->UPKEEP_FOOD_VALUE, con);
+	}
+	// Find next priority.
+	if (ItemDefs[it].pValue > max && ItemDefs[it].pValue < lastmax) {
+	  max = ItemDefs[it].pValue;
+	}
+      }
+    }
+  }
 }
 
 void Game::CheckAllyMaintenance() {
-	CheckAllyMaintenanceItem(I_FOOD, Globals->UPKEEP_FOOD_VALUE);
-	CheckAllyMaintenanceItem(I_GRAIN, Globals->UPKEEP_FOOD_VALUE);
-	CheckAllyMaintenanceItem(I_LIVESTOCK, Globals->UPKEEP_FOOD_VALUE);
-	CheckAllyMaintenanceItem(I_FISH, Globals->UPKEEP_FOOD_VALUE);
+  int max = -1;
+  int lastmax = -1;
+  // Find maximum priority.
+  for (int it=0;it<sizeof(ItemDefs)/sizeof(ItemDefs[0]);it++) {
+    if (ItemDefs[it].attributes & ItemType::CAN_CONSUME) {
+      if (max < 0 || ItemDefs[it].pValue > max) {
+	max = ItemDefs[it].pValue;
+      }
+    }
+  }
+  // While priority found
+  while (max >= 0) {
+    lastmax = max;
+    max = -1;
+    for (int it=0;it<sizeof(ItemDefs)/sizeof(ItemDefs[0]);it++) {
+      if (ItemDefs[it].attributes & ItemType::CAN_CONSUME) {
+	// Consume items of present priority.
+	if (ItemDefs[it].pValue == lastmax) {
+	CheckAllyMaintenanceItem(it, Globals->UPKEEP_FOOD_VALUE);
+	}
+	// Find next priority.
+	if (ItemDefs[it].pValue > max && ItemDefs[it].pValue < lastmax) {
+	  max = ItemDefs[it].pValue;
+	}
+      }
+    }
+  }
 }
 
 void Game::CheckUnitHunger() {
-	CheckUnitHungerItem(I_FOOD, Globals->UPKEEP_FOOD_VALUE);
-	CheckUnitHungerItem(I_GRAIN, Globals->UPKEEP_FOOD_VALUE);
-	CheckUnitHungerItem(I_LIVESTOCK, Globals->UPKEEP_FOOD_VALUE);
-	CheckUnitHungerItem(I_FISH, Globals->UPKEEP_FOOD_VALUE);
+  int max = -1;
+  int lastmax = -1;
+  // Find maximum priority.
+  for (int it=0;it<sizeof(ItemDefs)/sizeof(ItemDefs[0]);it++) {
+    if (ItemDefs[it].attributes & ItemType::CAN_CONSUME) {
+      if (max < 0 || ItemDefs[it].pValue > max) {
+	max = ItemDefs[it].pValue;
+      }
+    }
+  }
+  // While priority found
+  while (max >= 0) {
+    lastmax = max;
+    max = -1;
+    for (int it=0;it<sizeof(ItemDefs)/sizeof(ItemDefs[0]);it++) {
+      if (ItemDefs[it].attributes & ItemType::CAN_CONSUME) {
+	// Consume items of present priority.
+	if (ItemDefs[it].pValue == lastmax) {
+	  CheckUnitHungerItem(it, Globals->UPKEEP_FOOD_VALUE);
+	}
+	// Find next priority.
+	if (ItemDefs[it].pValue > max && ItemDefs[it].pValue < lastmax) {
+	  max = ItemDefs[it].pValue;
+	}
+      }
+    }
+  }
 }
 
 void Game::CheckFactionHunger() {
-	CheckFactionHungerItem(I_FOOD, Globals->UPKEEP_FOOD_VALUE);
-	CheckFactionHungerItem(I_GRAIN, Globals->UPKEEP_FOOD_VALUE);
-	CheckFactionHungerItem(I_LIVESTOCK, Globals->UPKEEP_FOOD_VALUE);
-	CheckFactionHungerItem(I_FISH, Globals->UPKEEP_FOOD_VALUE);
+  int max = -1;
+  int lastmax = -1;
+  // Find maximum priority.
+  for (int it=0;it<sizeof(ItemDefs)/sizeof(ItemDefs[0]);it++) {
+    if (ItemDefs[it].attributes & ItemType::CAN_CONSUME) {
+      if (max < 0 || ItemDefs[it].pValue > max) {
+	max = ItemDefs[it].pValue;
+      }
+    }
+  }
+  // While priority found
+  while (max >= 0) {
+    lastmax = max;
+    max = -1;
+    for (int it=0;it<sizeof(ItemDefs)/sizeof(ItemDefs[0]);it++) {
+      if (ItemDefs[it].attributes & ItemType::CAN_CONSUME) {
+	// Consume items of present priority.
+	if (ItemDefs[it].pValue == lastmax) {
+	CheckFactionHungerItem(it, Globals->UPKEEP_FOOD_VALUE);
+	}
+	// Find next priority.
+	if (ItemDefs[it].pValue > max && ItemDefs[it].pValue < lastmax) {
+	  max = ItemDefs[it].pValue;
+	}
+      }
+    }
+  }
 }
 
 void Game::CheckAllyHunger() {
-	CheckAllyHungerItem(I_FOOD, Globals->UPKEEP_FOOD_VALUE);
-	CheckAllyHungerItem(I_GRAIN, Globals->UPKEEP_FOOD_VALUE);
-	CheckAllyHungerItem(I_LIVESTOCK, Globals->UPKEEP_FOOD_VALUE);
-	CheckAllyHungerItem(I_FISH, Globals->UPKEEP_FOOD_VALUE);
+  int max = -1;
+  int lastmax = -1;
+  // Find maximum priority.
+  for (int it=0;it<sizeof(ItemDefs)/sizeof(ItemDefs[0]);it++) {
+    if (ItemDefs[it].attributes & ItemType::CAN_CONSUME) {
+      if (max < 0 || ItemDefs[it].pValue > max) {
+	max = ItemDefs[it].pValue;
+      }
+    }
+  }
+  // While priority found
+  while (max >= 0) {
+    lastmax = max;
+    max = -1;
+    for (int it=0;it<sizeof(ItemDefs)/sizeof(ItemDefs[0]);it++) {
+      if (ItemDefs[it].attributes & ItemType::CAN_CONSUME) {
+	// Consume items of present priority.
+	if (ItemDefs[it].pValue == lastmax) {
+	  CheckAllyHungerItem(it, Globals->UPKEEP_FOOD_VALUE);
+	}
+	// Find next priority.
+	if (ItemDefs[it].pValue > max && ItemDefs[it].pValue < lastmax) {
+	  max = ItemDefs[it].pValue;
+	}
+      }
+    }
+  }
 }
 
 char Game::GetRChar(ARegion * r)

@@ -426,12 +426,12 @@ int Soldier::ArmorProtect(int weaponClass)
 void Soldier::RestoreItems()
 {
 	if (healing && healitem != -1) {
-		if(healitem == I_HERB) {
-			unit->items.SetNum(healitem,
-					unit->items.GetNum(healitem) + healing);
-		} else if(healitem == I_HEALINGPOTION) {
+		if(healitem == I_HEALINGPOTION) {
 			unit->items.SetNum(healitem,
 					unit->items.GetNum(healitem)+healing/10);
+		} else {
+			unit->items.SetNum(healitem,
+					unit->items.GetNum(healitem) + healing);
 		}
 	}
 	if (weapon != -1)
@@ -756,8 +756,6 @@ void Army::DoHeal(Battle * b)
 
 void Army::DoHealLevel(Battle *b, int type, int useItems)
 {
-	int rate = HealDefs[type].rate;
-
 	for (int i=0; i<NumAlive(); i++) {
 		Soldier * s = soldiers[i];
 		int n = 0;
@@ -766,6 +764,12 @@ void Army::DoHealLevel(Battle *b, int type, int useItems)
 		// This should be here.. Use the best healing first
 		if(s->healtype != type) continue;
 		if(!s->healing) continue;
+		int rate;
+		if (useItems == 0 || s->healitem == I_HEALINGPOTION) {
+		  rate = HealDefs[type].rate;
+		} else {
+		  rate = ItemDefs[s->healitem].pValue;
+		}
 		if(useItems) {
 			if(s->healitem == -1) continue;
 			if (s->healitem != I_HEALINGPOTION) s->unit->Practise(S_HEALING);

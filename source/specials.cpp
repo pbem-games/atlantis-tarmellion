@@ -37,20 +37,27 @@ void Soldier::SetupHealing()
         }
     }
 
-	if(unit->items.GetNum(I_HEALINGPOTION)) {
-		healtype = 1;
-		unit->items.SetNum(I_HEALINGPOTION, unit->items.GetNum(I_HEALINGPOTION)-1);
-		healing = 10;
-		healitem = I_HEALINGPOTION;
-	} else {
-		healing = unit->GetSkill(S_HEALING) * Globals->HEALS_PER_MAN;
-		if (healing) {
-			healtype = 1;
-			int herbs = unit->items.GetNum(I_HERB);
-			if (herbs < healing) healing = herbs;
-			unit->items.SetNum(I_HERB,herbs - healing);
-			healitem = I_HERB;
-		}
+    if(unit->items.GetNum(I_HEALINGPOTION)) {
+      healtype = 1;
+      unit->items.SetNum(I_HEALINGPOTION, unit->items.GetNum(I_HEALINGPOTION)-1);
+      healing = 10;
+      healitem = I_HEALINGPOTION;
+    } else {
+      healing = unit->GetSkill(S_HEALING) * Globals->HEALS_PER_MAN;
+      if (healing) {
+	healtype = 1;
+	int max_heal = -1;
+	forlist(&(unit->items)) {
+	  Item *i = (Item *) elem;
+	  if (ItemDefs[i->type].attributes & ItemType::CAN_HEAL && ItemDefs[i->type].pValue > max_heal) {
+	    max_heal = ItemDefs[i->type].pValue;
+	    healitem = i->type;
+	  }
+	}
+	int amnt = unit->items.GetNum(healitem);
+	if (amnt < healing) healing = amnt;
+	unit->items.SetNum(healitem,amnt - healing);
+      }
     }
 }
 

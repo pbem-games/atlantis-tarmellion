@@ -94,6 +94,20 @@ class ItemType
 			HIDDEN = 0x80,
 		};
 		int flags;
+		enum {
+		  CAN_CONSUME = 0x1,
+		  // Can be eaten for maintance, pValue gives priority.
+		  CAN_HEAL = 0x2,
+		  // Can be used to heal, pValue gives percentage chance.
+		  STOP_THEFT = 0x4,
+		  // Item stops theft.
+		  STOP_ASSASINATE = 0x8,
+		  // Item stops assasination attempts.
+		  OBSE_BONUS = 0x10,
+		  // pValue is added to observation.
+		};
+		int attributes;
+		int pValue;
 
 		int pSkill; // production skill
 		int pLevel; // production skill level
