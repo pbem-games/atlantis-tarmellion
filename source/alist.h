@@ -32,6 +32,7 @@ class AListElem {
 	public:
 		virtual ~AListElem();
 
+		const char * sortString;
 		AListElem * next;
 };
 

@@ -1232,7 +1232,7 @@ void Unit::Short(int needed, int hunger)
 
 	if (needed < 1 && hunger < 1) return;
 
-	for (int i = 0; i<= NITEMS; i++) {
+	for (i = 0; i<= NITEMS; i++) {
 		if(!(ItemDefs[ i ].type & IT_MAN)) {
 			// Only men need sustenance.
 			continue;
@@ -1872,10 +1872,11 @@ void Unit::Error(const AString & s)
 
 int Unit::GetSkillBonus(int sk)
 {
-        int max_bonus = 0;
+	int max_bonus = 0;
 	int nitems = 0;
 	int bonus = 0;
 	int men = GetMen();
+	int it;
 	switch(sk) {
 		case S_OBSERVATION:
 			if(!men) break;
@@ -1884,7 +1885,7 @@ int Unit::GetSkillBonus(int sk)
 			} else {
 				bonus = (GetSkill(S_TRUE_SEEING)+1)/2;
 			}
-			for(int it=0;it<NITEMS;it++) {
+			for(it=0;it<NITEMS;it++) {
 			  // Item effects OBSE and we have any.
 			  if((ItemDefs[it].attributes & ItemType::OBSE_BONUS) &&
 			     (items.GetNum(it))) {
@@ -1900,7 +1901,7 @@ int Unit::GetSkillBonus(int sk)
 			}
 			// find max STEA_BONUS
 			max_bonus = 0;
-			for(int it=0;it<NITEMS;it++) {
+			for(it=0;it<NITEMS;it++) {
 			  if((ItemDefs[it].attributes & ItemType::STEA_BONUS)
 			     && (ItemDefs[it].pValue > max_bonus)) {
 			    max_bonus = ItemDefs[it].pValue;

@@ -65,6 +65,7 @@ public:
 
     int NewGame();
     int OpenGame();
+	int OpenGame(const char *);
     void DummyGame();
 
 	void DefaultWorkOrder();
@@ -72,6 +73,7 @@ public:
     int RunGame();
     int EditGame( int *pSaveGame );
     int SaveGame();
+	int SaveGame(const char *);
     int WritePlayers();
     int ReadPlayers();
     int ReadPlayersLine( AString *pToken, AString *pLine, Faction *pFac,

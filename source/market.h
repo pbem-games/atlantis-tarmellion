@@ -53,6 +53,8 @@ public:
   int baseprice;
   int activity;
 
+  int region;
+
   void PostTurn(int,int);
   void Writeout(Aoutfile * f);
   void Readin(Ainfile * f);

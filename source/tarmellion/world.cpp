@@ -2229,11 +2229,11 @@ void Game::CreateWorld()
     //set up gates on surface
     regions.InitSetupGates( 1 );
     // Set up gates on all levels of the underworld
-    for(int i=2; i < Globals->UNDERWORLD_LEVELS+2; i++) {
+    for(i=2; i < Globals->UNDERWORLD_LEVELS+2; i++) {
       regions.InitSetupGates( i );
     }
     // Underdeeps has also gates.
-    for(int i=Globals->UNDERWORLD_LEVELS+2; i < Globals->UNDERWORLD_LEVELS+Globals->UNDERDEEP_LEVELS+2; i++) {
+    for(i=Globals->UNDERWORLD_LEVELS+2; i < Globals->UNDERWORLD_LEVELS+Globals->UNDERDEEP_LEVELS+2; i++) {
       regions.InitSetupGates( i );
     }
 

@@ -307,13 +307,18 @@ int Game::NewGame()
     return( 1 );
 }
 
-int Game::OpenGame()
+int Game::OpenGame( )
+{
+	return OpenGame( "game.in" );
+}
+
+int Game::OpenGame( const char * gamefile )
 {
 	//
 	// The order here must match the order in SaveGame
 	//
 	Ainfile f;
-	if( f.OpenByName( "game.in" ) == -1 ) {
+	if( f.OpenByName( gamefile ) == -1 ) {
 		return( 0 );
 	}
 
@@ -447,8 +452,13 @@ int Game::OpenGame()
 
 int Game::SaveGame()
 {
+	return SaveGame("game.out");
+}
+
+int Game::SaveGame(const char * gamefile)
+{
     Aoutfile f;
-    if( f.OpenByName( "game.out" ) == -1 )
+    if( f.OpenByName( gamefile ) == -1 )
     {
 	return( 0 );
     }

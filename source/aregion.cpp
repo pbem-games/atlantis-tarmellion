@@ -3137,7 +3137,8 @@ void ARegionList::SeverLandBridges(ARegionArray *pRegs)
 {
 	Awrite("Severing land bridges");
 	// mark land hexes to delete
-	for(int i = 0; i < pRegs->x; i++) {
+	int i;
+	for(i = 0; i < pRegs->x; i++) {
 		for(int j = 0; j < pRegs->y; j++) {
 			ARegion *reg = pRegs->GetRegion(i, j);
 			if ((!reg) || (TerrainDefs[reg->type].similar_type == R_OCEAN))
@@ -3155,7 +3156,7 @@ void ARegionList::SeverLandBridges(ARegionArray *pRegs)
 		}
 	}
 	// now change to ocean
-	for(int i = 0; i < pRegs->x; i++) {
+	for(i = 0; i < pRegs->x; i++) {
 		for(int j = 0; j < pRegs->y; j++) {
 			ARegion *reg = pRegs->GetRegion(i, j);
 			if ((!reg) || (reg->wages > -2)) continue;

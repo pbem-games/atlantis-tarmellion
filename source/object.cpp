@@ -442,13 +442,14 @@ AString *ObjectDescription(int obj)
 	}
 
 	int maxcount=0;
-	for (unsigned int index=0;index<sizeof(o->allowedRegions)/sizeof(int);index++) {
+	unsigned int index;
+	for (index=0;index<sizeof(o->allowedRegions)/sizeof(int);index++) {
 	  if (o->allowedRegions[index] != -1) {
 	    maxcount++;
 	  }
 	}
 	int count=0;
-	for (unsigned int index=0;index<sizeof(o->allowedRegions)/sizeof(int);index++) {
+	for (index=0;index<sizeof(o->allowedRegions)/sizeof(int);index++) {
 	  if (o->allowedRegions[index] != -1) {
 	    if (count == 0) {
 	      *temp += " This building can only be built in ";

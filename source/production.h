@@ -48,6 +48,8 @@ public:
   int level;
   int productivity;
   int activity;
+
+  int region;
 };
 
 class ProductionList : public AList {

@@ -25,8 +25,12 @@
 #ifndef ASTRING_CLASS
 #define ASTRING_CLASS
 
+#ifndef __BORLANDC__
+#include <iostream.h>
+#else
 #include <iostream>
 using namespace std;
+#endif
 
 #include "alist.h"
 
@@ -71,5 +75,7 @@ private:
     char * str;
     int isEqual(const char *);
 };
+
+char islegal(char c);
 
 #endif
