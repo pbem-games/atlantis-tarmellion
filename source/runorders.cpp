@@ -1498,12 +1498,19 @@ void Game::DoBuy(ARegion * r,Market * m) {
 						u->AdjustSkills();
 						delete sl;
 					}
-					u->items.SetNum(o->item,u->items.GetNum(o->item) + temp);
-					u->faction->DiscoverItem(o->item, 0, 1);
-					u->SetMoney(u->GetMoney() - temp * m->price);
-					u->buyorders.Remove(o);
-					u->Event(AString("Buys ") + ItemString(o->item,temp)
-							+ " at $" + m->price + " each.");
+					if (o->item == I_BONDSMAN && u->faction->race) {
+						o->item = u->faction->race;
+					} else if (o->item == I_BONDSMAN) {
+						u->Error(AString("BUY: you don't have a race to recruit from."));
+					}
+					if(o->item) {
+						u->items.SetNum(o->item,u->items.GetNum(o->item) + temp);
+						u->faction->DiscoverItem(o->item, 0, 1);
+						u->SetMoney(u->GetMoney() - temp * m->price);
+						u->buyorders.Remove(o);
+						u->Event(AString("Buys ") + ItemString(o->item,temp)
+							 + " at $" + m->price + " each.");
+					}
 					delete o;
 				}
 			}

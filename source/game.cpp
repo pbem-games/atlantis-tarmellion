@@ -763,6 +763,100 @@ int Game::ReadPlayersLine(AString *pToken, AString *pLine, Faction *pFac,
 				}
 			}
 		}
+	} else if (*pToken == "Market:") {
+		// Create or alters a market.
+		int error = 0;
+		if (!pFac->pReg && pFac->pReg->town) {
+			Awrite(AString("Markets can only be altered in a ") +
+			       "region with a valid town for faction "
+			       + pFac->num);
+			error = 1;
+		}
+		int type;
+		if (!error) {
+			pTemp = pLine->gettoken();
+			if (*pTemp == AString("BUY")) {
+				type = M_BUY;
+			}
+			else if (*pTemp == AString("SELL")) {
+				type = M_SELL;
+			}
+			else {
+				Awrite(AString("Invalid Market type specfied"));
+				error = 1;
+			}
+		}
+		int item;
+		if (!error) {
+			pTemp = pLine->gettoken();
+			if (!pTemp) {
+				Awrite(AString("Market: must specify item"));
+				error = 1;
+			} else {	
+				item = ParseEnabledItem(pTemp);
+			}
+		}
+		int price,minpop,maxpop,minamt,maxamt;
+		if (!error) {
+			pTemp = pLine->gettoken();
+			if (!pTemp) {
+				Awrite(AString("Market: insufficent arguments"));
+				error = 1;
+			} else {
+				price = pTemp->value();	
+			}
+			pTemp = pLine->gettoken();
+			if (!pTemp) {
+				Awrite(AString("Market: insufficent arguments"));
+				error = 1;
+			} else {
+				minpop = pTemp->value();
+			}
+			pTemp = pLine->gettoken();
+			if (!pTemp) {
+				Awrite(AString("Market: insufficent arguments"));
+				error = 1;
+			} else {
+				minamt = pTemp->value();
+			}
+			pTemp = pLine->gettoken();
+			if (!pTemp) {
+				Awrite(AString("Market: insufficent arguments"));
+				error = 1;
+			} else {
+				maxpop = pTemp->value();
+			}
+			pTemp = pLine->gettoken();
+			if (!pTemp) {
+				Awrite(AString("Market: insufficent arguments"));
+				error = 1;
+			} else {
+				maxamt = pTemp->value();
+			}
+		}
+		// Find if the market currently exists.
+		int found = 0;
+		forlist((&pFac->pReg->markets)) {
+			Market * m = (Market *) elem;
+			if (m->type == type && m->item == item) {
+				if (maxamt == 0) {
+					// remove the market.
+					pFac->pReg->markets.Remove(elem);
+				} else {
+					m->baseprice = price;
+					m->minpop = minpop;
+					m->minamt = minamt;
+					m->maxpop = maxpop;
+					m->maxamt = maxamt;
+				}
+				found = 1;
+			}
+		}
+		if (!found && maxamt > 0) {
+			Market *m = new Market(type,item,price,price,minpop,maxpop,
+					       minamt,maxamt);
+			pFac->pReg->markets.Add((AListElem *)m);
+		}
 	} else if (*pToken == "NewUnit:") {
 		// Creates a new unit in the location specified by a Loc: line
 		// with a gm_alias of whatever is after the NewUnit: tag.
@@ -795,7 +889,7 @@ int Game::ReadPlayersLine(AString *pToken, AString *pLine, Faction *pFac,
 			if (*pTemp == "none")
 				pFac->race = -1;
 			else {
-				int it = ParseAllItems(pTemp);
+				int it = ParseEnabledItem(pTemp);
 				if (ItemDefs[it].type == IT_MAN)
 					pFac->race = it;
 				else

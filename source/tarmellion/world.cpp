@@ -2618,6 +2618,7 @@ int ARegion::CanBeStartingCity(ARegionArray *pRA)
 
 void ARegion::MakeStartingCity()
 {
+  cout << "*** MakeStartingCity ***" << endl;
 	Market *m;
 	float ratio;
 
@@ -2655,6 +2656,10 @@ void ARegion::MakeStartingCity()
 		m = new Market( M_BUY, race, (int)(Wages()*4*ratio),
 				Population()/5, 0, 10000, 0, 2000 );
 		markets.Add(m);
+		//		cout << "*** here ***" << endl;
+		//		m = new Market( M_BUY, I_BONDSMAN, (int)(Wages()*4),
+		//				Population()/10, 0, 10000, 0, 2000 );
+		//		markets.Add(m);
 	}
 }
 

@@ -655,6 +655,7 @@ enum {
 	I_ISHIELD,				//611
 	I_MSHIELD,				//612
 	I_ASHIELD,				//613
+	I_BONDSMAN,                             //614
 	NITEMS
 };
 
