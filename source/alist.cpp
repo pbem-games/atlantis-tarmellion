@@ -80,7 +80,9 @@ void AList::Empty() {
 
 void AList::Insert(AListElem * e) {
 	num ++;
+	e->prev = 0;
 	e->next = list;
+	list->prev = e;
 	list = e;
 	if (!lastelem) lastelem = list;
 }
@@ -88,12 +90,14 @@ void AList::Insert(AListElem * e) {
 void AList::Add(AListElem * e) {
 	num ++;
 	if (list) {
+		e->prev = lastelem;
 		lastelem->next = e;
 		e->next = 0;
 		lastelem = e;
 	} else {
 		list = e;
 		e->next = 0;
+		e->prev = 0;
 		lastelem = list;
 	}
 }

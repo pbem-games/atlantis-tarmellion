@@ -30,12 +30,14 @@
 
 class GuiFrame;
 class GuiApp;
+class HistoryItem;
 
 #include "edit.h"
 #include "map.h"
-#include "tree.h"
+//#include "tree.h"
 #include "aextend.h"
-#include "list.h"
+#include "glist.h"
+#include "selection.h"
 
 #include "../game.h"
 #include "../aregion.h"
@@ -57,7 +59,7 @@ enum
 	Gui_Game_Run,
 	Gui_Game_CheckOrders,
 	Gui_Options_Recreate,
-	Gui_Show_Tree,
+//	Gui_Show_Tree,
 	Gui_Show_List,
 	Gui_Show_Map,
 	Gui_Window_Arrange,
@@ -94,7 +96,7 @@ class GuiApp : public wxApp
 		void Select( ARegionArray *, bool add = false );
 
 		void UpdateFactions();
-		void UpdateRegions();
+		void UpdateRegions( bool updateMap = true );
 		void UpdateUnits();
 		void UpdateObjects();
 		void UpdateMarkets();
@@ -117,8 +119,12 @@ class GuiApp : public wxApp
 
 	//	ARegion * AddRegion();
 
-		void UpdateSelection();
-		void UpdateSelection( AElemArray * , int, wxWindow * from = NULL );
+		void UpdateSelection( bool addToHistory = true );
+		void UpdateSelection( AElemArray * , int, bool addToHistory = true );
+
+		void SaveHistory();
+		void ForwardHistory();
+		void BackHistory();
 
 		bool IsSelected( AListElem * );
 		void UpdateStatusBar( ARegion * );
@@ -134,6 +140,7 @@ class GuiApp : public wxApp
 		int curSelection;
 		wxColour guiColourLt;
 		wxColour guiColourDk;
+		HistoryItem * curHistory;
 
 	private:
 		bool OnInit();
@@ -157,8 +164,11 @@ class GuiApp : public wxApp
 
 		void PostLoadGame();
 
+		void TrashElemHistory( AListElem * element );
+
 		int runStep;
 		wxMenu * fileMenu;
+		AList history;
 };
 
 class GuiSplitter : public wxSplitterWindow 
@@ -179,10 +189,11 @@ class GuiFrame : public wxFrame
 
 		void CreatePanes();
 
-		MapCanvas * map;
-		TreeCanvas * tree;
+		MapFrame * map;
+//		TreeCanvas * tree;
 		EditFrame * editor;
 		ListCanvas * list;
+		SelectionCanvas * selection;
 
 		void EnableWindows( bool enable );
 
@@ -203,7 +214,7 @@ class GuiFrame : public wxFrame
 		void OnGameOptions( wxCommandEvent & );
 		void OnOptionsRecreate( wxCommandEvent & );
 		void OnOptionsTerrain( wxCommandEvent & );
-		void OnOptionsShowTreeHeaders( wxCommandEvent & );
+//		void OnOptionsShowTreeHeaders( wxCommandEvent & );
 		void OnOptionsShowFunk( wxCommandEvent & );
 		void OnOptionsShowListMarketsProducts( wxCommandEvent & );
 
@@ -214,8 +225,28 @@ class GuiFrame : public wxFrame
 
 };
 
+class HistoryItem : public AListElem
+{
+	public:
+		HistoryItem();
+
+		AElemArray elems;
+		int selectionType;
+};
+
 extern GuiApp * app;
 extern GuiFrame * frame;
+
+// Helper functions
+void CreateControl( wxWindow *, wxTextCtrl **, wxWindowID, const wxString &, wxSizer *,
+					const wxValidator &, wxTextCtrl ** ppText2 = NULL,
+					wxWindowID id2 = -1, const wxString & label2 = "");
+void CreateControl( wxWindow *, wxComboBox **, wxWindowID, const wxString &,
+				    wxSizer *, bool sort = false );
+void CreateControl( wxWindow *, wxButton **, wxWindowID, const wxString &, wxSizer * );
+void CreateControl( wxWindow *, wxCheckBox **, wxWindowID, const wxString &, wxSizer * );
+void CreateButton( wxWindow *, wxButton **, wxWindowID, const wxString &, wxSizer *,
+				   int align = wxALIGN_CENTRE );
 
 #endif
 

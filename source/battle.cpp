@@ -59,10 +59,19 @@ void Battle::FreeRound(Army * att,Army * def, int ass) {
 	att->round++;
 
 	int overwhelmed = 0;
-	if (att->NumFront() > 4 * def->NumFront() && def->NumFront() && def->NumBehind()) {
-		AddLine(*(def->leader->name) + " is overwhelmed.");
-		overwhelmed = 1;
+	if( Globals->ARMY_ROUT == GameDefs::ARMY_ROUT_FIGURES ) {
+		if (att->NumFront() > 4 * def->NumFront() && def->NumFront() && def->NumBehind()) {
+			overwhelmed = 1;
+		}
+	} else {
+		if (att->NumFrontHits() > 4 * def->NumFrontHits() && def->NumFront() && def->NumBehind()) {
+			overwhelmed = 1;
+		}
 	}
+	if( overwhelmed ) {
+		AddLine(*(def->leader->name) + " is overwhelmed.");
+	}
+
 	/* Run attacks until done */
 	int alv = def->NumAlive();
 	while (att->CanAttack() && def->NumAlive()) {
@@ -244,13 +253,25 @@ void Battle::NormalRound(int round,Army * a,Army * b) {
 
 	int boverwhelmed = 0;
 	int aoverwhelmed = 0;
-	if (a->NumFront() > 4 * b->NumFront() && b->NumFront() && b->NumBehind()) {
-	  AddLine(*(b->leader->name) + " is overwhelmed.");
-	  boverwhelmed = 1;
-	} else if (b->NumFront() > 4 * a->NumFront() && a->NumFront() && a->NumBehind()) {
-	  AddLine(*(a->leader->name) + " is overwhelmed.");
-	  aoverwhelmed = 1;
+
+	if( Globals->ARMY_ROUT == GameDefs::ARMY_ROUT_FIGURES ) {
+		if (a->NumFront() > 4 * b->NumFront() && b->NumFront() && b->NumBehind()) {
+			AddLine(*(b->leader->name) + " is overwhelmed.");
+			boverwhelmed = 1;
+		} else if (b->NumFront() > 4 * a->NumFront() && a->NumFront() && a->NumBehind()) {
+			AddLine(*(a->leader->name) + " is overwhelmed.");
+			aoverwhelmed = 1;
+		}
+	} else {
+		if (a->NumFrontHits() > 4 * b->NumFrontHits() && b->NumFront() && b->NumBehind()) {
+			AddLine(*(b->leader->name) + " is overwhelmed.");
+			boverwhelmed = 1;
+		} else if (b->NumFrontHits() > 4 * a->NumFrontHits() && a->NumFront() && a->NumBehind()) {
+			AddLine(*(a->leader->name) + " is overwhelmed.");
+			aoverwhelmed = 1;
+		}
 	}
+
 
 	/* Run attacks until done */
 	while (aalive && balive && (aatt || batt))

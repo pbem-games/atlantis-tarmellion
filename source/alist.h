@@ -42,6 +42,7 @@ class AListElem {
 
 		char * sortString;
 		AListElem * next;
+		AListElem * prev;
 #ifdef __USE_GUI__
 		wxTreeItemId treeId;
 #endif

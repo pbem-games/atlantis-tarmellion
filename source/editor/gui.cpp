@@ -56,9 +56,10 @@
 #include "gui.h"
 #include "map.h"
 #include "run.h"
-#include "tree.h"
-#include "../gamedata.h"
+//#include "tree.h"
+#include "gamedata.h"
 #include "options.h"
+#include "wx/valtext.h"
 
 #include <math.h>
 
@@ -121,6 +122,7 @@ GuiApp::~GuiApp()
 		delete m_game;
 	}
 	delete selectedElems;
+
 }
 
 /**
@@ -129,6 +131,14 @@ GuiApp::~GuiApp()
 bool GuiApp::OnInit()
 {
 	app = this;
+
+	/// Init variables
+	m_game = NULL;
+	selectedElems = new AElemArray();
+	selectedLevel = NULL;
+	runStep = 0;
+	curSelection = -1;
+	curHistory = 0;
 
 	/// Load terrain colors
 	LoadTerrainColors( "terrain.txt" );
@@ -184,13 +194,6 @@ bool GuiApp::OnInit()
 	frame->Show( TRUE );
 	
 	SetTopWindow( frame );
-
-	/// Init variables
-	m_game = NULL;
-	selectedElems = new AElemArray();
-	selectedLevel = NULL;
-	runStep = 0;
-	curSelection = -1;
 
 	/// Open game file automatically if asked
 	if( argc>1 ) {
@@ -279,34 +282,36 @@ void GuiFrame::CreatePanes()
 	// Delete windows if they're already created
 	if( map ) delete map;
 	if( list ) delete list;
-	if( tree ) delete tree;
-	if( vSplitter ) delete vSplitter;
+//	if( tree ) delete tree;
+//	if( selection ) delete selection;
+//	if( vSplitter ) delete vSplitter;
 	if( hSplitter ) delete hSplitter;
 	editor->HideAllPages();
 	hSplitter = new GuiSplitter(this);
-	vSplitter = new GuiSplitter(hSplitter);
+//	vSplitter = new GuiSplitter(hSplitter);
 
 	// Create tree view
-	tree = new TreeCanvas( vSplitter );
- 	tree->Init();
-	tree->Show( true );
+//	tree = new TreeCanvas( vSplitter );
+// 	tree->Init();
+//	tree->Show( true );
 
 	// Create list view
-	list = new ListCanvas( vSplitter );
+	list = new ListCanvas( hSplitter );
 	list->Init();
 	list->Show( true );
 
 	// Create map view
-	map = new MapCanvas( hSplitter );
+	map = new MapFrame( hSplitter );
 
 	// Show everything
 	int splitH = GuiConfig.splitterH;
 	if( splitH <= 0 ) splitH = GetClientSize().y / 2;
-	int splitV = GuiConfig.splitterV;
-	if( splitV <= 0 ) splitV = GetClientSize().x / 2;
+//	int splitV = GuiConfig.splitterV;
+//	if( splitV <= 0 ) splitV = GetClientSize().x / 2;
 
-	hSplitter->SplitHorizontally( map, vSplitter, splitH );
-	vSplitter->SplitVertically( list, tree, splitV );
+	hSplitter->SplitHorizontally( map, list, splitH );
+//	hSplitter->SplitHorizontally( map, vSplitter, splitH );
+//	vSplitter->SplitVertically( list, tree, splitV );
 	map->Show( true );
 	RefreshWindows();
 
@@ -538,11 +543,11 @@ void GuiApp::Trash( Unit * pUnit )
 		pUnit->skills.SetDays( s->type,0 );
 	}
 	
-	frame->tree->RemoveItem( pUnit );
+//	frame->tree->RemoveItem( pUnit );
 	frame->list->RemoveItem( pUnit );
 	int index = selectedElems->Index( pUnit );
 	if( index != wxNOT_FOUND ) selectedElems->RemoveAt( index );
-	
+	TrashElemHistory( pUnit );
 	pUnit->MoveUnit( 0 );
 	delete pUnit;
 }
@@ -552,7 +557,7 @@ void GuiApp::Trash( Unit * pUnit )
  */
 void GuiApp::Trash( Faction * pFaction )
 {
-	frame->tree->RemoveItem( pFaction );
+//	frame->tree->RemoveItem( pFaction );
 	frame->list->RemoveItem( pFaction );
 	
 	int index = selectedElems->Index( pFaction );
@@ -561,6 +566,8 @@ void GuiApp::Trash( Faction * pFaction )
 	m_game->factions.Remove( pFaction );
 	forlist( &m_game->factions )
 		( ( Faction * ) elem )->RemoveAttitude( pFaction->num );
+	TrashElemHistory( pFaction );
+
 	delete pFaction;
 	
 }
@@ -570,11 +577,13 @@ void GuiApp::Trash( Faction * pFaction )
  */
 void GuiApp::Trash( Market * pMarket )
 {
-	frame->tree->RemoveItem( pMarket );
+//	frame->tree->RemoveItem( pMarket );
 	frame->list->RemoveItem( pMarket );
 	
 	ARegion * r = m_game->regions.GetRegion( pMarket->region );
 	r->markets.Remove( pMarket );
+
+	TrashElemHistory( pMarket );
 	
 	int index = selectedElems->Index( pMarket );
 	if( index != wxNOT_FOUND ) selectedElems->RemoveAt( index );
@@ -585,11 +594,12 @@ void GuiApp::Trash( Market * pMarket )
  */
 void GuiApp::Trash( Production * pProduction )
 {
-	frame->tree->RemoveItem( pProduction );
+//	frame->tree->RemoveItem( pProduction );
 	frame->list->RemoveItem( pProduction );
 	
 	ARegion * r = m_game->regions.GetRegion( pProduction->region );
 	r->products.Remove( pProduction );
+	TrashElemHistory( pProduction );
 	
 	int index = selectedElems->Index( pProduction );
 	if( index != wxNOT_FOUND ) selectedElems->RemoveAt( index );
@@ -607,11 +617,12 @@ void GuiApp::Trash( Object * pObject )
 		u->MoveUnit( dummy );
 	}
 	
-	frame->tree->RemoveItem( pObject );
+//	frame->tree->RemoveItem( pObject );
 	frame->list->RemoveItem( pObject );
 	
 	int index = selectedElems->Index( pObject );
 	if( index != wxNOT_FOUND ) selectedElems->RemoveAt( index );
+	TrashElemHistory( pObject );
 	
 	r->objects.Remove( pObject );
 	delete pObject;
@@ -632,7 +643,7 @@ void GuiApp::UpdateFactions()
 	if( curSelection != SELECT_FACTION ) return;
 	for( int i = 0; i < (int) selectedElems->GetCount(); i++ ) {
 		Faction * f = (Faction *) selectedElems->Item(i);
-		frame->tree->UpdateItem(f);
+//		frame->tree->UpdateItem(f);
 		frame->list->UpdateItem(f);
 	}
 }
@@ -640,14 +651,15 @@ void GuiApp::UpdateFactions()
 /**
  * Update region entries in tree and list views
  */
-void GuiApp::UpdateRegions()
+void GuiApp::UpdateRegions( bool updateMap )
 {
 	if( curSelection != SELECT_REGION ) return;
 	for( int i = 0; i < (int) selectedElems->GetCount(); i++ ) {
 		ARegion * r = (ARegion *) selectedElems->Item(i);
-		frame->tree->UpdateItem(r);
+//		frame->tree->UpdateItem(r);
 		frame->list->UpdateItem(r);
-		frame->map->Refresh();
+		if( updateMap )
+			frame->map->Refresh();
 	}
 }
 
@@ -659,7 +671,7 @@ void GuiApp::UpdateUnits()
 	if( curSelection != SELECT_UNIT ) return;
 	for( int i = 0; i < (int)selectedElems->GetCount(); i++ ) {
 		Unit * u = (Unit *) selectedElems->Item(i);
-		frame->tree->UpdateItem(u);
+//		frame->tree->UpdateItem(u);
 		frame->list->UpdateItem(u);
 	}
 }
@@ -672,7 +684,7 @@ void GuiApp::UpdateObjects()
 	if( curSelection != SELECT_OBJECT ) return;
 	for( int i = 0; i < (int)selectedElems->GetCount(); i++ ) {
 		Object * o = (Object *) selectedElems->Item(i);
-		frame->tree->UpdateItem(o);
+//		frame->tree->UpdateItem(o);
 		frame->list->UpdateItem(o);
 	}
 }
@@ -685,7 +697,7 @@ void GuiApp::UpdateMarkets()
 	if( curSelection != SELECT_MARKET ) return;
 	for( int i = 0; i < (int)selectedElems->GetCount(); i++ ) {
 		Market * m = (Market *) selectedElems->Item(i);
-		frame->tree->UpdateItem(m);
+//		frame->tree->UpdateItem(m);
 		frame->list->UpdateItem(m);
 	}
 }
@@ -698,7 +710,7 @@ void GuiApp::UpdateProductions()
 	if( curSelection != SELECT_PRODUCTION ) return;
 	for( int i = 0; i < (int) selectedElems->GetCount(); i++ ) {
 		Production * p = (Production *) selectedElems->Item(i);
-		frame->tree->UpdateItem(p);
+//		frame->tree->UpdateItem(p);
 		frame->list->UpdateItem(p);
 	}
 }
@@ -709,7 +721,7 @@ void GuiApp::UpdateProductions()
 void GuiApp::UpdateLevels()
 {
 	if( curSelection != SELECT_LEVEL ) return;
-	frame->tree->UpdateItem( selectedLevel );
+//	frame->tree->UpdateItem( selectedLevel );
 }
 
 /**
@@ -745,19 +757,20 @@ bool GuiApp::TerrainHasEnabledRace( int ttype )
  * Default constructor
  */
 GuiFrame::GuiFrame( wxPoint & pos, wxSize & size )
-		:wxFrame( ( wxFrame * ) NULL, -1, _T( "Atlantis Gui v 0.7" ), pos,
-		           size, wxDEFAULT_FRAME_STYLE | wxHSCROLL | wxVSCROLL |
+		:wxFrame( ( wxFrame * ) NULL, -1, _T( "Atlantis Gui v 0.7.1" ), pos,
+		           size, wxDEFAULT_FRAME_STYLE | /*wxHSCROLL | wxVSCROLL |*/
 				   wxNO_FULL_REPAINT_ON_RESIZE )
 {
 	editor = new EditFrame( this, wxDefaultPosition, wxDefaultSize );
 	editor->Init();
+	selection = new SelectionCanvas( this );
 	hSplitter = NULL;
-	vSplitter = NULL;
-	tree = NULL;
+//	vSplitter = NULL;
+//	tree = NULL;
 	map = NULL;
 	list = NULL;
 	hSplitter = new GuiSplitter( this );
-	vSplitter = new GuiSplitter( hSplitter );
+//	vSplitter = new GuiSplitter( hSplitter );
 
 	// Create toolbar
 	CreateToolBar( wxNO_BORDER | wxTB_FLAT | wxTB_HORIZONTAL );
@@ -775,7 +788,6 @@ GuiFrame::GuiFrame( wxPoint & pos, wxSize & size )
 	entries[5].Set( wxACCEL_CTRL, ( int ) 'R', Gui_Game_Run );
 	wxAcceleratorTable accel( 5, entries );
 	SetAcceleratorTable( accel );
-
 }
 
 /**
@@ -796,8 +808,8 @@ GuiFrame::~GuiFrame()
 	}
 	if( hSplitter )
 		GuiConfig.splitterH = hSplitter->GetSashPosition();
-	if( vSplitter )
-		GuiConfig.splitterV = vSplitter->GetSashPosition();
+//	if( vSplitter )
+//		GuiConfig.splitterV = vSplitter->GetSashPosition();
 }
 
 /**
@@ -808,13 +820,15 @@ void GuiFrame::RefreshWindows()
 	int w, h;
 	GetClientSize( &w, &h );
 
-	int editWidth = 200;
+	int editWidth = 220;
+	int editHeight = 450;
 
 	if( editor )
-		editor->SetSize( 0, 0, editWidth, h );
+		editor->SetSize( 0, 0, editWidth, editHeight );
+	if( selection )
+		selection->SetSize( 0, editHeight, editWidth, h - editHeight );
 
 	hSplitter->SetSize( editWidth, 0, w - editWidth, h );
-
 }
 
 /**
@@ -899,8 +913,7 @@ void GuiFrame::OnGameOpen( wxCommandEvent& WXUNUSED( event ) )
 	}
 	wxFileDialog dialog( this, "Open Game File", "", s.Str(),
 						 "Game files (game.*)|game.*|"
-					     "All files (*.*)|*.*",
-						 wxOPEN | wxHIDE_READONLY );
+					     "All files (*.*)|*.*", wxOPEN );
 	
 	dialog.SetDirectory( wxGetCwd() );
 	
@@ -939,7 +952,7 @@ void GuiFrame::OnGameRun( wxCommandEvent& WXUNUSED( event ) )
 		forlist( &app->m_game->factions ) {
 			Faction * f = ( Faction *) elem;
 			if( f->num > oldFacSeq ) {
-				tree->AddItem( f );
+//				tree->AddItem( f );
 				list->AddItem( f );
 			}
 		}
@@ -972,7 +985,185 @@ void GuiSplitter::OnDoubleClickSash( int x, int y )
 void GuiFrame::EnableWindows( bool enable )
 {
 	if( map ) map->Enable( enable );
-	if( tree ) tree->Enable( enable );
+//	if( tree ) tree->Enable( enable );
 	if( editor ) editor->Enable( enable );
-	if(	list ) editor->Enable( enable );
+	if( selection ) selection->Enable( enable );
+	if(	list ) list->Enable( enable );
+}
+
+void GuiApp::TrashElemHistory( AListElem * element )
+{
+	forlist( &history ) {
+		HistoryItem * h = ( HistoryItem * ) elem;
+		for( int i = (int) selectedElems->GetCount() - 1; i >= 0; i-- ) {
+			AListElem * elem = selectedElems->Item( i );
+			if( elem == element ) {
+				selectedElems->Remove( elem );
+			}
+		}
+	}
+}
+
+/**
+ * Create a text control with preceding label
+ * If ppText2, id2 and label2 are specified, another control and label will
+ *  be added alongside the first in the same sizer
+ * Text box(es) and label(s) are added to sizerParent
+ * If numeric is true, text box will take only numeric input. Otherwise will only
+ *  take valid Atlantis characters
+ */
+void CreateControl( wxWindow * parent, wxTextCtrl ** ppText, wxWindowID id, const wxString & label,
+				    wxSizer * sizerParent, const wxValidator & validator, wxTextCtrl ** ppText2,
+					wxWindowID id2, const wxString & label2 )
+{
+	wxSizer *sizerRow;
+
+	// Create label
+	wxStaticText *lab = new wxStaticText( parent, -1, label );
+
+	// Create text box
+//	wxTextValidator * validator;
+//	if( numeric )
+//		validator = numStringValidator;
+//	else
+//		validator = textStringValidator;	
+	wxTextCtrl *text = new wxTextCtrl( parent, id, "", wxDefaultPosition, wxDefaultSize, 0, validator );
+
+	// Add to sizer
+	wxSizer *sizerLeft = new wxBoxSizer( wxHORIZONTAL );
+	sizerLeft->Add( lab, 2 );
+	sizerLeft->Add( text, 3 );
+
+	// Store textBox reference
+	if( ppText )
+		*ppText = text;
+
+	// Add second set if necessary
+	if( id2 != -1 ) {
+		// Create controls
+		lab = new wxStaticText( parent, -1, label2 );
+		text = new wxTextCtrl( parent, id2, "", wxDefaultPosition, wxDefaultSize, 0, validator );
+
+		// Put it all together
+		wxSizer *sizerRight = new wxBoxSizer( wxHORIZONTAL );
+		sizerRight->Add( lab, 2 );
+		sizerRight->Add( text, 3 );
+		sizerRow = new wxBoxSizer( wxHORIZONTAL );
+		sizerRow->Add( sizerLeft, 8 );
+		sizerRow->Add( 1, 1, 1 );
+		sizerRow->Add( sizerRight, 8 );
+
+		// Store second text box reference
+		if( ppText2 )
+			*ppText2 = text;
+	} else {
+		sizerRow = sizerLeft;
+	}
+
+	sizerParent->Add( sizerRow, 0, wxALL | wxGROW, 0 );
+}
+
+/**
+ * Create a combo-box control with preceding label
+ * Combo box and label are added to sizerParent
+ * If sort == true, combo box will sort any items added to it
+ */
+void CreateControl( wxWindow * parent, wxComboBox ** ppComboBox, wxWindowID id, const wxString & label,
+				    wxSizer * sizerParent, bool sort )
+{
+	// Create label
+	wxStaticText *text = new wxStaticText( parent, -1, label );
+
+	// Create comboBox
+	long style = wxCB_DROPDOWN | wxCB_READONLY;
+	if( sort )
+		style = style | wxCB_SORT;
+	wxComboBox *combo =	new wxComboBox( parent, id, "", wxDefaultPosition,
+									   wxDefaultSize, 0 ,NULL, style );
+
+	// Add to sizer
+	wxSizer *sizerRow = new wxBoxSizer( wxHORIZONTAL );
+	sizerRow->Add( text, 2 );
+	sizerRow->Add( combo, 3 );
+	sizerParent->Add( sizerRow, 0, wxALL | wxGROW, 0 );
+
+	// Store comboBox reference
+	if( ppComboBox )
+		*ppComboBox = combo;
+
+}
+
+/**
+ * Create a button control with preceding label
+ * Button and label are added to sizerParent
+ */
+void CreateControl( wxWindow * parent, wxButton ** ppButton, wxWindowID id,
+				    const wxString & label, wxSizer * sizerParent )
+{
+	// Create label
+	wxStaticText *text = new wxStaticText( parent, -1, label );
+
+	// Create button
+	wxButton *button = new wxButton( parent, id, "", wxDefaultPosition );
+	button->SetBackgroundColour( app->guiColourDk );
+
+	// Add them to the sizer
+	wxSizer *sizerRow = new wxBoxSizer( wxHORIZONTAL );
+	sizerRow->Add( text, 2 );
+	sizerRow->Add( button, 3 );
+	sizerParent->Add( sizerRow, 0, wxALL | wxGROW, 0 );
+
+	// Store the button reference
+	if( ppButton )
+		*ppButton = button;
+
+}
+
+/**
+ * Create a button control, with label on button
+ * Button is added to sizerParent, and can be placed on the
+ *  left, right, or centre of the sizer (using align = wxALIGN_???)
+ */
+void CreateButton( wxWindow * parent, wxButton ** ppButton, wxWindowID id, const wxString & label,
+				   wxSizer * sizerParent, int align )
+{
+
+	// Create button
+	wxButton *button = new wxButton( parent, id, label, wxDefaultPosition );
+	button->SetBackgroundColour( app->guiColourDk );
+
+	// Add to sizer
+	wxSizer *sizerRow = new wxBoxSizer( wxHORIZONTAL );
+	if( align == wxALIGN_RIGHT || align == wxALIGN_CENTRE )
+		sizerRow->Add( 1, 1, 2 );
+	sizerRow->Add( button, 3, wxGROW, 5 );
+	if( align == wxALIGN_LEFT || align == wxALIGN_CENTRE )
+		sizerRow->Add( 1, 1, 2 );
+	sizerParent->Add( sizerRow, 0, wxALL | wxGROW, 0 );
+
+	// Store button reference
+	if( ppButton )
+		*ppButton = button;
+
+}
+
+/**
+ * Create checkbox control
+ * Checkbox is added to sizerParent
+ */
+void CreateControl( wxWindow * parent, wxCheckBox ** ppCheck, wxWindowID id, const wxString & label,
+				    wxSizer * sizerParent )
+{
+	// Create checkbox
+	wxCheckBox *check = new wxCheckBox( parent, id, label );
+	check->SetBackgroundColour( app->guiColourLt );
+
+	// Add to sizer
+	wxSizer *sizerRow = new wxBoxSizer( wxHORIZONTAL );
+	sizerRow->Add( check, 1 );
+	sizerParent->Add( sizerRow, 0, wxALL | wxGROW, 0 );
+
+	// Store checkbox reference
+	if( ppCheck )
+		*ppCheck = check;
 }

@@ -36,6 +36,14 @@
 
 #include "wx/wx.h"
 #include "wx/grid.h"
+/*
+class EditAuxCellEditor : public wxGridCellEditor
+{
+	public:
+		EditAuxCellEditor();
+
+}
+*/
 
 class EditAux : public wxDialog
 {
@@ -48,10 +56,18 @@ class EditAux : public wxDialog
 	protected:
 		void OnClose( wxCommandEvent & event );
 		void OnOK( wxCommandEvent & event );
+		void OnKeyDown( wxKeyEvent & );
+		void OnLClick( wxGridEvent & );
+		
+		void HighlightRow( int row );
+		void UnhighlightRow( int row );
+		void UnhighlightAllRows();
+
+		void ResetView();
 
 		virtual void WriteGrid();
 
-		void InitGrid( int, bool selectRows = true );
+		void InitGrid( int );
 		void InitSizer();
 
 		void PreSelectRows( AElemArray * );
@@ -62,14 +78,18 @@ class EditAux : public wxDialog
 //		void OnOK( wxCommandEvent & );
 
 		void FinalizeArray();
+		void SaveEditValue();
 
 		wxGrid * grid;
 		wxSizer * sizerAux;
 
 		bool editWait;
 		bool canDelete;
+		bool allowCellEdit;
 		int editCol;
 		int sortCol;
+		int lastRow;
+		wxString lastEditValue;
 
 		AElemArray array;
 

@@ -1020,6 +1020,18 @@ int Army::NumBehind() {
   return NumAlive() - NumFront();
 }
 
+int Army::NumFrontHits() {
+	int totHits = 0;
+
+	for (int i = 0; i < canfront; i++) {
+		totHits += soldiers[i]->maxhits;
+	}
+	for (int i = canbehind; i < notfront; i++) {
+		totHits += soldiers[i]->maxhits;
+	}
+	return totHits;
+}
+
 Soldier * Army::GetAttacker(int i,int &behind) {
 	Soldier * retval = soldiers[i];
 	if (i<canfront) {

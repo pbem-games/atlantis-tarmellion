@@ -28,7 +28,7 @@
 
 #include "config.h"
 #include "../fileio.h"
-#include "../gamedata.h"
+#include "gamedata.h"
 #include "../gameio.h"
 #include "wx/filename.h"
 

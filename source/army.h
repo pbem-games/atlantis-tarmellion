@@ -128,6 +128,7 @@ class Army {
 		int NumSpoilers();
 		int CanAttack();
 		int NumFront();
+		int NumFrontHits();
 		Soldier *GetAttacker( int, int & );
 		int GetEffectNum(int effect);
 		int GetTargetNum(int special, int attackbehind);

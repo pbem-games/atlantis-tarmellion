@@ -106,3 +106,8 @@ v0.6 -> 0.7
 * Fixed item/skill chooser which was allowing use to change the name of the item/skill instead of just the amount
 * Window state is now saved in config file
 
+v0.7 -> 0.71
+----------------
+* Removed global tree view - replaced with local tree view, with history
+* Fixed a couple of graphical glitches
+* Added a new move dialog

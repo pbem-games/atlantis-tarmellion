@@ -76,6 +76,8 @@ public:
 
 	bool lastUnitByFaction;
 
+	void OnMouse( wxMouseEvent & );
+
 	DECLARE_EVENT_TABLE()
 
 private:
@@ -105,6 +107,7 @@ private:
 	void DeselectAll();
 	void UnHighlightLeaf( wxTreeItemId );
 	void HighlightLeaf( wxTreeItemId );
+	void UnhighlightSelection();
 
 	wxTreeCtrl * tree;
 
@@ -117,6 +120,7 @@ private:
 	int curSelection;
 
 	int selectOK;
+public:
 	bool treeWait;
 
 };

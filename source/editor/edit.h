@@ -61,7 +61,7 @@ enum
 	Edit_Faction_Quit,
 	Edit_Level_Name,
 	Edit_Level_LevelType,
-	Edit_Region_Number,
+//	Edit_Region_Number,
 	Edit_Region_Name,
 	Edit_Region_Type,
 	Edit_Region_Buildingseq,
@@ -147,15 +147,6 @@ class EditPage : public wxScrolledWindow
 		void ReloadPage();
 		void OnSize( wxSizeEvent & );
 
-		void CreateControl( wxTextCtrl **, wxWindowID,
-								const wxString &, bool numeric = false );
-		void CreateControl( wxComboBox **, wxWindowID,
-								const wxString &, bool sort = false );
-		void CreateControl( wxButton **, wxWindowID,
-								const wxString & );
-		void CreateButton( wxButton **, wxWindowID,
-								const wxString &, int align = wxALIGN_CENTRE );
-
 		int AddToControl( wxTextCtrl *, long );
 		int AddToControl( wxTextCtrl *, const char * );
 		int AddToControl( wxButton *, const char * );
@@ -175,6 +166,9 @@ class EditPage : public wxScrolledWindow
 		wxSizer * sizerTool;
 		wxToolBar * toolBar;
 		AElemArray * selectedElems;
+
+		wxTextValidator * textStringValidator;
+		wxTextValidator * numStringValidator;
 
 		bool editWait;
 
@@ -207,7 +201,7 @@ public:
 	void SelectItems( AElemArray * );
 	void PostLoad();
 
-	wxTextCtrl * editNumber;
+//	wxTextCtrl * editNumber;
 	wxTextCtrl * editName;
 	wxButton * editType;
 	wxTextCtrl * editBuildingseq;
@@ -456,8 +450,5 @@ class EditFrame: public wxWindow
 
 		DECLARE_EVENT_TABLE()
 };
-
-extern wxTextValidator * textStringValidator;
-extern wxTextValidator * numStringValidator;
 
 #endif

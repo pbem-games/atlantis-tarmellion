@@ -47,6 +47,7 @@ BEGIN_EVENT_TABLE( TreeCanvas, wxScrolledWindow )
 	EVT_SIZE( TreeCanvas::OnResize )
 	EVT_TREE_SEL_CHANGED( Tree_Tree, TreeCanvas::OnLeafSelection )
 	EVT_TREE_SEL_CHANGING( Tree_Tree, TreeCanvas::OnLeafSelecting )
+	EVT_TREE_ITEM_EXPANDING( Tree_Tree, TreeCanvas::OnLeafSelection )
 END_EVENT_TABLE()
 
 // ---------------------------------------------------------------------------
@@ -65,7 +66,6 @@ TreeCanvas::TreeCanvas( wxWindow *parent )
 	selectOK = 1;
 	SetBackgroundColour( app->guiColourLt );
 	lastUnitByFaction = false;
-
 }
 
 TreeCanvas::~TreeCanvas()
@@ -97,7 +97,6 @@ void TreeCanvas::OnLeafSelecting( wxTreeEvent & event )
 {
 	if( treeWait ) {
 		event.Veto();
-		event.Skip();
 		return;
 	}
 	treeWait = true;
@@ -106,10 +105,9 @@ void TreeCanvas::OnLeafSelecting( wxTreeEvent & event )
 	if( t )
 		t->MakeSelection();
 
+	event.Veto();
 	app->UpdateSelection();
 
-	event.Veto();
-	event.Skip();
 	treeWait = false;
 }
 
@@ -143,7 +141,21 @@ void TreeCanvas::HighlightLeaf( wxTreeItemId id )
 	if( id.IsOk() ) {
 		tree->SetItemTextColour( id, wxSystemSettings::GetColour( wxSYS_COLOUR_HIGHLIGHTTEXT ) );
 		tree->SetItemBackgroundColour( id, wxSystemSettings::GetColour( wxSYS_COLOUR_HIGHLIGHT ) );
-		tree->SelectItem( wxTreeItemId() );
+//		tree->SelectItem( wxTreeItemId() );
+	}
+}
+
+void TreeCanvas::UnhighlightSelection()
+{
+	if( curSelection == SELECT_GAME ) {
+		UnHighlightLeaf( tree->GetRootItem() );
+	} else if( curSelection == SELECT_LEVEL ) {
+		UnHighlightLeaf( FindItem( selectedLevel ) );
+	} else {
+		for( int i = 0; i < (int) selectedElems->GetCount(); i++ ) {
+			AListElem * elem = selectedElems->Item( i );
+			UnHighlightLeaf( elem->treeId );
+		}
 	}
 }
 
@@ -369,7 +381,7 @@ void TreeCanvas::UpdateItem( ARegion * pRegion, bool populate )
 	tree->SetItemText( id, temp.Str() );
 
 	if( populate ) {
-		long cookie;
+		wxTreeItemIdValue cookie;
 		bool found = true;
 	
 		wxTreeItemId current, next, last;
@@ -423,8 +435,8 @@ void TreeCanvas::UpdateItem( ARegion * pRegion, bool populate )
 				//Hack:
 				p->region = pRegion->num;
 				temp = AString( "Produces ") + ItemString( p->itemtype, p->amount );
-				tree->AppendItem( current, _T( temp.Str() ), -1, -1,
-								new ProductionLeaf( p ) );
+				p->treeId = tree->AppendItem( current, _T( temp.Str() ), -1, -1,
+								  new ProductionLeaf( p ) );
 			}
 		}
 	}
@@ -461,13 +473,13 @@ void TreeCanvas::UpdateItem( Unit * pUnit)
 
 	if( !id1.IsOk() ) {
 		//unit may have changed faction, so look thru all factions
-		long cookie1;
+		wxTreeItemIdValue cookie1;
 		wxTreeItemId faction = tree->GetFirstChild( treeFactions, cookie1 );
 		wxTreeItemId lastfaction = tree->GetLastChild( treeFactions );
 		while( faction.IsOk() && ( ( FactionLeaf * )tree->GetItemData( faction ) )->faction !=
 		                 pUnit->faction ) {
 			found = true;
-			long cookie2;
+			wxTreeItemIdValue cookie2;
 
 			wxTreeItemId unit = tree->GetFirstChild( faction, cookie2 );
 			wxTreeItemId lastunit = tree->GetLastChild( faction );
@@ -528,7 +540,7 @@ void TreeCanvas::AddItem( Unit * pUnit )
 
 wxTreeItemId TreeCanvas::FindItem( ARegionArray * pArr )
 {
-	long cookie;
+	wxTreeItemIdValue cookie;
 	wxTreeItemId level = tree->GetFirstChild( treeLevels, cookie );
 	if( ! level.IsOk() ) return wxTreeItemId();
 	wxTreeItemId lastlevel = tree->GetLastChild( treeLevels );
@@ -553,7 +565,7 @@ wxTreeItemId TreeCanvas::FindItem( ARegionArray * pArr )
 wxTreeItemId TreeCanvas::FindItem( ARegion * pRegion )
 {
 	wxTreeItemId level = FindItem( app->m_game->regions.pRegionArrays[pRegion->zloc] );
-	long cookie;
+	wxTreeItemIdValue cookie;
 	bool found = true;
 	if( level ) {
 		wxTreeItemId region = tree->GetFirstChild( level, cookie );
@@ -576,7 +588,7 @@ wxTreeItemId TreeCanvas::FindItem( ARegion * pRegion )
 
 wxTreeItemId TreeCanvas::FindItem( Faction * pFaction )
 {
-	long cookie;
+	wxTreeItemIdValue cookie;
 	wxTreeItemId faction = tree->GetFirstChild( treeFactions, cookie );
 	if( ! faction.IsOk() ) return wxTreeItemId();
 	wxTreeItemId lastfaction = tree->GetLastChild( treeFactions );
@@ -601,7 +613,7 @@ wxTreeItemId TreeCanvas::FindItem( Object * pObject )
 {
 	wxTreeItemId region = FindItem( pObject->region );
 	if( region ) {
-		long cookie;
+		wxTreeItemIdValue cookie;
 		wxTreeItemId category = region;
 
 		if( GuiConfig.showTreeHeaders ) {
@@ -636,7 +648,7 @@ wxTreeItemId TreeCanvas::FindItem( Market * pMarket )
 	ARegion * r = app->m_game->regions.GetRegion( pMarket->region );
 	wxTreeItemId region = FindItem( r );
 
-	long cookie;
+	wxTreeItemIdValue cookie;
 	wxTreeItemId category = region;
 
 	if( GuiConfig.showTreeHeaders ) {
@@ -669,7 +681,7 @@ wxTreeItemId TreeCanvas::FindItem( Production * pProduction )
 	ARegion * r = app->m_game->regions.GetRegion( pProduction->region );
 	wxTreeItemId region = FindItem( r );
 
-	long cookie;
+	wxTreeItemIdValue cookie;
 	wxTreeItemId category = region;
 
 	if( GuiConfig.showTreeHeaders ) {
@@ -708,7 +720,7 @@ wxTreeItemId TreeCanvas::FindItem( Unit * pUnit, bool unitByFaction )
 		
 	if( branch ) {
 		bool found = true;
-		long cookie;
+		wxTreeItemIdValue cookie;
 
 		wxTreeItemId unit = tree->GetFirstChild( branch, cookie );
 		if( ! unit.IsOk() ) return wxTreeItemId();
@@ -731,7 +743,7 @@ wxTreeItemId TreeCanvas::FindItem( Unit * pUnit, bool unitByFaction )
 
 wxTreeItemId TreeCanvas::FindCategory( const char * str, wxTreeItemId top )
 {
-	long cookie;
+	wxTreeItemIdValue cookie;
 	wxTreeItemId current;
 	wxTreeItemId last;
 
@@ -955,7 +967,11 @@ GameLeaf::GameLeaf( Game * pGame ) : TreeLeaf()
 
 void GameLeaf::MakeSelection( bool add )
 {
+	if( frame->tree->treeWait )
+	{ int x = 1; 
+	} else {
 	app->Select( game, add );
+	}
 }
 
 void TreeCanvas::UpdateSelection()
@@ -967,23 +983,23 @@ void TreeCanvas::UpdateSelection()
 
 //	tree->UnselectAll();
 
-	if( curSelection == SELECT_LEVEL ) {
-		// Change highlighted level
-		if( app->curSelection != SELECT_LEVEL || app->selectedLevel != selectedLevel ) { 
-			UnHighlightLeaf( FindItem( selectedLevel ) );
-		}
-	}
-
-	if( curSelection == SELECT_GAME && app->curSelection != SELECT_GAME ) {
-		UnHighlightLeaf( tree->GetRootItem() );
-	}
-
 	if( app->curSelection == SELECT_LEVEL ) {
+		UnhighlightSelection();
 		HighlightLeaf( FindItem( app->selectedLevel ) );
+		curSelection = app->curSelection;
+		selectedElems->Clear();
 	} else if( app->curSelection == SELECT_GAME ) {
-		HighlightLeaf( tree->GetRootItem() );
+		if( curSelection != SELECT_GAME ) {
+			UnhighlightSelection();
+			HighlightLeaf( tree->GetRootItem() );
+			curSelection = app->curSelection;
+			selectedElems->Clear();
+		}
 	} else {
-		for( i = 0; i < (int) selectedElems->GetCount(); i++ ) {
+		UnhighlightSelection();
+		curSelection = app->curSelection;
+		selectedElems->Clear();
+/*		for( i = 0; i < (int) selectedElems->GetCount(); i++ ) {
 			AListElem * elem = selectedElems->Item( i );
 			if( curSelection == SELECT_UNIT ) {
 				lastSelected = FindSelected( elem, SELECT_UNIT, lastUnitByFaction );
@@ -996,7 +1012,8 @@ void TreeCanvas::UpdateSelection()
 				tree->Collapse( lastSelected );
 			}
 		}
-		for( i = 0; i < (int) app->selectedElems->GetCount(); i++ ) {
+*/
+		for( int i = 0; i < (int) app->selectedElems->GetCount(); i++ ) {
 			AListElem * elem = app->selectedElems->Item( i );
 			if( curSelection == SELECT_UNIT ) {
 				lastSelected = FindSelected( elem, SELECT_UNIT, !lastUnitByFaction );
@@ -1007,6 +1024,7 @@ void TreeCanvas::UpdateSelection()
 				lastSelected = elem->treeId;
 				HighlightLeaf( lastSelected );
 			}
+			selectedElems->Add( elem );
 		}
 
 	}
@@ -1014,22 +1032,22 @@ void TreeCanvas::UpdateSelection()
 	tree->Refresh();
 
 	// Synch selection values
-	curSelection = app->curSelection;
+//	curSelection = app->curSelection;
 	selectedLevel = app->selectedLevel;
-	selectedElems->Clear();
-	for( i = 0; i < (int) app->selectedElems->GetCount(); i++ ) {
-		AListElem * elem = app->selectedElems->Item( i );
-		selectedElems->Add( elem );
-	}
+//	selectedElems->Clear();
+//	for( i = 0; i < (int) app->selectedElems->GetCount(); i++ ) {
+//		AListElem * elem = app->selectedElems->Item( i );
+//		selectedElems->Add( elem );
+//	}
 
 	// Make sure children are visible on last selection first
-	if( selectedElems->Count() == 1 && tree->GetChildrenCount( lastSelected, false ) ) {
-		tree->Expand( lastSelected );
-	 	tree->ScrollTo( tree->GetLastChild( tree->GetLastChild( treeLevels ) ) );
-	}
+//	if( selectedElems->Count() == 1 && tree->GetChildrenCount( lastSelected, false ) ) {
+//		tree->Expand( lastSelected );
+//	 	tree->ScrollTo( tree->GetLastChild( tree->GetLastChild( treeLevels ) ) );
+//	}
 
 	// And finally, display the last selection
-	tree->EnsureVisible( lastSelected );
+//	tree->EnsureVisible( lastSelected );
 
 	treeWait = treeOld;
 }
@@ -1065,3 +1083,7 @@ wxTreeItemId TreeCanvas::FindSelected( AListElem * element, int type, bool unitB
 	return wxTreeItemId();
 }
 
+void TreeCanvas::OnMouse( wxMouseEvent & event )
+{
+	int x = 1;
+}

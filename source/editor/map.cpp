@@ -53,7 +53,7 @@
 #include "bitmaps/label.xpm"
 #include "bitmaps/outline.xpm"
 
-#include "../gamedata.h"
+#include "gamedata.h"
 
 const double cos30 = sqrt( (double) 3 ) / 2;
 const double tan30 = 1/sqrt( (double) 3 );
@@ -62,20 +62,24 @@ const double tan30 = 1/sqrt( (double) 3 );
 // event tables
 // ---------------------------------------------------------------------------
 
+BEGIN_EVENT_TABLE( MapFrame, wxWindow )
+	EVT_MENU( MAP_PLANE_DOWN, MapFrame::OnPlaneDown )
+	EVT_MENU( MAP_PLANE_UP, MapFrame::OnPlaneUp )
+	EVT_MENU( MAP_ZOOM_IN, MapFrame::OnZoomIn )
+	EVT_MENU( MAP_ZOOM_OUT, MapFrame::OnZoomOut )
+	EVT_MENU( MAP_SHOW_CITIES, MapFrame::OnShowCities )
+	EVT_MENU( MAP_SHOW_OBJECTS, MapFrame::OnShowObjects )
+	EVT_MENU( MAP_SHOW_GATES, MapFrame::OnShowGates )
+	EVT_MENU( MAP_SHOW_SHAFTS, MapFrame::OnShowShafts )
+	EVT_MENU( MAP_SHOW_COORDS, MapFrame::OnShowCoords )
+	EVT_MENU( MAP_SHOW_NAMES, MapFrame::OnShowNames )
+	EVT_MENU( MAP_SHOW_OUTLINES, MapFrame::OnShowOutlines )
+	EVT_COMBOBOX( MAP_LEVEL, MapFrame::OnLevelSelect )
+	EVT_SIZE( MapFrame::OnResize )
+END_EVENT_TABLE()
+
 BEGIN_EVENT_TABLE( MapCanvas, wxWindow )
-	EVT_MENU( MAP_PLANE_DOWN, MapCanvas::OnPlaneDown )
-	EVT_MENU( MAP_PLANE_UP, MapCanvas::OnPlaneUp )
-	EVT_MENU( MAP_ZOOM_IN, MapCanvas::OnZoomIn )
-	EVT_MENU( MAP_ZOOM_OUT, MapCanvas::OnZoomOut )
-	EVT_MENU( MAP_SHOW_CITIES, MapCanvas::OnShowCities )
-	EVT_MENU( MAP_SHOW_OBJECTS, MapCanvas::OnShowObjects )
-	EVT_MENU( MAP_SHOW_GATES, MapCanvas::OnShowGates )
-	EVT_MENU( MAP_SHOW_SHAFTS, MapCanvas::OnShowShafts )
-	EVT_MENU( MAP_SHOW_COORDS, MapCanvas::OnShowCoords )
-	EVT_MENU( MAP_SHOW_NAMES, MapCanvas::OnShowNames )
-	EVT_MENU( MAP_SHOW_OUTLINES, MapCanvas::OnShowOutlines )
-	EVT_COMBOBOX( MAP_LEVEL, MapCanvas::OnLevelSelect )
-	EVT_MOUSE_EVENTS( MapCanvas::OnEvent )
+	EVT_MOUSE_EVENTS( MapCanvas::OnMouse )
 	EVT_PAINT( MapCanvas::OnPaint )
 	EVT_SCROLLWIN( MapCanvas::OnScroll )
 	EVT_SIZE( MapCanvas::OnResize )
@@ -85,31 +89,26 @@ END_EVENT_TABLE()
 // MapCanvas
 // ---------------------------------------------------------------------------
 
-// Define a constructor for map canvas
+/**
+ * Default constructor
+ */
 MapCanvas::MapCanvas( wxWindow *parent )
 		  : wxWindow( parent, -1, wxDefaultPosition, wxDefaultSize,
 					  wxSUNKEN_BORDER |
 					  wxVSCROLL | wxHSCROLL | wxNO_FULL_REPAINT_ON_RESIZE )
 {
-	comboLevel = 0;
-	comboSelect = 0;
+	mapParent = ( MapFrame * ) parent;
 	hexSize = MapConfig.lastZoom;
 	SetVirtualSizeHints( 100, 100 );
-
-	sizerMap = new wxBoxSizer( wxVERTICAL );
 
 	selectedElems = new AElemArray();
 	tempSelection = new AElemArray();
 	curSelection = -1;
 
-	toolbar = new wxToolBar( this, -1, wxDefaultPosition, wxDefaultSize,
-							 wxNO_BORDER | wxTB_FLAT | wxTB_HORIZONTAL );
-	InitToolBar( toolbar );
-
-	sizerTool = new wxBoxSizer( wxHORIZONTAL );
-	sizerTool->Add( toolbar, 1 );
+	SetBackgroundColour( *wxBLACK );
 
 	InitPlane( MapConfig.lastPlane );
+	DrawMap( true );
 
 	yscroll = 0;
 	xscroll = 0;
@@ -117,47 +116,49 @@ MapCanvas::MapCanvas( wxWindow *parent )
 	lastX = 0 - MapConfig.lastX;
 	lastY = 0 - MapConfig.lastY;
 
-	SetBackgroundColour( wxColour( _T( "BLACK" ) ) );
 }
 
+/**
+ * Destructor
+ */
 MapCanvas::~MapCanvas()
 {
-	MapConfig.spreadBy = *( (int *)comboSelect->GetClientData( comboSelect->GetSelection() ) );
-	MapConfig.lastPlane = planeNum;
 	MapConfig.lastX = GetScrollPos( wxHORIZONTAL );
 	MapConfig.lastY = GetScrollPos( wxVERTICAL );
 	MapConfig.lastZoom = hexSize;
+	MapConfig.lastPlane = planeNum;
 
-	delete sizerMap;
-	delete sizerTool;
-	delete comboLevel;
+//	delete sizerMap;
+//	delete sizerTool;
 	delete selectedElems;
-	for( int i = 0; i < comboSelect->GetCount(); i++ )
-		if( comboSelect->GetClientData( i ) )
-			delete ( int * ) comboSelect->GetClientData( i );
-	delete comboSelect;
 }
 
-void MapCanvas::SetHexSize( int a )
+/**
+ * Change the size of the map hexes
+ */
+void MapCanvas::SetHexSize( int width )
 {
-	hexSize = a;
+	hexSize = width;
 	hexHalfSize   = hexSize / 2;
 	hexHalfHeight = ( int )( hexSize * cos30 + 0.5 );	 
 	hexHeight	  = hexHalfHeight * 2;
 }
 
-void MapCanvas::DrawMap( int clearFirst )
+/**
+ * Prepare DC and clear map if necessary, then draw map
+ */
+void MapCanvas::DrawMap( bool clearFirst )
 {
 	wxClientDC dc( this );
-	SetDC( dc );
 
-	if( clearFirst ) {
+	if( clearFirst )
 		dc.Clear();
-	}
-
 	DrawMap( &dc );
 }
 
+/**
+ * Draw map onto DC
+ */
 void MapCanvas::DrawMap( wxDC * pDC )
 {
 	if( !app->m_game )
@@ -170,12 +171,14 @@ void MapCanvas::DrawMap( wxDC * pDC )
 	}
 
 	DrawOverlay( pDC );
-//	// temporary fix
+	// temporary fix
 	DrawCoords( pDC );
 	DrawNames( pDC );
-	toolbar->Refresh();
 }
 
+/**
+ * Draw map overlay: borders, co-ordinates and town names
+ */
 void MapCanvas::DrawOverlay( wxDC * pDC )
 {
 	DrawBorders( pDC );
@@ -183,6 +186,9 @@ void MapCanvas::DrawOverlay( wxDC * pDC )
 	DrawNames( pDC );
 }
 
+/**
+ * Draw town names on DC
+ */
 void MapCanvas::DrawNames( wxDC * pDC )
 {
 	if( !MapConfig.showNames ) return;
@@ -197,6 +203,9 @@ void MapCanvas::DrawNames( wxDC * pDC )
 	}
 }
 
+/**
+ * Draw map co-ordinates onto DC
+ */
 void MapCanvas::DrawCoords( wxDC * pDC )
 {
 	if( !MapConfig.showCoords ) return;
@@ -211,7 +220,7 @@ void MapCanvas::DrawCoords( wxDC * pDC )
 		wxString num;
 		num << 0;
 		int xPt = hexSize - (int) ((double)fontSize / 2.7 * (double)num.Len()) - xscroll;
-		int yPt = toolbar->GetSize().y + 1 - yscroll;
+		int yPt = -yscroll;
 		DrawString(num, xPt, yPt, pDC );
 	}
 
@@ -219,7 +228,7 @@ void MapCanvas::DrawCoords( wxDC * pDC )
 		wxString num;
 		num << x;
 		int xPt = x * hexSize * 3 / 2 + hexSize - (int) ((double)fontSize / 2.7 * (double)num.Len()) - xscroll;
-		int yPt = toolbar->GetSize().y + 1 - yscroll;
+		int yPt = -yscroll;
 		pDC->SetTextForeground( *wxBLACK );
 		pDC->DrawText(num, xPt+1, yPt+1);
 		pDC->SetTextForeground( *wxWHITE );
@@ -230,7 +239,7 @@ void MapCanvas::DrawCoords( wxDC * pDC )
 	for( int y = 2; y < m_plane->y-1; y += 2 ) {
 		wxString num;
 		num << y;
-		int yPt = y/2 * hexHeight - yscroll + toolbar->GetSize().y + 1; 
+		int yPt = y/2 * hexHeight - yscroll; 
 		int xPt = hexSize - (int) ((double)fontSize / 2.7 * (double)num.Len()) - xscroll;
 		pDC->SetTextForeground( *wxBLACK );
 		pDC->DrawText(num, xPt+1, yPt+1);
@@ -241,6 +250,9 @@ void MapCanvas::DrawCoords( wxDC * pDC )
 	
 }
 
+/**
+ * Draw hex borders onto DC
+ */
 void MapCanvas::DrawBorders( wxDC * pDC )
 {
 	int x0, y0;
@@ -259,15 +271,11 @@ void MapCanvas::DrawBorders( wxDC * pDC )
 	}
 }
 
-void MapCanvas::SetDC( wxDC & dc )
-{
-	int width,height;
-	GetClientSize( &width, &height );
-	wxRect rect( 0, toolbar->GetSize().y, width, height );
-
-	dc.SetClippingRegion( rect );
-}
-
+/**
+ * Draw a complete single hex
+ * Redraw neighbours as well (needed if hex previously had a label that crossed into
+ *  neighbouring hexes, and now it doesn't)
+ */
 void MapCanvas::DrawHex( ARegion * pRegion, wxDC * pDC, int highlight, int drawName )
 {
 	wxBrush terrBrush;
@@ -451,6 +459,9 @@ void MapCanvas::DrawHex( ARegion * pRegion, wxDC * pDC, int highlight, int drawN
 
 }
 
+/**
+ * Draw a single hex: border and terrain bitmap/colour only
+ */
 void MapCanvas::DrawAHex( int x, int y, wxPen *pen, wxBrush *brush, wxDC *pDC,
 						  ARegion * exits[], wxImage * image )
 {
@@ -503,6 +514,10 @@ void MapCanvas::DrawAHex( int x, int y, wxPen *pen, wxBrush *brush, wxDC *pDC,
 	pDC->SetPen( *pen );
 }
 
+/**
+ * Process a scroll event
+ * Redraw map at new co-ordinates
+ */
 void MapCanvas::OnScroll( wxScrollWinEvent& event )
 {
 	int curX, curY, oldX, oldY;
@@ -569,7 +584,13 @@ void MapCanvas::OnScroll( wxScrollWinEvent& event )
 	DrawMap();
 }
 
-void MapCanvas::OnEvent( wxMouseEvent& event )
+/**
+ * Process a mouse event
+ * Update status bar to reflect co-ordinates under mouse
+ * Select a hex if LMB clicked
+ * Select all similar contiguous hexes if LMB double-clicked
+ */
+void MapCanvas::OnMouse( wxMouseEvent& event )
 {
 	long xpos,ypos;
 	int hexX, hexY;
@@ -588,9 +609,6 @@ void MapCanvas::OnEvent( wxMouseEvent& event )
 	else
 		pRegion = app->m_game->regions.GetRegion( hexX, hexY, planeNum );
 
-	ARegion * rr = app->m_game->regions.GetRegion( 11, 11, 1 );
-	int rx, ry;
-	GetHexCenter( rr->xloc, rr->yloc, rx, ry );
 	app->UpdateStatusBar( pRegion );
 //	app->UpdateStatusBarDebug( xpos, ypos, hexX, hexY, GetScrollPos( wxHORIZONTAL ), GetScrollPos( wxVERTICAL ) , hexSize, hexHeight );
 //	app->UpdateStatusBarDebug( xpos, ypos, hexX, hexY, GetScrollPos( wxHORIZONTAL ), GetScrollPos( wxVERTICAL ) , rx, ry );
@@ -601,7 +619,7 @@ void MapCanvas::OnEvent( wxMouseEvent& event )
 		forlist( &app->m_game->regions ) {
 			((ARegion *) elem)->checked = 0;
 		}
-		SpreadSelection( pRegion, *((int *) comboSelect->GetClientData( comboSelect->GetSelection() ) ));
+		SpreadSelection( pRegion, *((int *) mapParent->comboSelect->GetClientData( mapParent->comboSelect->GetSelection() ) ));
 		if( event.ShiftDown() ) {
 			forlist( &app->m_game->regions ) {
 				ARegion * r = ( ARegion * ) elem;
@@ -621,7 +639,11 @@ void MapCanvas::OnEvent( wxMouseEvent& event )
 	} else if( event.LeftDown() ) {
 		if( event.ShiftDown() /*|| event.ControlDown() */ ) {
 			app->Select( pRegion, true );
-		} else {		
+		} else {
+			if( selectedElems->GetCount() == 1 && lastRegion == pRegion ) {
+				// don't want to reselect the region again for no reason
+				return;
+			}
 			app->Select( pRegion, false );
 		}
 		lastRegion = pRegion;
@@ -634,9 +656,13 @@ void MapCanvas::OnEvent( wxMouseEvent& event )
 			app->UpdateSelection();
 		}	
 	}
-
 }
 
+/**
+ * Recursively check through a region's neighbours to see if they
+ * should be included in the new selection. If so, the region is
+ * 'checked'.
+ */
 void MapCanvas::SpreadSelection( ARegion * pRegion, int spreadBy )
 {
 	pRegion->checked = 1;
@@ -660,6 +686,9 @@ void MapCanvas::SpreadSelection( ARegion * pRegion, int spreadBy )
 	}
 }
 	
+/**
+ * Get the hex at the center of the screen (Not working yet)
+ */
 ARegion * MapCanvas::GetCenterHex()
 {
 	int hexX, hexY;
@@ -678,6 +707,9 @@ ARegion * MapCanvas::GetCenterHex()
 	return pRegion;
 }
 
+/**
+ * Adjust map to make a particular hex at the center
+ */
 void MapCanvas::SetCenterHex( ARegion * pRegion )
 {
 	int maxX, maxY;
@@ -702,7 +734,9 @@ void MapCanvas::SetCenterHex( ARegion * pRegion )
 
 }
 
-
+/**
+ * Find the map co-ordinates of the center of the specified hex co-ordinates
+ */
 void MapCanvas::GetHexCenter( int NoX, int NoY, int & WinX, int & WinY )
 {
 	// center of ( 0,0 ) hex has 0,0 Atla coordinates
@@ -768,7 +802,6 @@ int MapCanvas::ValidHexNo( int NoX, int NoY )
 inline void MapCanvas::WinToAtla( int	 WinX,  int    WinY,
 								  long & AtlaX, long & AtlaY )
 {
-	WinY -= toolbar->GetSize().y;
 	AtlaX = WinX + xscroll;
 	AtlaY = WinY + yscroll;
 }
@@ -778,13 +811,11 @@ inline void MapCanvas::AtlaToWin( int &  WinX,  int &  WinY,
 {
 	WinX = AtlaX - xscroll;
 	WinY = AtlaY - yscroll;
-	WinY += toolbar->GetSize().y;
 }
 
 void MapCanvas::OnPaint( wxPaintEvent &WXUNUSED( event ) )
 {
 	wxPaintDC dc( this );
-	SetDC( dc );
 	DrawMap( &dc );
 }
 
@@ -973,7 +1004,6 @@ void MapCanvas::AdjustScrollBars()
 	int width, height;
 	GetClientSize( &width,&height );
 
-	height -= toolbar->GetSize().y;
 	SetScrollbar( wxVERTICAL, GetScrollPos( wxHORIZONTAL ), height / hexHeight,
 		          GetScrollRange( wxVERTICAL ) );
 	SetScrollbar( wxHORIZONTAL, GetScrollPos( wxHORIZONTAL ),
@@ -983,21 +1013,12 @@ void MapCanvas::AdjustScrollBars()
 void MapCanvas::OnResize( wxSizeEvent& event )
 {
 	AdjustScrollBars();
-	int w,h;
-	GetClientSize( &w, &h );
-	if( w>0 && h>0 ) {
-		int offset = toolbar->GetSize().y;
-		sizerTool->SetDimension( 1, 0, w-2, offset );
-	}
-
 }
 
 
 void MapCanvas::InitPlane( int p, ARegion * center )
 {
 	planeNum = p;
-
-	comboLevel->SetSelection( p );
 
 	m_plane = app->m_game->regions.pRegionArrays[p];
 
@@ -1031,123 +1052,43 @@ void MapCanvas::InitPlane( int p, ARegion * center )
 		yscroll = y * hexHeight;
 	}
 
-	DrawMap( 1 );
-
 	AString title = AString( "Level " ) + p;
 	if( m_plane->strName )
 		title += AString(" : ") + *m_plane->strName;
 	SetTitle( title.Str() );
 }
 
-void MapCanvas::InitToolBar( wxToolBar * toolBar )
+int MapCanvas::MoveUpLevel()
 {
-	wxBitmap* bitmaps[11];
-
-	bitmaps[0] = new wxBitmap( arrowup_xpm );
-	bitmaps[1] = new wxBitmap( arrowdown_xpm );
-	bitmaps[2] = new wxBitmap( zoom_in_xpm );
-	bitmaps[3] = new wxBitmap( zoom_out_xpm );
-	bitmaps[4] = new wxBitmap( city_xpm );
-	bitmaps[5] = new wxBitmap( object_xpm );
-	bitmaps[6] = new wxBitmap( gate_xpm );
-	bitmaps[7] = new wxBitmap( shaft_xpm );
-	bitmaps[8] = new wxBitmap( label_xpm );
-	bitmaps[9] = new wxBitmap( coord_xpm );
-	bitmaps[10] = new wxBitmap( outline_xpm );
-
-	comboLevel = new wxComboBox( toolBar, MAP_LEVEL, "", wxDefaultPosition, wxDefaultSize,
-	                             0, NULL, wxCB_READONLY );
-
-	int i;
-	for( i = 0; i < app->m_game->regions.numLevels; i++ )  {
-		AString * name = app->m_game->regions.GetRegionArray( i )->strName;
-		AString temp = AString( "[" ) + i + "] ";
-		if( !name ) {
-			temp += "Unnamed";
-		} else {
-			temp += *name;
-		}
-		comboLevel->Append( temp.Str(), app->m_game->regions.GetRegionArray( i ) );
-	}
-
-	comboSelect = new wxComboBox( toolBar, MAP_SELECT, "", wxDefaultPosition, wxDefaultSize,
-	                             0, NULL, wxCB_READONLY );
-	comboSelect->Append( "Terrain", new int( SPREAD_TERRAIN ) );
-	comboSelect->Append( "Province", new int( SPREAD_PROVINCE ) );
-	comboSelect->Append( "Race", new int( SPREAD_RACE ) );
-
-	toolBar->SetToolSeparation( 80 );
-
-	toolBar->AddTool( MAP_PLANE_UP, "", *( bitmaps[0] ), "Up one plane" );
-	toolBar->AddTool( MAP_PLANE_DOWN, "", *( bitmaps[1] ), "Down one plane" );
-	toolBar->AddControl( comboLevel );
-	toolBar->AddSeparator();
-	toolBar->AddTool( MAP_ZOOM_IN, "", *( bitmaps[2] ), "Zoom in" );
-	toolBar->AddTool( MAP_ZOOM_OUT, "", *( bitmaps[3] ), "Zoom out" );
-	toolBar->AddSeparator();
-	toolBar->AddCheckTool( MAP_SHOW_CITIES, "", *( bitmaps[4] ), *( bitmaps[4] ), "Show cities" );
-	toolBar->AddCheckTool( MAP_SHOW_OBJECTS, "", *( bitmaps[5] ), *( bitmaps[5] ), "Show objects" );
-	toolBar->AddCheckTool( MAP_SHOW_GATES, "", *( bitmaps[6] ), *( bitmaps[6] ), "Show gates" );
-	toolBar->AddCheckTool( MAP_SHOW_SHAFTS, "", *( bitmaps[7] ), *( bitmaps[7] ), "Show shafts" );
-	toolBar->AddCheckTool( MAP_SHOW_NAMES, "", *( bitmaps[8] ), *( bitmaps[8] ), "Show town names" );
-	toolBar->AddCheckTool( MAP_SHOW_COORDS, "", *( bitmaps[9] ), *( bitmaps[9] ), "Show map co-ordinates" );
-	toolBar->AddCheckTool( MAP_SHOW_OUTLINES, "", *( bitmaps[10] ), *( bitmaps[10] ), "Show hex outlines" );
-	toolBar->AddSeparator();
-	wxStaticText * text = new wxStaticText( toolBar, -1, " Select: " );
-	toolBar->AddControl( text );
-	toolBar->AddControl( comboSelect );
-	comboSelect->SetSelection( MapConfig.spreadBy );
-
-	toolBar->ToggleTool( MAP_SHOW_CITIES, MapConfig.showCities );
-	toolBar->ToggleTool( MAP_SHOW_OBJECTS, MapConfig.showObjects );
-	toolBar->ToggleTool( MAP_SHOW_GATES, MapConfig.showGates );
-	toolBar->ToggleTool( MAP_SHOW_SHAFTS, MapConfig.showShafts );
-	toolBar->ToggleTool( MAP_SHOW_NAMES, MapConfig.showNames );
-	toolBar->ToggleTool( MAP_SHOW_COORDS, MapConfig.showCoords );
-	toolBar->ToggleTool( MAP_SHOW_OUTLINES, MapConfig.showOutlines );
-
-	text->SetBackgroundColour( app->guiColourLt );
-	toolbar->SetBackgroundColour( app->guiColourLt );
-
-	if( planeNum >= app->m_game->regions.numLevels -1 )
-		toolBar->EnableTool( MAP_PLANE_DOWN, false );
-	if( planeNum <=0 )
-		toolBar->EnableTool( MAP_PLANE_UP, true );
-
-	toolBar->Realize();
-	for( i = 0; i < 11; i++ )
-		delete bitmaps[i];
-
+	if( planeNum > 0 ) 
+		InitPlane( planeNum - 1 ); //< If succesful, will change planeNum to new value
+	return planeNum;
 }
 
-void MapCanvas::OnPlaneUp( wxCommandEvent & event )
+int MapCanvas::MoveDownLevel()
 {
-	int plane = planeNum;
-	if( plane <= 0 ) return;
-
-	plane--;
-	toolbar->EnableTool( MAP_PLANE_DOWN, true );
-	if( plane <= 0 ) toolbar->EnableTool( MAP_PLANE_UP, false );
-	InitPlane( plane );
+	if( planeNum < app->m_game->regions.numLevels -1 )
+		InitPlane( planeNum + 1 ); //< If succesful, will change planeNum to new value
+	return planeNum;
 }
 
-void MapCanvas::OnPlaneDown( wxCommandEvent & event )
+void MapFrame::OnPlaneDown( wxCommandEvent & event )
 {
-	int plane = planeNum;
-	if( plane >= app->m_game->regions.numLevels -1 ) return;
-
-	plane++;
+	int plane = canvas->MoveDownLevel();
 
 	toolbar->EnableTool( MAP_PLANE_UP, true );
 	if( plane >= app->m_game->regions.numLevels -1 )
 		toolbar->EnableTool( MAP_PLANE_DOWN, false );
-	InitPlane( plane );
+	comboLevel->SetSelection( plane );
+	canvas->DrawMap( true );
 }
 
-void MapCanvas::OnLevelSelect( wxCommandEvent & event )
+void MapFrame::OnLevelSelect( wxCommandEvent & event )
 {
-	planeNum = event.GetSelection();
-	InitPlane( planeNum );
+	int plane = event.GetSelection();
+	comboLevel->SetSelection( plane );
+	canvas->InitPlane( plane );
+	canvas->DrawMap( true );
 }
 
 void MapCanvas::GetMaxScroll( int & maxX, int & maxY )
@@ -1158,9 +1099,8 @@ void MapCanvas::GetMaxScroll( int & maxX, int & maxY )
 	if( maxY < 0 ) maxY = 0;
 }
 
-void MapCanvas::OnZoomIn( wxCommandEvent & event )
+int MapCanvas::ZoomIn()
 {
-
 	if( hexSize >= 30 ) hexSize +=4;
 	if( hexSize >= 20 ) hexSize +=4;
 	hexSize += 4;
@@ -1171,14 +1111,31 @@ void MapCanvas::OnZoomIn( wxCommandEvent & event )
 	lastX = (double) GetScrollPos( wxHORIZONTAL ) / (double) maxX;
 	lastY = (double) GetScrollPos( wxVERTICAL ) / (double) maxY;
 
-	toolbar->EnableTool( MAP_ZOOM_OUT, true );
-	if( hexSize >= 40 ) toolbar->EnableTool( MAP_ZOOM_IN, false );
-
 	InitPlane( planeNum );
-	
+	return hexSize;
 }
 
-void MapCanvas::OnZoomOut( wxCommandEvent & event )
+void MapFrame::OnZoomIn( wxCommandEvent & event )
+{
+	if( canvas ) {
+		int hexSize = canvas->ZoomIn();
+		toolbar->EnableTool( MAP_ZOOM_OUT, true );
+		if( hexSize >= 40 ) toolbar->EnableTool( MAP_ZOOM_IN, false );		
+		canvas->DrawMap( true );
+	}
+}
+
+void MapFrame::OnZoomOut( wxCommandEvent & event )
+{
+	if( canvas ) {
+		int hexSize = canvas->ZoomOut();
+		toolbar->EnableTool( MAP_ZOOM_IN, true );
+		if( hexSize <= 4 ) toolbar->EnableTool( MAP_ZOOM_OUT, false );
+		canvas->DrawMap( true );
+	}
+}
+
+int MapCanvas::ZoomOut()
 {
 
 	hexSize -= 4;
@@ -1191,52 +1148,50 @@ void MapCanvas::OnZoomOut( wxCommandEvent & event )
 	lastX = (double) GetScrollPos( wxHORIZONTAL ) / (double) maxX;
 	lastY = (double) GetScrollPos( wxVERTICAL ) / (double) maxY;
 
-	toolbar->EnableTool( MAP_ZOOM_IN, true );
-	if( hexSize <= 4 ) toolbar->EnableTool( MAP_ZOOM_OUT, false );
-
 	InitPlane( planeNum );
+	return hexSize;
 }
 
-void MapCanvas::OnShowCities( wxCommandEvent & event )
+void MapFrame::OnShowCities( wxCommandEvent & event )
 {
 	MapConfig.showCities = toolbar->GetToolState( MAP_SHOW_CITIES );
-	DrawMap();
+	canvas->DrawMap();
 }
 
-void MapCanvas::OnShowObjects( wxCommandEvent & event )
+void MapFrame::OnShowObjects( wxCommandEvent & event )
 {
 	MapConfig.showObjects = toolbar->GetToolState( MAP_SHOW_OBJECTS );
-	DrawMap();
+	canvas->DrawMap();
 }
 
-void MapCanvas::OnShowGates( wxCommandEvent & event )
+void MapFrame::OnShowGates( wxCommandEvent & event )
 {
 	MapConfig.showGates = toolbar->GetToolState( MAP_SHOW_GATES );
-	DrawMap();
+	canvas->DrawMap();
 }
 
-void MapCanvas::OnShowShafts( wxCommandEvent & event )
+void MapFrame::OnShowShafts( wxCommandEvent & event )
 {
 	MapConfig.showShafts = toolbar->GetToolState( MAP_SHOW_SHAFTS );
-	DrawMap();
+	canvas->DrawMap();
 }
 
-void MapCanvas::OnShowNames( wxCommandEvent & event )
+void MapFrame::OnShowNames( wxCommandEvent & event )
 {
 	MapConfig.showNames = toolbar->GetToolState( MAP_SHOW_NAMES );
-	DrawMap();
+	canvas->DrawMap();
 }
 
-void MapCanvas::OnShowOutlines( wxCommandEvent & event )
+void MapFrame::OnShowOutlines( wxCommandEvent & event )
 {
 	MapConfig.showOutlines = toolbar->GetToolState( MAP_SHOW_OUTLINES );
-	DrawMap();
+	canvas->DrawMap();
 }
 
-void MapCanvas::OnShowCoords( wxCommandEvent & event )
+void MapFrame::OnShowCoords( wxCommandEvent & event )
 {
 	MapConfig.showCoords = toolbar->GetToolState( MAP_SHOW_COORDS );
-	DrawMap();
+	canvas->DrawMap();
 }
 
 void MapCanvas::UpdateSelection()
@@ -1293,11 +1248,11 @@ void MapCanvas::UpdateSelection()
 
 	if( level != planeNum ) {
 		InitPlane( level );
+		DrawMap( true );
 	}
 
 	// Prepare canvas for drawing
 	wxClientDC dc( this );
-	SetDC( dc );
 
 	// Change selections
 	AElemArray * array = 0;
@@ -1362,5 +1317,153 @@ void MapCanvas::UpdateSelection()
 
 	DrawOverlay( &dc );
 
+}
+
+// ---------------------------------------------------------------------------
+// MapFrame
+// ---------------------------------------------------------------------------
+MapFrame::MapFrame( wxWindow *parent )
+         : wxWindow( parent, -1, wxDefaultPosition, wxDefaultSize,
+                     wxDEFAULT_FRAME_STYLE, "Map" )
+{
+	comboLevel = 0;
+	comboSelect = 0;
+	SetBackgroundColour( app->guiColourLt );
+
+	toolbar = new wxToolBar( this, -1, wxDefaultPosition, wxDefaultSize,
+							 wxNO_BORDER | wxTB_HORIZONTAL | wxTB_FLAT );
+	InitToolBar( toolbar, MapConfig.lastPlane );
+
+	canvas = new MapCanvas( this );
+
+}
+
+MapFrame::~MapFrame()
+{
+	MapConfig.spreadBy = *( (int *)comboSelect->GetClientData( comboSelect->GetSelection() ) );
+
+	delete comboLevel;
+	for( int i = 0; i < comboSelect->GetCount(); i++ )
+		if( comboSelect->GetClientData( i ) )
+			delete ( int * ) comboSelect->GetClientData( i );
+	delete comboSelect;
+}
+
+void MapFrame::UpdateSelection()
+{
+	if( canvas )
+		canvas->UpdateSelection();
+}
+
+void MapFrame::OnResize( wxSizeEvent& event )
+{
+	int w,h;
+	GetClientSize( &w, &h );
+	if( w>0 && h>0 ) {
+		int offset = toolbar->GetSize().y;
+		toolbar->SetSize( 0, 0, w, offset );
+		canvas->SetSize( 0, offset+1, w, h-offset );
+	}
+}
+
+/**
+ * Initialise Toolbar
+ */
+void MapFrame::InitToolBar( wxToolBar * toolBar, int level )
+{
+	wxBitmap* bitmaps[11];
+
+	bitmaps[0] = new wxBitmap( arrowup_xpm );
+	bitmaps[1] = new wxBitmap( arrowdown_xpm );
+	bitmaps[2] = new wxBitmap( zoom_in_xpm );
+	bitmaps[3] = new wxBitmap( zoom_out_xpm );
+	bitmaps[4] = new wxBitmap( city_xpm );
+	bitmaps[5] = new wxBitmap( object_xpm );
+	bitmaps[6] = new wxBitmap( gate_xpm );
+	bitmaps[7] = new wxBitmap( shaft_xpm );
+	bitmaps[8] = new wxBitmap( label_xpm );
+	bitmaps[9] = new wxBitmap( coord_xpm );
+	bitmaps[10] = new wxBitmap( outline_xpm );
+
+	comboLevel = new wxComboBox( toolBar, MAP_LEVEL, "", wxDefaultPosition, wxDefaultSize,
+	                             0, NULL, wxCB_READONLY );
+
+	int i;
+	for( i = 0; i < app->m_game->regions.numLevels; i++ )  {
+		AString * name = app->m_game->regions.GetRegionArray( i )->strName;
+		AString temp = AString( "[" ) + i + "] ";
+		if( !name ) {
+			temp += "Unnamed";
+		} else {
+			temp += *name;
+		}
+		comboLevel->Append( temp.Str(), app->m_game->regions.GetRegionArray( i ) );
+	}
+	comboLevel->SetSelection( level );
+
+	comboSelect = new wxComboBox( toolBar, MAP_SELECT, "", wxDefaultPosition, wxDefaultSize,
+	                             0, NULL, wxCB_READONLY );
+	comboSelect->Append( "Terrain", new int( SPREAD_TERRAIN ) );
+	comboSelect->Append( "Province", new int( SPREAD_PROVINCE ) );
+	comboSelect->Append( "Race", new int( SPREAD_RACE ) );
+
+	toolBar->SetToolSeparation( 80 );
+
+	toolBar->AddTool( MAP_PLANE_UP, "", *( bitmaps[0] ), "Up one plane" );
+	toolBar->AddTool( MAP_PLANE_DOWN, "", *( bitmaps[1] ), "Down one plane" );
+	toolBar->AddControl( comboLevel );
+	toolBar->AddSeparator();
+	toolBar->AddTool( MAP_ZOOM_IN, "", *( bitmaps[2] ), "Zoom in" );
+	toolBar->AddTool( MAP_ZOOM_OUT, "", *( bitmaps[3] ), "Zoom out" );
+	toolBar->AddSeparator();
+	toolBar->AddCheckTool( MAP_SHOW_CITIES, "", *( bitmaps[4] ), *( bitmaps[4] ), "Show cities" );
+	toolBar->AddCheckTool( MAP_SHOW_OBJECTS, "", *( bitmaps[5] ), *( bitmaps[5] ), "Show objects" );
+	toolBar->AddCheckTool( MAP_SHOW_GATES, "", *( bitmaps[6] ), *( bitmaps[6] ), "Show gates" );
+	toolBar->AddCheckTool( MAP_SHOW_SHAFTS, "", *( bitmaps[7] ), *( bitmaps[7] ), "Show shafts" );
+	toolBar->AddCheckTool( MAP_SHOW_NAMES, "", *( bitmaps[8] ), *( bitmaps[8] ), "Show town names" );
+	toolBar->AddCheckTool( MAP_SHOW_COORDS, "", *( bitmaps[9] ), *( bitmaps[9] ), "Show map co-ordinates" );
+	toolBar->AddCheckTool( MAP_SHOW_OUTLINES, "", *( bitmaps[10] ), *( bitmaps[10] ), "Show hex outlines" );
+	toolBar->AddSeparator();
+	wxStaticText * text = new wxStaticText( toolBar, -1, " Select: " );
+	toolBar->AddControl( text );
+	toolBar->AddControl( comboSelect );
+	comboSelect->SetSelection( MapConfig.spreadBy );
+
+	toolBar->ToggleTool( MAP_SHOW_CITIES, MapConfig.showCities );
+	toolBar->ToggleTool( MAP_SHOW_OBJECTS, MapConfig.showObjects );
+	toolBar->ToggleTool( MAP_SHOW_GATES, MapConfig.showGates );
+	toolBar->ToggleTool( MAP_SHOW_SHAFTS, MapConfig.showShafts );
+	toolBar->ToggleTool( MAP_SHOW_NAMES, MapConfig.showNames );
+	toolBar->ToggleTool( MAP_SHOW_COORDS, MapConfig.showCoords );
+	toolBar->ToggleTool( MAP_SHOW_OUTLINES, MapConfig.showOutlines );
+
+	text->SetBackgroundColour( app->guiColourLt );
+	toolBar->SetBackgroundColour( app->guiColourLt );
+
+	for( i = 0; i < 11; i++ )
+		delete bitmaps[i];
+
+	if( level < app->m_game->regions.numLevels -1 )
+		toolBar->EnableTool( MAP_PLANE_DOWN, true );
+	else
+		toolBar->EnableTool( MAP_PLANE_DOWN, false );
+
+	if( level > 0 )
+		toolBar->EnableTool( MAP_PLANE_UP, true );
+	else
+		toolBar->EnableTool( MAP_PLANE_UP, false );
+
+	toolBar->Realize();
+}
+
+void MapFrame::OnPlaneUp( wxCommandEvent & event )
+{
+	int plane = canvas->MoveUpLevel();
+
+	toolbar->EnableTool( MAP_PLANE_DOWN, true );
+	if( plane <= 0 ) toolbar->EnableTool( MAP_PLANE_UP, false );
+	comboLevel->SetSelection( plane );
+
+	canvas->DrawMap( true );
 }
 

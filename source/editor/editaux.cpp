@@ -30,7 +30,7 @@
 #include "editaux.h"
 #include "gui.h"
 
-#include "../gamedata.h"
+#include "gamedata.h"
 #include "../aregion.h"
 #include "../items.h"
 #include "../astring.h"
@@ -45,16 +45,24 @@ BEGIN_EVENT_TABLE( EditAux, wxDialog )
 	EVT_CLOSE( EditAux::OnClose )
 	EVT_GRID_LABEL_LEFT_CLICK( EditAux::OnSort )
 	EVT_GRID_EDITOR_SHOWN( EditAux::OnEdit )
+	EVT_GRID_CELL_LEFT_CLICK( EditAux::OnLClick )
+	EVT_KEY_DOWN( EditAux::OnKeyDown )
 END_EVENT_TABLE()
 
 BEGIN_EVENT_TABLE( EditItemAux, wxDialog )
+	EVT_GRID_LABEL_LEFT_CLICK( EditAux::OnSort )
 	EVT_BUTTON( wxID_OK, EditItemAux::OnOK )
 	EVT_GRID_EDITOR_SHOWN( EditAux::OnEdit )
+	EVT_GRID_CELL_LEFT_CLICK( EditAux::OnLClick )
+	EVT_KEY_DOWN( EditAux::OnKeyDown )
 END_EVENT_TABLE()
 
 BEGIN_EVENT_TABLE( EditSkillAux, wxDialog )
+	EVT_GRID_LABEL_LEFT_CLICK( EditAux::OnSort )
 	EVT_BUTTON( wxID_OK, EditSkillAux::OnOK )
 	EVT_GRID_EDITOR_SHOWN( EditAux::OnEdit )
+	EVT_GRID_CELL_LEFT_CLICK( EditAux::OnLClick )
+	EVT_KEY_DOWN( EditAux::OnKeyDown )
 END_EVENT_TABLE()
 
 /**
@@ -69,6 +77,8 @@ EditAux::EditAux( wxWindow *parent, const wxString & title, const wxPoint& pos, 
 	sizerAux = NULL;
 	SetBackgroundColour( app->guiColourLt );
 	frame->EnableWindows( false );
+	lastRow = -1;
+	allowCellEdit = false;
 }
 
 /**
@@ -88,24 +98,23 @@ EditAux::~EditAux()
  */
 void EditAux::OnEdit( wxGridEvent & event)
 {
-	if( event.GetCol() != editCol )
+	if( !allowCellEdit )
 		event.Veto();
 }
 
 /**
  * Initialise the grid
  */
-void EditAux::InitGrid( int cols, bool selectRows )
+void EditAux::InitGrid( int cols )
 {
 	grid = new wxGrid( this, -1 );
 	grid->CreateGrid( 0, 0 );
 	grid->SetRowLabelSize( 0 );
 	grid->SetColLabelSize( 20 );
-	if( selectRows )
-		grid->SetSelectionMode( wxGrid::wxGridSelectRows );
+	grid->SetSelectionMode( wxGrid::wxGridSelectRows );
 	grid->AppendCols( cols );
 	grid->DisableDragRowSize();
-
+	grid->SetCellHighlightPenWidth( 0 );
 }
 
 /**
@@ -113,19 +122,21 @@ void EditAux::InitGrid( int cols, bool selectRows )
  */
 void EditAux::PreSelectRows( AElemArray * arr )
 {
+	UnhighlightAllRows();
 	if( arr ) {
 		int i;
 		for( i = 0; i < (int) arr->GetCount(); i++ ) {
 			AListElem * e = arr->Item( i );
 			int index = array.Index( e );
 			if( index != wxNOT_FOUND ) {
-				grid->SelectRow( index, true );
-				grid->MakeCellVisible( index, 0 );
+				HighlightRow( index );
+				lastRow = index;
 			}
 		}
-	} else {
-		grid->SelectRow( 0, false );
+//	} else {
+//		grid->SelectRow( 0, false );
 	}
+	ResetView();
 }
 
 /**
@@ -133,10 +144,62 @@ void EditAux::PreSelectRows( AElemArray * arr )
  */
 void EditAux::FinalizeArray()
 {
+	if( grid->IsCellEditControlShown() ) {
+		SaveEditValue();
+	}
 	selectedArray.Clear();
 	for( int i = grid->GetNumberRows()-1; i >= 0; i-- ) {
 		if( grid->IsInSelection( i, 0 ) ) {
 			selectedArray.Add( array[i] );
+		}
+	}
+}
+
+/*
+ * Process a left-click event
+ */
+void EditAux::OnLClick( wxGridEvent & event )
+{
+	int row = event.GetRow();
+
+	if( grid->IsCellEditControlShown() ) {
+		SaveEditValue();
+	}
+
+	bool add = false;
+	if( event.ControlDown() || event.ShiftDown() )
+		add = true;
+
+	if( !add && editCol != -1 && grid->IsInSelection( row, 0 ) ) {
+		bool b = grid->IsReadOnly( row, 0 );
+		bool c = grid->IsReadOnly( row, editCol );
+		// change value for this selection
+		allowCellEdit = true;
+		grid->SetGridCursor( row, editCol );
+//		grid->GetDefaultEditor()->BeginEdit( row, editCol, grid );
+		lastEditValue = grid->GetCellValue( row, editCol );
+		grid->EnableCellEditControl();
+//		wxMessageBox( "Editing...", "Test", wxICON_EXCLAMATION );
+		allowCellEdit = false;
+	} else {
+		if( !add )
+			UnhighlightAllRows();
+		HighlightRow( row );
+		ResetView();
+	}
+	lastRow = row;
+}
+
+void EditAux::SaveEditValue()
+{
+	grid->HideCellEditControl();
+	grid->SaveEditControlValue();
+	wxString value = grid->GetCellValue( lastRow, editCol );
+	if( value != lastEditValue ) {
+		for( int i = grid->GetNumberRows()-1; i >= 0; i-- ) {
+			if( grid->IsInSelection( i, 0 ) ) {
+				grid->SetCellValue( i, editCol, value );
+			}
 		}
 	}
 }
@@ -235,6 +298,9 @@ void EditAux::InitSizer()
 	but->SetBackgroundColour( app->guiColourDk );
 	bottom->Add( but, 2);
 
+//	wxBitmapButton * but2 = new wxBitmapButton( this, wxID_CANCEL, wxBitmap( "test.bmp", wxBITMAP_TYPE_BMP ) );
+//	bottom->Add( but2, 2);
+
 	sizerAux->Add( top, 1, wxEXPAND | wxALL, 2 );
 	sizerAux->Add( bottom, 0, wxALIGN_BOTTOM | wxALL, 2 );
 	GetClientSize( &w, &h );
@@ -243,6 +309,117 @@ void EditAux::InitSizer()
 
 void EditAux::WriteGrid()
 {
+}
+
+/*
+ * Reset grid view: Make last cell visible
+ */
+void EditAux::ResetView()
+{
+	if( lastRow != -1 )
+		grid->MakeCellVisible( lastRow, 0 );
+}
+
+/**
+ * Change selection when a key is pressed
+ */
+void EditAux::OnKeyDown( wxKeyEvent & event )
+{
+	int key = event.GetKeyCode();
+	if( key == WXK_DOWN || key == WXK_UP ) {
+		int shift = 0;
+		if( key == WXK_DOWN ) shift = 1;
+		else if( key == WXK_UP ) shift = -1;
+
+		if( lastRow + shift > grid->GetRows() || lastRow + shift < 0 )
+			return;
+
+//		bool add = event.ShiftDown();
+
+//		if( add && grid->IsInSelection( lastRow + shift, 0 ) ) {
+//			// Not selecting a new row. We should remove the last row from selection
+//			SelectItem( lastRow, add );
+//			lastRow += shift;
+//		} else {
+//			SelectItem( lastRow + shift, add );
+			if( lastRow != -1 )
+				UnhighlightAllRows();
+//				UnHighlightRow( lastRow );
+			lastRow += shift;
+			HighlightRow( lastRow );
+//		}
+//		app->UpdateSelection();
+	} else if( key == WXK_LEFT || key == WXK_RIGHT || key == WXK_HOME || key == WXK_END ||
+		key == WXK_PAGEUP || key == WXK_PAGEDOWN || key == WXK_NUMPAD_LEFT || 
+		key == WXK_NUMPAD_RIGHT || key == WXK_NUMPAD_HOME || key == WXK_NUMPAD_END ||
+		key == WXK_NUMPAD_PAGEUP || key == WXK_NUMPAD_PAGEDOWN ) {
+		//don't process these
+	} else if( key >= 'A' && key <= 'Z' && !event.AltDown() ) {
+		// Find the next row that begins with the keyed letter.
+		wxString val;
+		char letter;
+
+		int firstRow = lastRow;
+		if( firstRow < 0 ) firstRow = 0;
+
+		for( int i = firstRow + 1; i < grid->GetNumberRows(); i++ ) {
+			val = grid->GetCellValue( i, 0 );
+			letter = toupper( val.GetChar( 0 ) );
+			if( letter == key ) {
+//				UnhighlightRow( lastRow );
+				UnhighlightAllRows();
+				lastRow = i;
+				HighlightRow( lastRow );
+				ResetView();
+				return;
+			}
+		}
+		for( int i = 0; i < firstRow; i++ ) {
+			val = grid->GetCellValue( i, 0 );
+			letter = toupper( val.GetChar( 0 ) );
+			if( letter == key ) {
+//				UnhighlightRow( lastRow );
+				UnhighlightAllRows();
+				lastRow = i;
+				HighlightRow( lastRow );
+				ResetView();
+				return;
+			}
+		}
+/*	} else if( grid->IsCellEditControlShown() ) {
+		if( key == WXK_RETURN ) {
+			grid->HideCellEditControl();
+			grid->SaveEditControlValue();
+			if( grid->GetCellValue( lastRow, editCol ) != lastEditValue )
+				SaveEditValue( grid->GetCellValue( lastRow, editCol ) );
+		} else if( key == WXK_ESCAPE ) {
+			grid->HideCellEditControl();
+		} else {
+			event.Skip();
+		}
+*/	} else {
+		event.Skip();
+	}
+}
+
+// Highlight a row in the grid
+void EditAux::HighlightRow( int row )
+{
+	// Do it cheap way first - just select the row
+	grid->SelectRow( row, true );
+}
+
+// Un-highlight a row in the grid
+void EditAux::UnhighlightRow( int row )
+{
+	// To come?
+}
+
+// Un-highlight all rows in grid
+void EditAux::UnhighlightAllRows()
+{
+	// Cheap way for now:
+	grid->ClearSelection();
 }
 
 // ---------------------------------------------------------------------------
@@ -311,6 +488,8 @@ void EditRegionAux::Init( AElemArray * arr )
 	grid->GetClientSize( &w, &h );
 	grid->SetColSize( 0, 55 );
 	grid->SetColSize( 1, w - 56 );
+	grid->GetScrollPixelsPerUnit( &w, &h );
+	grid->SetScrollRate( 0, h );
 
 	//pre-select items
 	PreSelectRows( arr );
@@ -397,6 +576,8 @@ void EditSkillTypeAux::Init( AElemArray * arr, int type )
 	int w, h;
 	grid->GetClientSize( &w, &h );
 	grid->SetColSize( 0, w - 1 );
+	grid->GetScrollPixelsPerUnit( &w, &h );
+	grid->SetScrollRate( 0, h );
 
 	//pre-select items
 	PreSelectRows( arr );
@@ -421,20 +602,24 @@ void EditSkillTypeAux::WriteGrid()
  */
 void EditSkillTypeAux::PreSelectRows( AElemArray * arr )
 {
+	UnhighlightAllRows();
 	if( arr ) {
 		int i, j = -1;
 		for( i = 0; i < (int) arr->GetCount(); i++ ) {
 			int type = ( ( Skill * ) arr->Item( i ) )->type;
 			for( j = 0; j < (int) array.GetCount(); j++ ) {
 				if( type == ( ( Skill * ) array[j] )->type ) {
-					grid->SelectRow( j, true );
-					grid->MakeCellVisible( j,0 );
+//					grid->SelectRow( j, true );
+//					grid->MakeCellVisible( j,0 );
+					HighlightRow( j );
+					lastRow = j;
 				}
 			}
 		}
-	} else {
-		grid->SelectRow( 0, false );
+//	} else {
+//		grid->SelectRow( 0, false );
 	}
+	ResetView();
 }
 
 // ---------------------------------------------------------------------------
@@ -493,10 +678,11 @@ void EditItemTypeAux::Init( AElemArray * arr, int type )
 	int w, h;
 	grid->GetClientSize( &w, &h );
 	grid->SetColSize( 0, w - 1 );
+	grid->GetScrollPixelsPerUnit( &w, &h );
+	grid->SetScrollRate( 0, h );
 
 	//pre-select items
 	PreSelectRows( arr );
-
 }
 
 /**
@@ -518,20 +704,24 @@ void EditItemTypeAux::WriteGrid()
  */
 void EditItemTypeAux::PreSelectRows( AElemArray * arr )
 {
+	UnhighlightAllRows();
 	if( arr ) {
 		int i, j = -1;
 		for( i = 0; i < (int) arr->GetCount(); i++ ) {
 			int type = ( ( Item * ) arr->Item( i ) )->type;
 			for( j = 0; j < (int) array.GetCount() ; j++ ) {
 				if( type == ( ( Item * ) array[j] )->type ) {
-					grid->SelectRow( j, true );
-					grid->MakeCellVisible( j,0 );
+//					grid->SelectRow( j, true );
+//					grid->MakeCellVisible( j,0 );
+					HighlightRow( j );
+					lastRow = j;
 				}
 			}
 		}
-	} else {
-		grid->SelectRow( 0, false );
+//	} else {
+//		grid->SelectRow( 0, false );
 	}
+	ResetView();
 }
 
 // ---------------------------------------------------------------------------
@@ -585,6 +775,8 @@ void EditFactionAux::Init( AElemArray * arr )
 	grid->GetClientSize( &w, &h );
 	grid->SetColSize( 0, 40 );
 	grid->SetColSize( 1, w - 41 );
+	grid->GetScrollPixelsPerUnit( &w, &h );
+	grid->SetScrollRate( 0, h );
 
 	//pre-select items
 	PreSelectRows( arr );
@@ -638,27 +830,34 @@ void EditSkillAux::Init( AElemArray * arr )
 	grid->SetColLabelValue( 0, "Skill" );
 	grid->SetColLabelValue( 1, "Days" );
 
+	Unit * u = ( Unit * ) arr->Item( 0 );
+
 	//load items into array
 	for( int i = 0; i < NSKILLS; i++ ) {
 		if( SkillDefs[i].flags & SkillType::DISABLED ) continue;
 		Skill * s = new Skill();
-		AString temp = AString();
-		Unit * u = ( Unit * ) arr->Item( 0 );
+		int days = 0;
 		//TODO: handle units w/out skills (ie monsters)
-		int days = u->skills.GetDays( i ) / u->GetMen();
-		if( days ) {
-			for( int j = 1; j < (int) arr->GetCount(); j++ ) {
-				u = ( Unit * )arr->Item( j );
-				if( u->skills.GetDays( i ) / u->GetMen() != days ) {
-					days = -1;
-					break;
-				}
+		if( u->GetMen() )
+			days = u->skills.GetDays( i ) / u->GetMen();
+
+		for( int j = 0; j < (int) arr->GetCount(); j++ ) {
+			u = ( Unit * )arr->Item( j );
+			int d = 0; 
+			if( u->GetMen() )
+				d = u->skills.GetDays( i ) / u->GetMen();
+			if( days != d )	{
+				days = -1;
+				break;
 			}
-			if( days )
-				temp += "1";
 		}
+
+		// make sure this is sorted to the top of list
+		AString temp;
+		if( days ) temp += "1";
 		temp += SkillDefs[i].name;
 		s->SetSortString( temp.Str() );
+
 		s->type = i;
 		s->days = days;
 		array.Add( s );
@@ -676,6 +875,9 @@ void EditSkillAux::Init( AElemArray * arr )
 	grid->GetClientSize( &w, &h );
 	grid->SetColSize( 0, w - 51 );
 	grid->SetColSize( 1, 50 );
+	grid->GetClientSize( &w, &h );
+	grid->GetScrollPixelsPerUnit( &w, &h );
+	grid->SetScrollRate( 0, h );
 
 	editWait = false;
 }
@@ -694,7 +896,8 @@ void EditSkillAux::WriteGrid()
 				grid->SetCellTextColour( i, j, *wxRED );
 		}
 		grid->SetCellValue( i, 0, SkillDefs[s->type].name );
-		AString temp( s->days == -1 ? 0 : s->days );
+		AString temp( s->days );
+		if( s->days == -1 ) temp = "...";
 		grid->SetCellValue( i, 1, temp.Str() );
 		grid->SetReadOnly( i, 1, false );
 	}
@@ -702,16 +905,21 @@ void EditSkillAux::WriteGrid()
 
 void EditSkillAux::FinalizeArray()
 {
+	if( grid->IsCellEditControlShown() ) {
+		SaveEditValue();
+	}
 	grid->SaveEditControlValue();
 	selectedArray.Clear();
 	for( int i = grid->GetNumberRows()-1; i >= 0; i-- ) {
 		wxString temp = grid->GetCellValue( i, 1 );
 		long num = 0;
-		temp.ToLong( &num );
-		if( num ) {
-			( (Skill * ) array[i] )->days = num;
-			selectedArray.Add( array[i] );
+		if( temp == "..." ) {
+			num = -1;
+		} else {
+			temp.ToLong( &num );
 		}
+		( ( Skill * ) array[i] )->days = num;
+		selectedArray.Add( array[i] );
 	}
 }
 
@@ -786,6 +994,8 @@ void EditItemAux::Init( AElemArray * arr )
 	grid->GetClientSize( &w, &h );
 	grid->SetColSize( 0, w - 51 );
 	grid->SetColSize( 1, 50 );
+	grid->GetScrollPixelsPerUnit( &w, &h );
+	grid->SetScrollRate( 0, h );
 
 	editWait = false;
 }
@@ -811,6 +1021,9 @@ void EditItemAux::WriteGrid()
 
 void EditItemAux::FinalizeArray()
 {
+	if( grid->IsCellEditControlShown() ) {
+		SaveEditValue();
+	}
 	grid->SaveEditControlValue();
 	selectedArray.Clear();
 	for( int i = grid->GetNumberRows()-1; i >= 0; i-- ) {
@@ -891,6 +1104,8 @@ void EditTerrainTypeAux::Init( AElemArray * arr, int type )
 	grid->SetColSize( 2, w/5 );
 	grid->SetColSize( 3, w/5 );
 	grid->SetColSize( 4, w/5 );
+	grid->GetScrollPixelsPerUnit( &w, &h );
+	grid->SetScrollRate( 0, h );
 
 	//pre-select items
 	PreSelectRows( arr );
@@ -927,20 +1142,24 @@ void EditTerrainTypeAux::WriteGrid()
  */
 void EditTerrainTypeAux::PreSelectRows( AElemArray * arr )
 {
+	UnhighlightAllRows();
 	if( arr ) {
 		int i, j = -1;
 		for( i = 0; i < (int) arr->GetCount(); i++ ) {
 			int type = ( ( ARegion * ) arr->Item( i ) )->type;
 			for( j = 0; j < (int) array.GetCount(); j++ ) {
 				if( type == ( ( ARegion * ) array[j] )->type ) {
-					grid->SelectRow( j, true );
-					grid->MakeCellVisible( j,0 );
+//					grid->SelectRow( j, true );
+//					grid->MakeCellVisible( j,0 );
+					HighlightRow( j );
+					lastRow = j;
 				}
 			}
 		}
-	} else {
-		grid->SelectRow( 0, false );
+//	} else {
+//		grid->SelectRow( 0, false );
 	}
+	ResetView();
 }
 
 // ---------------------------------------------------------------------------
@@ -992,6 +1211,8 @@ void EditObjectAux::Init( ARegion * pRegion, AElemArray * arr )
 	grid->GetClientSize( &w, &h );
 	grid->SetColSize( 0, w - 51 );
 	grid->SetColSize( 1, 50 );
+	grid->GetScrollPixelsPerUnit( &w, &h );
+	grid->SetScrollRate( 0, h );
 
 	editWait = false;
 }
@@ -1007,4 +1228,5 @@ void EditObjectAux::WriteGrid()
 		grid->SetCellValue( i, 1, o->name->Str() );
 	}
 }
+
 
