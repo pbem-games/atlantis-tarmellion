@@ -336,8 +336,10 @@ int Game::OpenGame(const char * gamefile) {
 	}
 	if (!(*gameName == Globals->RULESET_NAME)) {
 		Awrite("Incompatible rule-set!");
+		delete gameName;
 		return 0;
 	}
+	delete gameName;
 
 	ATL_VER gVersion = f.GetInt();
 	Awrite(AString("Saved Rule-Set Version: ") + ATL_VER_STRING(gVersion));

@@ -1,5 +1,5 @@
 v0.1 -> v0.2
-------------
+--------------
 * Tree view properly displayed when a second game file loaded
 * New objects and units automatically selected
 * Towns can be added/removed
@@ -18,3 +18,78 @@ v0.1 -> v0.2
 * Fixed bug where buy & sell markets were switched
 * Fixed bug where combobox fields were incorrectly resetting when selecting multiple items
 * Fixed some textual errors
+
+v0.2 -> v0.3
+--------------
+* Fixed bug where regions with no races put garbage into the races button
+* Move function now uses standard region and object selection screens
+* Level attributes can be edited
+* Plane up/down arrows are disabled when at the first/last plane
+* Grids can now be sorted by column
+* Grid sorting by numeric value fixed
+* Added list screen
+* Reverse grid sorting added
+* Grid sorting by region co-ordinates fixed
+* Application window no longer maximized on startup
+* Editaux windows appear in the right place when window not maximized
+* Added auto-window arrange option
+* Adding/removing towns updates the products/markets appropriately (though removing a town will leave the markets too high still)
+* Changing region terrain wil recreate market/product/race data
+
+v0.3 -> 0.4
+---------------
+* When adding a town, you can now select what size town to add
+* Fixed bug where removing a town didn't remove it's extra markets
+* Changed window layout into resizable splitter panes
+* Selecting stuff in the list view now loads the other panes directly
+* Stuff selected in tree view would lose it's highlight when the edit pane gained focus - simulated an item highlight to fix this
+* Recreate data option set to on by default
+* Added zoom in/out buttons for the map view
+* Terrain colors can now be customized
+* Headers in the tree view (for markets, products etc) can be toggled on/off
+
+
+v0.4 -> 0.5
+---------------
+* Fixed bug where removing an exit set the exit to the nexus instead
+* Fixed bug where opening a new gamewhen one is already loaded would crash the program
+
+* Fixed bug where most hex icons weren't showing up
+* City icon will change size / colour depending on the size of the settlement 
+* Fixed bug where adding/removing towns would crash the tool with no headers option selected for tree view
+* Fixed bug where products were being added to the Markets header in the tree view
+* Added buttons on the map toolbar for selecting whether to draw some of the icons or not
+
+* Fixed bug where setting an exit to none crashed the program
+* Fixed bug where objects were sometimes being drawn incorrectly on map
+* Added level select combo box to map toolbar
+
+* Selecting a region will now load the correct level on the map view if necessary
+* Fixed a few graphical glitches in the map view
+* Added display of hex numbers
+* Added function to run games step by step. The game can be edited at any step (especially useful after turn processing and before player reports are written)
+* Added display of town names
+* Added optional bitmaps for terrains. Slows the app down a bit tho
+* Reworked selection algorithms. Should function a bit smoother now.
+* Added option for not showing hex outlines on map
+* Selecting an object other than a region will now also highlight the region(s) the object(s) are in, in red.
+* Finally added a config file for saving options between instances...
+* Added a bit of colour to some of the panes. wxWindows doesn't allow that much when it comes to customizing colours, so it doesn't look as nice as it could
+* New selection options for the map screen:
+    Hold CTRL while moving the mouse ad any regions you roll over will be added/removed from the selection
+	Double click on a region to select an area of connected similar regions (by terrain/race/province, see rightmost combo box on the map toolbar )
+* Numerous little bugs squashed (and probably many more created)
+
+v0.5 -> 0.6
+----------------
+* Fixed bad bug where changes to unit's items/skills weren't saved
+* Selecting multiple regions at once in the map view works faster now
+* Added option( and made it the default) to not display markets/production in the list view, as this seriously slows down game loading.
+* Current game is automatically saved to game.bak on application exit
+* ** Careful: Not Fully Tested ** Added functionality for downloading orders via email, checking orders, sending checks and mailing reports.
+* Game automatically backs up games every turn
+* Reworked run game page a little
+* Tidied up code a wee bit
+* Moved options into their own screen
+* Fixed a couple of bugs that caused crashes when changing the terrain type of a region
+

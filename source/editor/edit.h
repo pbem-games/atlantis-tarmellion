@@ -1,7 +1,10 @@
 // START A3HEADER
 //
-// This source file is part of the Atlantis PBM game program.
-// Copyright (C) 1995-1999 Geoff Dunbar
+// This source file is part of Atlantis GUI
+// Copyright (C) 2003-2004 Ben Lloyd
+//
+// To be used with the Atlantis PBM game program.
+// Copyright (C) 1995-2004 Geoff Dunbar
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -26,7 +29,11 @@
 #ifndef EDIT_CLASS
 #define EDIT_CLASS
 
+class EditPage;
+class EditFrame;
+
 #include "../astring.h"
+#include "../aregion.h"
 
 #include "wx/wx.h"
 
@@ -52,6 +59,8 @@ enum
 	Edit_Faction_Times,
 	Edit_Faction_Temformat,
 	Edit_Faction_Quit,
+	Edit_Level_Name,
+	Edit_Level_LevelType,
 	Edit_Region_Number,
 	Edit_Region_Name,
 	Edit_Region_Type,
@@ -111,57 +120,73 @@ enum
 	Edit_Unit_ReadyArmor,
 	Edit_Unit_Items,
 	Edit_Unit_Skills,
+	Edit_Game_Month,
+	Edit_Game_Year,
+	Edit_Game_Seed,
+	Edit_Game_FactionSeq,
+	Edit_Game_UnitSeq,
+	Edit_Game_ShipSeq,
+	Edit_Game_GuardFaction,
+	Edit_Game_MonFaction
 };
 
 class EditPage : public wxScrolledWindow
 {
-public:
-	EditPage( wxWindow* parent, const wxPoint& pos, const wxSize& size );
-	~EditPage();
+	public:
+		EditPage( wxWindow* parent, const wxPoint& pos, const wxSize& size );
+		~EditPage();
 
-	virtual void LoadData();
-	virtual void EnableAllControls( bool );
-	virtual void ClearAllControls();
+		virtual void EnableAllControls( bool );
+		virtual void ClearAllControls();
 
-	virtual void OnTextUpdate( wxCommandEvent & );
-	virtual void OnButton( wxCommandEvent & );
-	void OnSize( wxSizeEvent & );
+		virtual void OnTextUpdate( wxCommandEvent & );
+		virtual void OnButton( wxCommandEvent & );
+		virtual void SelectItem( AListElem * );
+		virtual void PostLoad();
 
-	void CreateControl( wxTextCtrl **, wxWindowID,
-							const wxString &, bool numeric = false );
-	void CreateControl( wxComboBox **, wxWindowID,
-							const wxString &, bool sort = false );
-	void CreateControl( wxButton **, wxWindowID,
-							const wxString & );
-	void CreateButton( wxButton **, wxWindowID,
-							const wxString &, int align = wxALIGN_CENTRE );
+		void ReloadPage();
+		void OnSize( wxSizeEvent & );
 
-	void AddToControl( wxTextCtrl *, long );
-	void AddToControl( wxTextCtrl *, const char * );
-	void AddToControl( wxButton *, const char * );
-	void AddToControl( wxComboBox *, int );
+		void CreateControl( wxTextCtrl **, wxWindowID,
+								const wxString &, bool numeric = false );
+		void CreateControl( wxComboBox **, wxWindowID,
+								const wxString &, bool sort = false );
+		void CreateControl( wxButton **, wxWindowID,
+								const wxString & );
+		void CreateButton( wxButton **, wxWindowID,
+								const wxString &, int align = wxALIGN_CENTRE );
 
-	void UpdateControl( wxTextCtrl *, int & );
-	void UpdateControl( wxTextCtrl *, AString * );
-	void UpdateControl( wxComboBox *, int & );
+		int AddToControl( wxTextCtrl *, long );
+		int AddToControl( wxTextCtrl *, const char * );
+		int AddToControl( wxButton *, const char * );
+		int AddToControl( wxComboBox *, int );
 
-	void DeleteCombo( wxComboBox * );
+		void UpdateControl( wxTextCtrl *, int & );
+		void UpdateControl( wxTextCtrl *, unsigned int & );
+		void UpdateControl( wxTextCtrl *, AString * );
+		void UpdateControl( wxComboBox *, int & );
 
-	ARegion * GetRegionChoice( const wxString &, const wxString & );
+		void DeleteCombo( wxComboBox * );
 
-	wxStaticBox * border;
-	wxSizer * sizerEdit;
-	wxSizer * sizerTool;
-	wxToolBar * toolBar;
-	AElemArray * selectedElems;
+		ARegion * GetRegionChoice( const wxString &, const wxString & );
 
-	bool editWait;
+		wxStaticBox * border;
+		wxSizer * sizerEdit;
+		wxSizer * sizerTool;
+		wxToolBar * toolBar;
+		AElemArray * selectedElems;
 
-	virtual void OnToolAdd( wxCommandEvent & );
-	virtual void OnToolDelete( wxCommandEvent & );
-	virtual void OnToolMove( wxCommandEvent & );
+		bool editWait;
 
-	DECLARE_EVENT_TABLE()
+		virtual void OnToolAdd( wxCommandEvent & );
+		virtual void OnToolDelete( wxCommandEvent & );
+		virtual void OnToolMove( wxCommandEvent & );
+
+		DECLARE_EVENT_TABLE()
+
+	protected:
+		EditFrame * editTop;
+
 };
 
 class EditRegionPage : public EditPage
@@ -170,7 +195,6 @@ public:
 	EditRegionPage( wxWindow* parent, const wxPoint& pos, const wxSize& size );
 	~EditRegionPage();
 
-	void LoadData();
 	void EnableAllControls( bool );
 	void ClearAllControls();
 
@@ -179,10 +203,12 @@ public:
 	void OnToolAdd( wxCommandEvent & );
 	void OnToolDelete( wxCommandEvent & );
 	void OnToolMove( wxCommandEvent & );
+	void SelectItem( AListElem * );
+	void SelectItems( AElemArray * );
+	void PostLoad();
 
 	wxTextCtrl * editNumber;
 	wxTextCtrl * editName;
-//	wxComboBox * editType;
 	wxButton * editType;
 	wxTextCtrl * editBuildingseq;
 	wxTextCtrl * editGate;
@@ -206,7 +232,6 @@ public:
 	EditFactionPage( wxWindow* parent, const wxPoint& pos, const wxSize& size );
 	~EditFactionPage();
 
-	void LoadData();
 	void EnableAllControls( bool );
 	void ClearAllControls();
 
@@ -215,6 +240,8 @@ public:
 	void OnToolAdd( wxCommandEvent & );
 	void OnToolDelete( wxCommandEvent & );
 	void OnToolMove( wxCommandEvent & );
+	void SelectItem( AListElem * );
+	void PostLoad();
 
 	wxTextCtrl * editNumber;
 	wxTextCtrl * editLastChange;
@@ -235,7 +262,6 @@ public:
 	EditMarketPage( wxWindow* parent, const wxPoint& pos, const wxSize& size );
 	~EditMarketPage();
 
-	void LoadData();
 	void EnableAllControls( bool );
 	void ClearAllControls();
 	void OnTextUpdate( wxCommandEvent & );
@@ -243,6 +269,8 @@ public:
 	void OnToolAdd( wxCommandEvent & );
 	void OnToolDelete( wxCommandEvent & );
 	void OnToolMove( wxCommandEvent & );
+	void SelectItem( AListElem * );
+	void PostLoad();
 
 	wxComboBox * editType;
 	wxComboBox * editItem;
@@ -261,7 +289,6 @@ public:
 	EditProductionPage( wxWindow* parent, const wxPoint& pos, const wxSize& size );
 	~EditProductionPage();
 
-	void LoadData();
 	void EnableAllControls( bool );
 	void ClearAllControls();
 	void OnTextUpdate( wxCommandEvent & );
@@ -269,6 +296,8 @@ public:
 	void OnToolAdd( wxCommandEvent & );
 	void OnToolDelete( wxCommandEvent & );
 	void OnToolMove( wxCommandEvent & );
+	void SelectItem( AListElem * );
+	void PostLoad();
 
 	wxComboBox * editItemtype;
 	wxTextCtrl * editBaseamount;
@@ -286,7 +315,6 @@ public:
 	EditUnitPage( wxWindow* parent, const wxPoint& pos, const wxSize& size );
 	~EditUnitPage();
 
-	void LoadData();
 	void EnableAllControls( bool );
 	void ClearAllControls();
 	void OnTextUpdate( wxCommandEvent & );
@@ -294,6 +322,8 @@ public:
 	void OnToolAdd( wxCommandEvent & );
 	void OnToolDelete( wxCommandEvent & );
 	void OnToolMove( wxCommandEvent & );
+	void SelectItem( AListElem * );
+	void PostLoad();
 
 	wxTextCtrl * editNum;
 	wxTextCtrl * editName;
@@ -316,7 +346,6 @@ public:
 	EditObjectPage( wxWindow* parent, const wxPoint& pos, const wxSize& size );
 	~EditObjectPage();
 
-	void LoadData();
 	void EnableAllControls( bool );
 	void ClearAllControls();
 	void OnTextUpdate( wxCommandEvent & );
@@ -324,6 +353,8 @@ public:
 	void OnToolAdd( wxCommandEvent & );
 	void OnToolDelete( wxCommandEvent & );
 	void OnToolMove( wxCommandEvent & );
+	void SelectItem( AListElem * );
+	void PostLoad();
 
 	wxTextCtrl * editName;
 	wxTextCtrl * editDescribe;
@@ -336,30 +367,94 @@ public:
 
 };
 
-class EditFrame: public wxWindow
+class EditLevelPage : public EditPage
 {
 public:
-	EditFrame( wxWindow *parent, const wxPoint& pos, const wxSize& size );
-	~EditFrame();
-	void Init();
-	void ShowEditFaction();
-	void ShowEditRegion();
-	void ShowEditMarket();
-	void ShowEditProduction();
-	void ShowEditObject();
-	void ShowEditUnit();
-	void HideAllPages();
-	void OnSize( wxSizeEvent & );
+	EditLevelPage( wxWindow* parent, const wxPoint& pos, const wxSize& size );
+	~EditLevelPage();
 
-	EditFactionPage * factionPage;
-	EditRegionPage * regionPage;
-	EditMarketPage * marketPage;
-	EditProductionPage * productionPage;
-	EditObjectPage * objectPage;
-	EditUnitPage * unitPage;
-	EditPage * currentPage;
+//	void LoadData();
+	void EnableAllControls( bool );
+	void ClearAllControls();
+	void OnTextUpdate( wxCommandEvent & );
+	void OnButton( wxCommandEvent & );
+	void OnToolAdd( wxCommandEvent & );
+	void OnToolDelete( wxCommandEvent & );
+	void OnToolMove( wxCommandEvent & );
+	void SelectItem( AListElem * );
+	void SelectItem( ARegionArray * );
+	void PostLoad();
 
-	DECLARE_EVENT_TABLE()
+	wxTextCtrl * editName;
+	wxComboBox * editLevelType;
+
+};
+
+class EditGamePage : public EditPage
+{
+public:
+	EditGamePage( wxWindow* parent, const wxPoint& pos, const wxSize& size );
+	~EditGamePage();
+
+	void EnableAllControls( bool );
+	void ClearAllControls();
+	void OnTextUpdate( wxCommandEvent & );
+	void OnButton( wxCommandEvent & );
+	void OnToolAdd( wxCommandEvent & );
+	void OnToolDelete( wxCommandEvent & );
+	void OnToolMove( wxCommandEvent & );
+	void SelectItem( AListElem * );
+	void SelectItem( Game * );
+	void PostLoad();
+
+	wxTextCtrl * editMonth;
+	wxTextCtrl * editYear;
+	wxTextCtrl * editFactionSeq;
+	wxTextCtrl * editUnitSeq;
+	wxTextCtrl * editShipSeq;
+	wxButton * editGuardFaction;
+	wxButton * editMonFaction;
+
+};
+
+class EditFrame: public wxWindow
+{
+	public:
+		EditFrame( wxWindow *parent, const wxPoint& pos, const wxSize& size );
+		~EditFrame();
+		void Init();
+		void UpdateSelection();
+		void HideAllPages();
+		void DeselectAll();
+
+		ARegionArray * selectedLevel;
+		AElemArray * selectedElems;
+		int curSelection;
+
+	private:
+		void ShowPage( EditPage * page );
+		void OnSize( wxSizeEvent & );
+
+		EditFactionPage * factionPage;
+		EditLevelPage * levelPage;
+		EditRegionPage * regionPage;
+		EditMarketPage * marketPage;
+		EditProductionPage * productionPage;
+		EditObjectPage * objectPage;
+		EditUnitPage * unitPage;
+		EditGamePage * gamePage;
+		EditPage * currentPage;
+
+		void SelectItem( AListElem *, int type );
+		void SelectItem( Game * );
+		void SelectItem( ARegionArray * );
+		void PostLoad( int type );
+
+		void SetWait( bool wait );
+
+		EditPage * curPage;
+
+		DECLARE_EVENT_TABLE()
 };
 
 extern wxTextValidator * textStringValidator;

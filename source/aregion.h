@@ -264,11 +264,13 @@ class ARegion : public AListElem {
 		MarketList markets;
 		int xloc,yloc,zloc;
 
+		bool checked;
+
 		void SetupPop();
 		void SetupProds();
 		int GetNearestProd(int);
 		void SetupCityMarket();
-		void AddTown();
+		void AddTown(int nameIt = 1, int minpop = -1, int maxpop = -1);
 		void MakeLair(int);
 		void LairCheck();
 };

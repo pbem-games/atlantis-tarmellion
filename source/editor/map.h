@@ -1,7 +1,10 @@
 // START A3HEADER
 //
-// This source file is part of the Atlantis PBM game program.
-// Copyright (C) 1995-1999 Geoff Dunbar
+// This source file is part of Atlantis GUI
+// Copyright (C) 2003-2004 Ben Lloyd
+//
+// To be used with the Atlantis PBM game program.
+// Copyright (C) 1995-2004 Geoff Dunbar
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -28,6 +31,8 @@
 
 #include "../aregion.h"
 
+#include "aextend.h"
+
 #include "wx/wx.h"
 
 #define ICON_SIZE		6
@@ -36,26 +41,75 @@
 class MapCanvas : public wxWindow
 {
 public:
-	MapCanvas( wxWindow *parent, const wxPoint& pos, const wxSize& size );
+	MapCanvas( wxWindow *parent );
+	~MapCanvas();
 
-	void SetPlane( int, ARegionArray * );
+	void UpdateSelection();
+
+protected:
+
+	void InitPlane( int, ARegion * center = NULL );
+	void InitToolBar( wxToolBar * );
 	void SetHexSize( int );
 	void AdjustScrollBars();
 
 	void GetHexCenter( int NoX, int NoY, int & WinX, int & WinY );
 	void GetHexCoord( int & NoX, int & NoY, int WinX, int WinY );
 
-	void DrawMap();
-	void SelectRegion( ARegion *, bool );
-	void DeselectRegion( ARegion *, bool );
-	void RedrawBorders();
+	void OnEvent( wxMouseEvent& );
+	void OnScroll( wxScrollWinEvent& );
+	void OnResize( wxSizeEvent& );
+	void OnPaint( wxPaintEvent& );
 
+	void OnPlaneDown( wxCommandEvent & );
+	void OnPlaneUp( wxCommandEvent & );
+	void OnZoomIn( wxCommandEvent & );
+	void OnZoomOut( wxCommandEvent & );
+	void OnShowCities( wxCommandEvent & );
+	void OnShowObjects( wxCommandEvent & );
+	void OnShowGates( wxCommandEvent & );
+	void OnShowShafts( wxCommandEvent & );
+	void OnShowCoords( wxCommandEvent & );
+	void OnShowNames( wxCommandEvent & );
+	void OnShowOutlines( wxCommandEvent & );
+	void OnLevelSelect( wxCommandEvent & );
 
+	int ValidHexNo( int NoX, int NoY );
+	void WinToAtla( int   WinX, int   WinY, long & AtlaX, long & AtlaY );
+	void AtlaToWin( int & WinX, int & WinY, long   AtlaX, long	 AtlaY );
+	void GetNextIconPos( int x0, int y0, int & x, int & y );
+	ARegion * GetCenterHex();
+	void SetCenterHex( ARegion * pRegion );
+
+	void DrawMap( int clearFirst = 0 );
+	void DrawMap( wxDC * );
+	void DrawHex( ARegion *, wxDC *, int highlight = -1, int drawName = 1 );//int NoX, int NoY, wxDC * pDC, CLand * pLand, CPlane * pPlane, wxRect * prect*;
+	void DrawAHex( int, int, wxPen *, wxBrush *, wxDC *, ARegion * exits[] = NULL, wxImage * image = NULL );
+	void DrawBorders( wxDC * );
+	void DrawCoords( wxDC * );
+	void DrawNames( wxDC * );
+	void DrawOverlay( wxDC * );
+	void DrawTown( int, int, int, wxDC * );
+	void DrawRoad( int, int, wxDC *, Object * );
+	void DrawGate( int, int, wxDC * );
+	void DrawShaft( int, int, wxDC * );
+	void DrawBoat( int, int, wxDC * );
+	void DrawOther( int, int, wxDC * );
+	void DrawName( TownInfo *, int, int, wxDC * );
+	void DrawString( wxString &, int, int, wxDC * );
+	void SetDC( wxDC & dc );
+
+	wxToolBar * toolbar;
+	wxComboBox * comboLevel;
+	wxComboBox * comboSelect;
+	wxSizer * sizerTool;
+	wxSizer * sizerMap;
 	wxFrame * logFrame;
+
 	int planeNum;
 	ARegionArray * m_plane;
-	int hexesX, hexesY;
 
+	int hexesX, hexesY;
 	int hexSize;
 	int hexHalfSize;
 	int hexHeight;
@@ -63,56 +117,15 @@ public:
 
 	int xscroll;
 	int yscroll;
+	double lastX;
+	double lastY;
+	void GetMaxScroll( int & maxX, int & maxY );
 
-	long m_AtlaX0; // corresponds to WinX=0
-	long m_AtlaY0; // corresponds to WinY=0
+	AElemArray * selectedElems;
+	AElemArray * tempSelection;
+	int curSelection;
 
-protected:
-	void OnEvent( wxMouseEvent& );
-	void OnScroll( wxScrollWinEvent& );
-	void OnResize( wxSizeEvent& );
-	void OnPaint( wxPaintEvent& );
-
-	int ValidHexNo( int NoX, int NoY );
-	void WinToAtla( int   WinX, int   WinY, long & AtlaX, long & AtlaY );
-	void AtlaToWin( int & WinX, int & WinY, long   AtlaX, long	 AtlaY );
-	void GetNextIconPos( int x0, int y0, int & x, int & y );
-
-	void DrawMap( wxDC * );
-	void DrawHex( ARegion *, wxDC *, int );//int NoX, int NoY, wxDC * pDC, CLand * pLand, CPlane * pPlane, wxRect * prect*;
-	void DrawAHex( int, int, wxPen *, wxBrush *, wxDC *, ARegion * exits[] = NULL );
-	void DrawBorders( wxDC * );
-	void DrawTown( int, int, wxDC * );
-	void DrawRoad( int, int, wxDC *, Object * );
-	void DrawGate( int, int, wxDC * );
-	void DrawShaft( int, int, wxDC * );
-	void DrawBoat( int, int, wxDC * );
-	void DrawOther( int, int, wxDC * );
-
-		DECLARE_EVENT_TABLE()
-};
-
-class MapChild: public wxMDIChildFrame
-{
-public:
-	MapChild( wxMDIParentFrame *parent, const wxString& title, const wxPoint& pos, const wxSize& size, const long style );
-
-	void OnActivate( wxActivateEvent & );
-	void OnRefresh( wxCommandEvent & );
-	void InitPlane( int );
-	void InitToolBar( wxToolBar * );
-
-	void OnPlaneDown( wxCommandEvent & );
-	void OnPlaneUp( wxCommandEvent & );
-	void OnClose( wxCloseEvent & );
-
-	MapCanvas * canvas;
-
-protected:
-	int plane;
-	int hexesX;
-	int hexesY;
-	int hexSize;
+	void SpreadSelection( ARegion * pRegion, int spreadBy );
 
 	DECLARE_EVENT_TABLE()
 };
@@ -122,6 +135,25 @@ enum
 {
 	MAP_PLANE_DOWN,
 	MAP_PLANE_UP,
+	MAP_ZOOM_IN,
+	MAP_ZOOM_OUT,
+	MAP_SHOW_SHAFTS,
+	MAP_SHOW_GATES,
+	MAP_SHOW_CITIES,
+	MAP_SHOW_OBJECTS,
+	MAP_SHOW_COORDS,
+	MAP_SHOW_NAMES,
+	MAP_SHOW_OUTLINES,
+	MAP_LEVEL,
+	MAP_SELECT,
+};
+
+// spread by...
+enum
+{
+	SPREAD_TERRAIN,
+	SPREAD_PROVINCE,
+	SPREAD_RACE,
 };
 
 #endif

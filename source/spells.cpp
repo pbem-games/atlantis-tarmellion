@@ -1752,7 +1752,7 @@ void Game::RunWeatherLore(ARegion *r, Unit *u) {
 	temp += tar->ShortPrint(&regions);
 	temp += ". It will be ";
 	int weather, futuremonth;
-	for(int i; i <= months; i++) {
+	for(int i = 0; i <= months; i++) {
 		futuremonth = (month + i)%12;
 		weather=regions.GetWeather(tar, futuremonth);
 		temp += SeasonNames[weather];

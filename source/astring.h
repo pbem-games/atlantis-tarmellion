@@ -25,12 +25,8 @@
 #ifndef ASTRING_CLASS
 #define ASTRING_CLASS
 
-#ifndef __BORLANDC__
-#include <iostream.h>
-#else
 #include <iostream>
 using namespace std;
-#endif
 
 #include "alist.h"
 
@@ -67,6 +63,7 @@ public:
     AString *Trunc(int, int back=30);
     int value();
     AString *StripWhite();
+	AString *getlegal2();
 
 private:
 

@@ -1072,7 +1072,7 @@ void Unit::AdjustSkills() {
 				//
 				// Find highest skills, eliminate others
 				//
-				Skill *maxskill[Globals->SKILL_LIMIT_NONLEADERS];
+				Skill ** maxskill = new Skill *[Globals->SKILL_LIMIT_NONLEADERS];
 
 				// Check for the SKILL_LIMIT_NONLEADERS highest skills
 				for (int i = 0; i < Globals->SKILL_LIMIT_NONLEADERS; i++) {
@@ -1115,6 +1115,7 @@ void Unit::AdjustSkills() {
 						}
 					}
 				}
+				delete maxskill;
 			}
 		}
 
@@ -1420,7 +1421,7 @@ int Unit::CanSee(ARegion * r,Unit * u, int practise, int useScout) {
 
 int Unit::ItemsWithAttribute(int att) {
 	int n=0;
-	for (int it;it<NITEMS;it++) {
+	for (int it = 0;it<NITEMS;it++) {
 	  if (ItemDefs[it].attributes & att) {
 	    n += items.GetNum(it);
 	  }

@@ -1,7 +1,10 @@
 // START A3HEADER
 //
-// This source file is part of the Atlantis PBM game program.
-// Copyright (C) 1995-1999 Geoff Dunbar
+// This source file is part of Atlantis GUI
+// Copyright (C) 2003-2004 Ben Lloyd
+//
+// To be used with the Atlantis PBM game program.
+// Copyright (C) 1995-2004 Geoff Dunbar
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -23,6 +26,7 @@
 //
 // END A3HEADER
 
+#include "config.h"
 #include "edit.h"
 #include "gui.h"
 
@@ -74,8 +78,10 @@ BEGIN_EVENT_TABLE( EditPage, wxScrolledWindow )
     EVT_MENU( Edit_Tool_Add_Production, EditPage::OnButton )
     EVT_MENU( Edit_Tool_Add_Object, EditPage::OnButton )
     EVT_MENU( Edit_Tool_Add_Unit, EditPage::OnButton )
-    EVT_BUTTON( Edit_Tool_Add_Object, EditPage::OnButton )
-    EVT_BUTTON( Edit_Tool_Add_Unit, EditPage::OnButton )
+
+    EVT_TEXT( Edit_Level_Name, EditPage::OnTextUpdate )
+    EVT_COMBOBOX( Edit_Level_LevelType, EditPage::OnTextUpdate )
+
     EVT_TEXT( Edit_Region_Number, EditPage::OnTextUpdate )
     EVT_TEXT( Edit_Region_Name, EditPage::OnTextUpdate )
 	EVT_BUTTON( Edit_Region_Type, EditPage::OnButton )
@@ -136,6 +142,14 @@ BEGIN_EVENT_TABLE( EditPage, wxScrolledWindow )
     EVT_BUTTON( Edit_Unit_ReadyWeapon, EditPage::OnButton )
     EVT_BUTTON( Edit_Unit_ReadyArmor, EditPage::OnButton )
 
+    EVT_TEXT( Edit_Game_Month, EditPage::OnTextUpdate )
+    EVT_TEXT( Edit_Game_Year, EditPage::OnTextUpdate )
+    EVT_TEXT( Edit_Game_FactionSeq, EditPage::OnTextUpdate )
+    EVT_TEXT( Edit_Game_UnitSeq, EditPage::OnTextUpdate )
+    EVT_TEXT( Edit_Game_ShipSeq, EditPage::OnTextUpdate )
+    EVT_BUTTON( Edit_Game_GuardFaction, EditPage::OnButton )
+    EVT_BUTTON( Edit_Game_MonFaction, EditPage::OnButton )
+
     EVT_SIZE( EditPage::OnSize )
 
 END_EVENT_TABLE()
@@ -147,24 +161,35 @@ wxTextValidator *numStringValidator = ( wxTextValidator * ) NULL;
 // EditFrame
 // ---------------------------------------------------------------------------
 
+/**
+ * Default constructor
+ */
 EditFrame::EditFrame( wxWindow *parent, const wxPoint& pos,
                      const wxSize& size )
           : wxWindow( parent, -1, pos, size,
                     wxDEFAULT_FRAME_STYLE, "Edit" )
 {
+	selectedElems = new AElemArray();
+	curSelection = -1;
+	selectedLevel = 0;
 }
 
+/**
+ * Default destructor
+ */
 EditFrame::~EditFrame()
 {
 	delete textStringValidator;
 	delete numStringValidator;
+	delete selectedElems;
 }
 
+/**
+ * Initialise text validator and load edit pages
+ */
 void EditFrame::Init()
 {
-	int width,height;
-	GetClientSize( &width, &height );
-	wxSize size( width,height );
+	wxSize size = GetClientSize();
 	wxStringList array;
 	textStringValidator = new wxTextValidator( wxFILTER_INCLUDE_CHAR_LIST );
 	for( char c = 127; c >= 0; c-- ) {
@@ -180,10 +205,17 @@ void EditFrame::Init()
 	productionPage = new EditProductionPage( this,wxDefaultPosition,size );
 	objectPage = new EditObjectPage( this,wxDefaultPosition,size );
 	unitPage = new EditUnitPage( this,wxDefaultPosition,size );
+	levelPage = new EditLevelPage( this,wxDefaultPosition,size );
+	gamePage = new EditGamePage( this, wxDefaultPosition, size );
+
+	SetBackgroundColour( app->guiColourLt );
 
 	HideAllPages();
 }
 
+/**
+ * Resize child windows
+ */
 void EditFrame::OnSize( wxSizeEvent& event )
 {
 	int width,height;
@@ -191,88 +223,82 @@ void EditFrame::OnSize( wxSizeEvent& event )
 	GetClientSize( &width, &height );
 
 	factionPage->SetSize( width,height );
-	factionPage->CentreOnParent();
 	regionPage->SetSize( width,height );
-	regionPage->CentreOnParent();
 	marketPage->SetSize( width,height );
-	marketPage->CentreOnParent();
 	productionPage->SetSize( width,height );
-	productionPage->CentreOnParent();
 	objectPage->SetSize( width,height );
-	objectPage->CentreOnParent();
 	unitPage->SetSize( width,height );
-	unitPage->CentreOnParent();
+	levelPage->SetSize( width,height );
+	gamePage->SetSize( width,height );
 }
 
-void EditFrame::ShowEditFaction()
-{
-	HideAllPages();
-	if( app->selectedFactions->GetCount() == 0 ) return;
-	factionPage->LoadData();
-	factionPage->Show();
-}
-
-void EditFrame::ShowEditRegion()
-{
-	HideAllPages();
-	if( app->selectedRegions->GetCount() == 0 ) return;
-	regionPage->LoadData();
-	regionPage->Show();
-}
-
-void EditFrame::ShowEditMarket()
-{
-	HideAllPages();
-	if( app->selectedMarkets->GetCount() == 0 ) return;
-	marketPage->LoadData();
-	marketPage->Show();
-}
-
-void EditFrame::ShowEditProduction()
-{
-	HideAllPages();
-	if( app->selectedProductions->GetCount() == 0 ) return;
-	productionPage->LoadData();
-	productionPage->Show();
-}
-
-void EditFrame::ShowEditObject()
-{
-	HideAllPages();
-	if( app->selectedObjects->GetCount() == 0 ) return;
-	objectPage->LoadData();
-	objectPage->Show();
-}
-
-void EditFrame::ShowEditUnit()
-{
-	HideAllPages();
-	if( app->selectedUnits->GetCount() == 0 ) return;
-	unitPage->LoadData();
-	unitPage->Show();
-}
-
+/**
+ * Hide all child pages
+ */
 void EditFrame::HideAllPages()
 {
-	factionPage->Show( false );
-	regionPage->Show( false );
-	marketPage->Show( false );
-	productionPage->Show( false );
-	objectPage->Show( false );
-	unitPage->Show( false );
+	factionPage->Move(-1000, -1000);
+	regionPage->Move(-1000, -1000);
+	marketPage->Move(-1000, -1000);
+	productionPage->Move(-1000, -1000);
+	objectPage->Move(-1000, -1000);
+	unitPage->Move(-1000, -1000);
+	levelPage->Move(-1000, -1000);
+	gamePage->Move(-1000, -1000);
+}
+
+/**
+ * Hide all pages except the shown page
+ */
+void EditFrame::ShowPage( EditPage * page )
+{
+	if( curPage == page ) return;
+
+	if( page != factionPage )
+		factionPage->Move(-1000, 0);
+
+	if( page != regionPage )
+		regionPage->Move(-1000, 0);
+
+	if( page != marketPage )
+		marketPage->Move(-1000, 0);
+
+	if( page != productionPage )
+		productionPage->Move(-1000, 0);
+
+	if( page != objectPage )
+		objectPage->Move(-1000, 0);
+
+	if( page != unitPage )
+		unitPage->Move(-1000, 0);
+
+	if( page != levelPage )
+		levelPage->Move(-1000, 0);
+
+	if( page != gamePage )
+		gamePage->Move(-1000, 0);
+
+	page->Move( 0, 0 );
+	curPage = page;
 }
 
 // ---------------------------------------------------------------------------
 // EditPage
 // ---------------------------------------------------------------------------
 
+/**
+ * Default constructor
+ */
 EditPage::EditPage( wxWindow *parent, const wxPoint& pos,
                    const wxSize& size )
 	     : wxScrolledWindow( parent, -1, pos, size, wxVSCROLL | wxHSCROLL )
 {
 	editWait = false;
 	border = new wxStaticBox( this, -1, "" );
+
 	sizerEdit = new wxStaticBoxSizer( border, wxVERTICAL );
+
+	editTop = (EditFrame * ) parent;
 
 	toolBar = new wxToolBar( this, -1, wxDefaultPosition, wxDefaultSize,
 	                        wxTB_HORIZONTAL | wxNO_BORDER | wxTB_FLAT );
@@ -287,23 +313,27 @@ EditPage::EditPage( wxWindow *parent, const wxPoint& pos,
 	toolBar->AddTool( Edit_Tool_Delete, "", *( bitmaps[1] ), "Delete" );
 	toolBar->AddTool( Edit_Tool_Move, "", *( bitmaps[2] ), "Move" );
 
+    for( int i = 0; i < 3; i++ )
+        delete bitmaps[i];
+
+	border->SetBackgroundColour( app->guiColourLt );
+	SetBackgroundColour( app->guiColourLt );
+	toolBar->SetBackgroundColour( app->guiColourLt );
+
     toolBar->Realize();
 
 	sizerTool = new wxBoxSizer( wxHORIZONTAL );
 	sizerTool->Add( toolBar, 1 );
-    int i;
-    for( i = 0; i < 3; i++ )
-        delete bitmaps[i];
 }
 
+/**
+ * Default destructor
+ */
 EditPage::~EditPage()
 {
 	delete border;
 	delete sizerEdit;
-}
-
-void EditPage::LoadData()
-{
+	delete sizerTool;
 }
 
 void EditPage::EnableAllControls( bool b )
@@ -322,6 +352,9 @@ void EditPage::OnButton( wxCommandEvent & event )
 {
 }
 
+/**
+ * Size all sizers and scrollbars correctly
+ */
 void EditPage::OnSize( wxSizeEvent & event )
 {
 	int w,h;
@@ -334,6 +367,9 @@ void EditPage::OnSize( wxSizeEvent & event )
 	}
 }
 
+/**
+ * Create a text control with preceding label
+ */
 void EditPage::CreateControl( wxTextCtrl ** ppText, wxWindowID id,
                         const wxString & label, bool numeric )
 {
@@ -356,6 +392,9 @@ void EditPage::CreateControl( wxTextCtrl ** ppText, wxWindowID id,
 	sizerEdit->Add( sizerRow, 0, wxALL | wxGROW, 0 );
 }
 
+/**
+ * Create a combo-box control with preceding label
+ */
 void EditPage::CreateControl( wxComboBox ** ppComboBox, wxWindowID id,
                         const wxString & label, bool sort )
 {
@@ -377,6 +416,9 @@ void EditPage::CreateControl( wxComboBox ** ppComboBox, wxWindowID id,
 	sizerEdit->Add( sizerRow, 0, wxALL | wxGROW, 0 );
 }
 
+/**
+ * Create a button control with preceding label
+ */
 void EditPage::CreateControl( wxButton ** ppButton, wxWindowID id,
                         const wxString & label )
 {
@@ -388,12 +430,17 @@ void EditPage::CreateControl( wxButton ** ppButton, wxWindowID id,
 	sizerRow->Add( text, 2 );
 	sizerRow->Add( button, 3 );
 
+	button->SetBackgroundColour( app->guiColourDk );
+
 	if( ppButton )
 		*ppButton = button;
 
 	sizerEdit->Add( sizerRow, 0, wxALL | wxGROW, 0 );
 }
 
+/**
+ * Create a button control, with label on button
+ */
 void EditPage::CreateButton( wxButton ** ppButton, wxWindowID id,
                         const wxString & label, int align )
 {
@@ -406,50 +453,76 @@ void EditPage::CreateButton( wxButton ** ppButton, wxWindowID id,
 	if( align == wxALIGN_LEFT || align == wxALIGN_CENTRE )
 		sizerRow->Add( 1, 1, 2 );
 
+	button->SetBackgroundColour( app->guiColourDk );
+
 	if( ppButton )
 		*ppButton = button;
 
 	sizerEdit->Add( sizerRow, 0, wxALL | wxGROW, 0 );
 }
 
-void EditPage::AddToControl( wxTextCtrl * pText, long number )
+/**
+ * Add data to a control. Change to (...) if the data is different from the current value
+ */
+int EditPage::AddToControl( wxTextCtrl * pText, long number )
 {
 	if( pText->GetValue() == "(...)" )
-		return;
+		return 0;
 	if( pText->GetValue() == "" ) {
 		*pText << number;
+		return 1;
 	} else {
 		long num;
 		pText->GetValue().ToLong( &num );
-		if( num != number )
+		if( num != number ) {
 			pText->SetValue( "(...)" );
+			return 0;
+		}
 	}
+	return 1;
 }
 
-void EditPage::AddToControl( wxTextCtrl * pText, const char * string )
+/**
+ * Add data to a control. Change to (...) if the data is different from the current value
+ */
+int EditPage::AddToControl( wxTextCtrl * pText, const char * string )
 {
 	if( pText->GetValue() == "(...)" )
-		return;
+		return 0;
 
-	if( pText->GetValue() == "" )
+	if( pText->GetValue() == "" ) {
 		pText->SetValue( string );
-	else if( pText->GetValue() != string )
+		return 1;
+	} else if( pText->GetValue() != string ) {
 		pText->SetValue( "(...)" );
+		return 0;
+	}
+	return 1;
 }
 
-void EditPage::AddToControl( wxButton * pButton, const char * string )
+/**
+ * Add data to a control. Change to (...) if the data is different from the current value
+ */
+int EditPage::AddToControl( wxButton * pButton, const char * string )
 {
 	if( pButton->GetLabel() == "(...)" )
-		return;
+		return 0;
 
-	if( pButton->GetLabel() == "" )
+	if( pButton->GetLabel() == "" ) {
 		pButton->SetLabel( string );
-	else if( !string || pButton->GetLabel() != string )
+		return 1;
+	} else if( !string || pButton->GetLabel() != string ) {
 		pButton->SetLabel( "(...)" );
+		return 0;
+	}
+	return 1;
 
 }
 
-void EditPage::AddToControl( wxComboBox * pCombo, int index )
+/**
+ * Add data to a control. Change to (...) if the data is different from the current value
+ */
+int EditPage::AddToControl( wxComboBox * pCombo, int index )
 {
 	int i = pCombo->GetSelection();
 	int j;
@@ -460,23 +533,27 @@ void EditPage::AddToControl( wxComboBox * pCombo, int index )
 			if( pCombo->GetClientData( j ) == NULL ) continue;
 			if( *( int * )pCombo->GetClientData( j ) == index ) {
 				pCombo->SetSelection( j );
-				return;
+				return 1;
 			}
 		}
 	}
 
-	if( pCombo->GetClientData( i ) == NULL ) return;
+	if( pCombo->GetClientData( i ) == NULL ) return 0;
 
-	if( *( int * )pCombo->GetClientData( i ) == index ) return;
+	if( *( int * )pCombo->GetClientData( i ) == index ) return 1;
 
 	for( j = 0; j < count -1; j++ ) {
 		if( pCombo->GetClientData( j ) == NULL ) {
 			pCombo->SetSelection( j );
-			return;
+			return 0;
 		}
 	}
+	return 1;
 }
 
+/**
+ * Update an AString with the value of the control
+ */
 void EditPage::UpdateControl( wxTextCtrl * pText, AString * str )
 {
 	if( pText->GetValue() != "" )  {
@@ -484,6 +561,9 @@ void EditPage::UpdateControl( wxTextCtrl * pText, AString * str )
 	}
 }
 
+/**
+ * Update an int with the value of the control
+ */
 void EditPage::UpdateControl( wxTextCtrl * pText, int & num )
 {
  	long number;
@@ -493,6 +573,21 @@ void EditPage::UpdateControl( wxTextCtrl * pText, int & num )
 	}
 }
 
+/**
+ * Update an int with the value of the control
+ */
+void EditPage::UpdateControl( wxTextCtrl * pText, unsigned int & num )
+{
+ 	long number;
+	if( pText->GetValue() != "" ) {
+		pText->GetValue().ToLong( &number );
+		num = number;
+	}
+}
+
+/**
+ * Update an int with the value of the control
+ */
 void EditPage::UpdateControl( wxComboBox * pCombo, int & num )
 {
 	int i = pCombo->GetSelection();
@@ -500,22 +595,27 @@ void EditPage::UpdateControl( wxComboBox * pCombo, int & num )
 	num = *( int * ) pCombo->GetClientData( i );
 }
 
+/**
+ * Delete all the data held by a combo-box
+ */
 void EditPage::DeleteCombo( wxComboBox * pCombo )
 {
-	for( int i = 0; i < pCombo->GetCount()-1; i++ )
-		delete ( int * ) pCombo->GetClientData( i );
+	for( int i = 0; i < pCombo->GetCount(); i++ )
+		if( pCombo->GetClientData( i ) )
+			delete ( int * ) pCombo->GetClientData( i );
 }
 
-
+/**
+ * Get a single region choice from user
+ */
 ARegion * EditPage::GetRegionChoice( const wxString & message, const wxString & caption )
 {
-	int num = app->GetRegions()->Num();
+	int num = app->m_game->regions.Num();
 	wxArrayString choices;
 	choices.Alloc( num );
 	AElemArray regions;
-//	ARegion * regions = new ARegion[num];
 	int count = 0;
-	forlist( app->GetRegions() ) {
+	forlist( &app->m_game->regions ) {
 		ARegion * r = ( ARegion * ) elem;
 		AString temp = AString( "( " ) + r->xloc + ", " + r->yloc + ", " +
 						   r->zloc + " ) " + r->name->Str();
@@ -550,9 +650,12 @@ void EditPage::OnToolMove( wxCommandEvent & event )
 // EditRegionPage
 // ---------------------------------------------------------------------------
 
+/**
+ * Default constructor. Creates all necessary controls
+ */
 EditRegionPage::EditRegionPage( wxWindow *parent, const wxPoint& pos,
-                   const wxSize& size )
-         : EditPage( parent, pos, size )
+                                const wxSize& size )
+               : EditPage( parent, pos, size )
 {
 	CreateControl( &editNumber, Edit_Region_Number, "Number: ", true );
 	CreateControl( &editName, Edit_Region_Name, "Name: " );
@@ -573,12 +676,6 @@ EditRegionPage::EditRegionPage( wxWindow *parent, const wxPoint& pos,
 
 	// Town
 	CreateButton( &editTown, Edit_Region_Town, "Town...", wxALIGN_LEFT);
-//	wxSizer * sizerRow = new wxBoxSizer( wxHORIZONTAL );
-//	wxStaticText * text = new wxStaticText( this, -1, "Town:" );
-//	sizerRow->Add( 1,1,1 );
-//	sizerRow->Add( text, 0, wxALIGN_CENTRE_VERTICAL );
-//	sizerRow->Add( 1,1,1 );
-//	sizerEdit->Add( sizerRow, 0, wxALL | wxGROW );
 	
 	CreateControl( &editTownName, Edit_Region_TownName, " Name: " );
 	CreateControl( &editTownPop, Edit_Region_TownPop, " Pop: ", true );
@@ -600,6 +697,9 @@ EditRegionPage::EditRegionPage( wxWindow *parent, const wxPoint& pos,
 	editExits[D_SOUTHWEST] = new wxButton( this, Edit_Region_SW, "", wxDefaultPosition );
 	editExits[D_NORTHWEST] = new wxButton( this, Edit_Region_NW, "", wxDefaultPosition );
 
+	for( int i = 0; i < NDIRS; i++ )
+		editExits[i]->SetBackgroundColour( app->guiColourDk );
+		
 	sizerRow = new wxBoxSizer( wxHORIZONTAL );
 	sizerRow->Add( 1,1,1 );
 	sizerRow->Add( editExits[D_NORTH], 2 );
@@ -642,69 +742,16 @@ EditRegionPage::EditRegionPage( wxWindow *parent, const wxPoint& pos,
 
 }
 
+/**
+ * Default destructor
+ */
 EditRegionPage::~EditRegionPage()
 {
 }
 
-void EditRegionPage::LoadData()
-{
-	editWait = true;
-	EnableAllControls( true );
-	ClearAllControls();
-
-	int count = abs( app->selectedRegions->GetCount() );
-	AString temp;
-	if( count == 1 ) {
-		ARegion * r = ( ARegion * ) app->selectedRegions->Item( 0 );
-		temp = AString( "( " ) + r->xloc + ", " + r->yloc + ", " +
-						   r->zloc + " ) ";
-		border->SetTitle( temp.Str() );
-	} else {
-		editTown->Enable( false );
-		editTownName->Enable( false );
-		editTownPop->Enable( false );
-		editTownBasepop->Enable( false );
-		temp = AString( count ) + " Regions";
-		border->SetTitle( temp.Str() );
-	}
-
-	for( int i = 0; i < count; i++ ) {
-		ARegion * r = ( ARegion * ) app->selectedRegions->Item( i );
-		AddToControl( editType, TerrainDefs[r->type].name );
-		AddToControl( editRace, ( r->race != -1 ? ItemDefs[r->race].names : "" ) );
-		AddToControl( editNumber, r->num );
-		AddToControl( editName, r->name->Str() );
-		AddToControl( editBuildingseq, r->buildingseq );
-		AddToControl( editGate, r->gate );
-		AddToControl( editPop, r->population );
-		AddToControl( editBasepop, r->basepopulation );
-		AddToControl( editWages, r->wages );
-		AddToControl( editMaxwages, r->maxwages );
-		AddToControl( editMoney, r->money );
-		for( int j=0; j < NDIRS; j++ ) {
-			ARegion * reg = r->neighbors[j];
-			if( !reg ) continue;
-			AString temp = AString( "( " ) + reg->xloc + ", " + reg->yloc + ", " +
-						   reg->zloc + " )";
-			AddToControl( editExits[j], temp.Str() );
-		}
-
-		if( r->town && count == 1) {
-			editTown->SetLabel( "Remove town..." );
-			AddToControl( editTownName, r->town->name->Str() );
-			AddToControl( editTownPop, r->town->pop );
-			AddToControl( editTownBasepop, r->town->basepop );
-		} else {
-			editTown->SetLabel( "Add Town..." );
-			editTownName->Enable( false );
-			editTownPop->Enable( false );
-			editTownBasepop->Enable( false );
-		}
-	}
-	editWait = false;
-
-}
-
+/** 
+ * Enable/Disable all controls on page
+ */
 void EditRegionPage::EnableAllControls( bool b )
 {
 	editNumber->Enable( b );
@@ -726,6 +773,9 @@ void EditRegionPage::EnableAllControls( bool b )
 		editExits[i]->Enable( b );
 }
 
+/**
+ * Clear all controls on page
+ */
 void EditRegionPage::ClearAllControls()
 {
 	border->SetTitle( "Region" );
@@ -749,11 +799,16 @@ void EditRegionPage::ClearAllControls()
 
 }
 
+/**
+ * Process event when a textbox is updated.
+ * Update the actual game data, and the tree/list view display
+ *  for the updated data for the current selection
+ */
 void EditRegionPage::OnTextUpdate( wxCommandEvent & event )
 {
 	if( editWait ) return;
-	for( int i = 0; i < abs( app->selectedRegions->GetCount() ); i++ ) {
-		ARegion * r = ( ARegion * ) app->selectedRegions->Item( i );
+	for( int i = 0; i < (int) editTop->selectedElems->GetCount(); i++ ) {
+		ARegion * r = ( ARegion * ) editTop->selectedElems->Item( i );
 	
 		switch ( event.GetId() )
 		{
@@ -804,161 +859,236 @@ void EditRegionPage::OnTextUpdate( wxCommandEvent & event )
 	app->UpdateRegions();
 }
 
+/**
+ * Process event when a button is updated.
+ */
 void EditRegionPage::OnButton( wxCommandEvent & event )
 {
 	if( editWait )
 		return;
 
 	int dir = -1;
-	int pw, ph;
-	GetParent()->GetSize( &pw,&ph );
+	int x, y, width, height;
+	GetParent()->GetSize( &width, &height );
+	GetParent()->GetPosition( &x, &y );
+	GetParent()->ClientToScreen( &x, &y );
 
+	AElemArray * tempSelection = new AElemArray();
+	int selectType = -1;
+	// Todo: selec all the items after addition
 	if( event.GetId() == Edit_Tool_Add_Market ) {
-		app->selectedMarkets->Clear();
-		for( int i = 0; i < abs( app->selectedRegions->GetCount() ); i++ ) {
-			ARegion * r = ( ARegion * ) app->selectedRegions->Item( i );
+		// Add a market to selected regions
+		for( int i = 0; i < (int) editTop->selectedElems->GetCount(); i++ ) {
+			ARegion * r = ( ARegion * ) editTop->selectedElems->Item( i );
 			Market * m = new Market( M_BUY, 0, 0, 0, 0, 0, 0, 0 );
 			r->markets.Add( m );
 			m->region = r->num;
-			frame->tree->canvas->AddItem( m );
-			app->SelectMarket( m, true );
+			frame->tree->AddItem( m );
+			tempSelection->Add( m );
+			selectType = SELECT_MARKET;
+//			frame->tree->UpdateItem( r, true );
 		}
 	} else if( event.GetId() == Edit_Tool_Add_Production ) {
-		app->selectedProductions->Clear();
-		for( int i = 0; i < abs( app->selectedRegions->GetCount() ); i++ ) {
-			ARegion * r = ( ARegion * ) app->selectedRegions->Item( i );
+		// Add a product to selected regions
+		for( int i = 0; i < (int) editTop->selectedElems->GetCount(); i++ ) {
+			ARegion * r = ( ARegion * ) editTop->selectedElems->Item( i );
 			Production * p = new Production( 0 ,0 );
 			r->products.Add( p );
 			p->region = r->num;
-			frame->tree->canvas->AddItem( p );
-			app->SelectProduction( p, true );
+			frame->tree->AddItem( p );
+			tempSelection->Add( p );
+			selectType = SELECT_PRODUCTION;
 		}
 	} else if( event.GetId() == Edit_Tool_Add_Object ) {
-		app->selectedObjects->Clear();
-		for( int i = 0; i < abs( app->selectedRegions->GetCount() ); i++ ) {
-			ARegion * r = ( ARegion * ) app->selectedRegions->Item( i );
+		// Add an object to selected regions
+		for( int i = 0; i < (int) editTop->selectedElems->GetCount(); i++ ) {
+			ARegion * r = ( ARegion * ) editTop->selectedElems->Item( i );
 			Object * o = new Object( r );
 			o->num = r->buildingseq++;
 			o->name = new AString( AString( ObjectDefs[O_DUMMY].name ) + " [" + o->num + "]" );
 			r->objects.Add( o );
-			frame->tree->canvas->AddItem( o, false );
-			app->SelectObject(o, true);
+			frame->tree->AddItem( o, false );
+			tempSelection->Add( o );
+			selectType = SELECT_OBJECT;
 		}
 	} else if( event.GetId() == Edit_Tool_Add_Unit ) {
-		app->selectedUnits->Clear();
-		for( int i = 0; i < abs( app->selectedRegions->GetCount() ); i++ ) {
-			ARegion * r = ( ARegion * ) app->selectedRegions->Item( i );
+		// Add a unit to selected regions
+		for( int i = 0; i < (int) editTop->selectedElems->GetCount(); i++ ) {
+			ARegion * r = ( ARegion * ) editTop->selectedElems->Item( i );
 			Unit * u = app->AddUnit();
 			u->MoveUnit( r->GetDummy() );
-			frame->tree->canvas->AddItem( u );
-			app->SelectUnit(u, true);
+			frame->tree->AddItem( u );
+			tempSelection->Add( u );
+			selectType = SELECT_UNIT;
 		}
 	} else if( event.GetId() == Edit_Region_Type ) {
-		//open region selection window
+		// Open region selection window
 
 		//need bigger window for this one
-		EditTerrainTypeAux aux( this, wxPoint( pw, 0 ), wxSize( 360, ph/2 ) );
+		EditTerrainTypeAux aux( this, wxPoint( x + width + 3, y + 3 ), wxSize( 300, frame->map->GetSize().y - 2 ) );
 
-		aux.Init( app->selectedRegions );
-		aux.ShowModal();
+		aux.Init( editTop->selectedElems );
 
-		//update edit window and objects
-		editType->SetLabel( "" );
-		if( aux.array.GetCount()>0 ) {
-			for( int i = 0; i < abs( app->selectedRegions->GetCount() ); i++ ) {
-				ARegion * r = ( ARegion * ) app->selectedRegions->Item( i );
+		// Update edit window and objects
+		if( aux.ShowModal() == wxID_OK ) {
+			editType->SetLabel( "" );
+			if( aux.selectedArray.GetCount()>0 ) {
+				for( int i = 0; i < (int) editTop->selectedElems->GetCount(); i++ ) {
+					ARegion * r = ( ARegion * ) editTop->selectedElems->Item( i );
 
-				int type = ( ( ARegion * ) aux.array[0] )->type;
-				r->type = type;
-				// recreate region data?
-				if( app->recreateData ) {
-					// delete markets
-					int i;
-					int count = abs( app->selectedMarkets->GetCount() ) -1;
-					for( i = count; i >= 0; i-- ) {
-						Market * m = ( Market * ) app->selectedMarkets->Item( i );
-						app->TrashMarket( m );
+					int type = ( ( ARegion * ) aux.selectedArray[0] )->type;
+
+					if( type == -1 ) {
+						break;
 					}
-					// delete products
-					count = abs( app->selectedProductions->GetCount() ) -1;
-					for( i = count; i >= 0; i-- ) {
-						Production * p = ( Production * ) app->selectedProductions->Item( i );
-						app->TrashProduction( p );
+					AddToControl( editType, TerrainDefs[type].name );
+					r->type = type;
+					// recreate region data?
+					if( GuiConfig.recreateData ) {
+						// delete markets
+//						forlist( &r->markets ) {
+//							Market * m = ( Market * ) elem;
+//							app->Trash( m );
+//						}
+						r->markets.DeleteAll();
+
+						// delete products
+//						{
+//							forlist( &r->products ) {
+//								Production * p = ( Production * ) elem;
+//								app->Trash( p );
+//							}
+//						}
+						r->products.DeleteAll();
+
+						r->SetupProds();
+
+						int towns = Globals->TOWNS_EXIST;
+						Globals->TOWNS_EXIST = 0;
+
+						if( app->TerrainHasEnabledRace( type ) ) {
+							r->SetupPop();
+						} else {
+							r->race = -1;
+							r->population = 0;
+							r->basepopulation = 0;
+							r->wages = 0;
+							r->maxwages = 0;
+							r->money = 0;
+						}
+
+						Globals->TOWNS_EXIST = towns;
+						if( r->town )
+							r->SetupCityMarket();
+		
+						frame->tree->UpdateItem( r, true );
 					}
-
-					r->SetupProds();
-
-					int towns = Globals->TOWNS_EXIST;
-					Globals->TOWNS_EXIST = 0;
-
-					if( app->TerrainHasEnabledRace( type ) ) {
-						r->SetupPop();
-					} else {
-						r->race = -1;
-						r->population = 0;
-						r->basepopulation = 0;
-						r->wages = 0;
-						r->maxwages = 0;
-						r->money = 0;
-					}
-
-					Globals->TOWNS_EXIST = towns;
-					if( r->town )
-						r->SetupCityMarket();
-
 				}
-				AddToControl( editType, TerrainDefs[type].name );
+				if( GuiConfig.recreateData ) {
+					ReloadPage();
+				}
 			}
-			if( app->recreateData )
-				LoadData();
+			app->UpdateRegions();
 		}
-		WX_CLEAR_ARRAY( aux.array );
 	} else if( event.GetId() == Edit_Region_Race ) {
 
 		//open item selection window
 
-		EditItemTypeAux aux( this, wxPoint( pw, 0 ), wxSize( 180, ph/2 ) );
+		EditItemTypeAux aux( this, wxPoint( x + width + 3, y + 3 ), wxSize( 250, frame->map->GetSize().y - 2 ) );
 
 		Item * it = NULL;
 		AElemArray selected;
-		for( int i = 0; i < abs( app->selectedRegions->GetCount() ); i++ ) {
-			ARegion * r = ( ARegion * ) app->selectedRegions->Item( i );
+		for( int i = 0; i < (int) editTop->selectedElems->GetCount(); i++ ) {
+			ARegion * r = ( ARegion * ) editTop->selectedElems->Item( i );
 			it = new Item();
 			it->type = r->race;
 			selected.Add( it );
 		}
 		aux.Init( &selected, IT_MAN );
 
-		aux.ShowModal();
+		if( aux.ShowModal() == wxID_OK ) {
+			//update edit window and objects
+			editRace->SetLabel( "" );
+			if( aux.selectedArray.GetCount()>0 ) {
+				for( int i = 0; i < (int) editTop->selectedElems->GetCount(); i++ ) {
+					ARegion * r = ( ARegion * ) editTop->selectedElems->Item( i );
 
-		//update edit window and objects
-		editRace->SetLabel( "" );
-		if( aux.array.GetCount()>0 ) {
-			for( int i = 0; i < abs( app->selectedRegions->GetCount() ); i++ ) {
-				ARegion * r = ( ARegion * ) app->selectedRegions->Item( i );
-
-				int type = ( ( Item * ) aux.array[0] )->type;
-				r->race = type;
-				AddToControl( editRace, ItemDefs[type].names );
+					int type = ( ( Item * ) aux.selectedArray[0] )->type;
+					r->race = type;
+					AddToControl( editRace, ItemDefs[type].names );
+				}
 			}
+			app->UpdateRegions();
+			WX_CLEAR_ARRAY( selected );
 		}
-		WX_CLEAR_ARRAY( selected );
-		WX_CLEAR_ARRAY( aux.array );
 	} else if( event.GetId() == Edit_Region_Town ) {
-		ARegion * r = (ARegion *) app->selectedRegions->Item( 0 );
+		// Add/Delete a town
+		ARegion * r = (ARegion *) editTop->selectedElems->Item( 0 );
 		if( r->town ) {
+			// Delete the town?
 			int answer = wxMessageBox( "Delete town?", "Confirm",
 			                           wxOK | wxCANCEL | wxCENTRE |
 									   wxICON_QUESTION, frame);
 			if( answer == wxOK ) {
 				delete r->town;
 				r->town = 0;
+				if( GuiConfig.recreateData ) {
+		//			forlist( &r->markets ) {
+		//				Market * m = (Market *) elem;
+		//				if( m->item < 0 ) continue;
+		//				if( ItemDefs[m->item].type & IT_MAN ) continue;
+		//				app->Trash( m );
+		//				delete m;
+		//			}
+					r->markets.DeleteAll();
+				}
+				frame->tree->UpdateItem( r, true );
+				app->UpdateRegions();
 			}
 		} else {
+			// Add a town?
+			if( GuiConfig.recreateData ) {
+				// Recreate population/market data
+				int minpop, maxpop;
+				wxArrayString choices;
+				choices.Add("Random");
+				choices.Add("Village");
+				choices.Add("Town");
+				choices.Add("City");
+
+				wxString answer = wxGetSingleChoice( "What size town do you wish to create?",
+													 "Choose town size",
+													 choices );
+
+				if( answer != "" ) {
+
+					if( answer == "City" ) {
+						minpop = Globals->CITY_POP / 2;
+						maxpop = Globals->CITY_POP;
+					} else if( answer == "Town" ) {
+						minpop = Globals->CITY_POP / 4;
+						maxpop = Globals->CITY_POP / 2;
+					} else if( answer == "Village" ) {
+						minpop = Globals->CITY_POP / 8;
+						maxpop = Globals->CITY_POP / 4;
+					} else {
+						minpop = -1;
+						maxpop = -1;
+					}
+
+					r->AddTown(0, minpop, maxpop);
+				}
+			} else {
 				r->town = new TownInfo;
-				r->town->name = new AString("");
+			}
+
+			if( r->town ) {
+				r->town->name = new AString("NoName");
+				app->UpdateRegions();
+			}
 		}
-		LoadData();
+		ReloadPage();
+		frame->tree->UpdateItem( r, true );
 	} else if( event.GetId() == Edit_Region_N ) {
 		dir = D_NORTH;
 	} else if( event.GetId() == Edit_Region_NE ) {
@@ -974,34 +1104,44 @@ void EditRegionPage::OnButton( wxCommandEvent & event )
 	}
 
 	if( dir != -1 ) {
-		EditRegionAux aux( this, wxPoint( pw,0 ), wxSize( 180,ph/2 ) );
+		// Edit neighbour pointer
+		EditRegionAux aux( this, wxPoint( x + width + 3, y + 3 ), wxSize( 250, frame->map->GetSize().y - 2 ) );
 
 		AElemArray selected;
-		for( int i = 0; i < abs( app->selectedRegions->GetCount() ); i++ ) {
-			ARegion * r = ( ARegion * ) app->selectedRegions->Item( i );
+		for( int i = 0; i < (int) editTop->selectedElems->GetCount(); i++ ) {
+			ARegion * r = ( ARegion * ) editTop->selectedElems->Item( i );
 			selected.Add( r->neighbors[dir] );
 		}
 		aux.Init( &selected );
 
-		aux.ShowModal();
-
-		//update edit window and objects
-		if( aux.array.GetCount()>0 ) {
-			editExits[dir]->SetLabel( "" );
-			for( int i = 0; i < abs( app->selectedRegions->GetCount() ); i++ ) {
-				ARegion * r = ( ARegion * ) app->selectedRegions->Item( i );
-				ARegion * r2 = ( ARegion * ) aux.array[0];
-				r->neighbors[dir] = r2;
-				AString temp = AString( "( " ) + r2->xloc + ", " + r2->yloc + ", "
-				               + r2->zloc + " )";
-				editExits[dir]->SetLabel( temp.Str() );
+		if( aux.ShowModal() == wxID_OK ) {
+			//update edit window and objects
+			if( aux.selectedArray.GetCount()>0 ) {
+				editExits[dir]->SetLabel( "" );
+				for( int i = 0; i < (int) editTop->selectedElems->GetCount() ; i++ ) {
+					ARegion * r = ( ARegion * ) editTop->selectedElems->Item( i );
+					ARegion * r2 = ( ARegion * ) aux.selectedArray[0];
+					if( r2->num == -1 ) {
+						r->neighbors[dir] = 0;
+						continue;
+					}
+					r->neighbors[dir] = r2;
+					AString temp = AString( "( " ) + r2->xloc + ", " + r2->yloc + ", "
+								   + r2->zloc + " )";
+					editExits[dir]->SetLabel( temp.Str() );
+				}
 			}
-		
 		}
 		selected.Clear();
-		aux.array.Clear();
+		aux.selectedArray.Clear();
 	}
-	app->UpdateRegions();
+
+//	app->UpdateRegions();
+
+	if( selectType != -1 ) {
+		app->UpdateSelection( tempSelection, selectType );
+	}
+	delete tempSelection;
 	
 }
 
@@ -1018,9 +1158,105 @@ void EditRegionPage::OnToolMove( wxCommandEvent & event )
 }
 
 // ---------------------------------------------------------------------------
+// EditLevelPage
+// ---------------------------------------------------------------------------
+
+/**
+ * Default constructor. Creates all necessary controls
+ */
+EditLevelPage::EditLevelPage( wxWindow *parent, const wxPoint& pos,
+                   const wxSize& size )
+         : EditPage( parent, pos, size )
+{
+	CreateControl( &editName, Edit_Level_Name, "Name: " );
+	CreateControl( &editLevelType, Edit_Level_LevelType, "Type: " );
+
+	editLevelType->Append( "Nexus", new int( ARegionArray::LEVEL_NEXUS ) );
+	editLevelType->Append( "Surface", new int( ARegionArray::LEVEL_SURFACE ) );
+	editLevelType->Append( "Underworld", new int( ARegionArray::LEVEL_UNDERWORLD ) );
+	editLevelType->Append( "Underdeep", new int( ARegionArray::LEVEL_UNDERDEEP ) );
+	editLevelType->Append( "(...)" );
+
+	toolBar->EnableTool( Edit_Tool_Add, false );
+	toolBar->EnableTool( Edit_Tool_Delete, false );
+	toolBar->EnableTool( Edit_Tool_Move, false );
+}
+
+/**
+ * Default destructor
+ */
+EditLevelPage::~EditLevelPage()
+{
+	DeleteCombo( editLevelType );
+}
+
+/** 
+ * Enable/Disable all controls on page
+ */
+void EditLevelPage::EnableAllControls( bool b )
+{
+	editName->Enable( b );
+	editLevelType->Enable( b );
+}
+
+/**
+ * Clear all controls on page
+ */
+void EditLevelPage::ClearAllControls()
+{
+	border->SetTitle( "Level" );
+	editName->Clear();
+	editLevelType->SetSelection( -1 );
+}
+
+/**
+ * Process event when a textbox is updated.
+ * Update the actual game data, and the tree/list view display
+ *  for the updated data for the current selection
+ */
+void EditLevelPage::OnTextUpdate( wxCommandEvent & event )
+{
+	if( editWait ) return;
+
+	ARegionArray * level = editTop->selectedLevel;
+	
+	switch ( event.GetId() )
+	{
+		case Edit_Level_Name:
+			if( !level->strName )
+				level->strName = new AString();
+			UpdateControl( editName, level->strName );
+			break;
+		case Edit_Level_LevelType:
+			UpdateControl( editLevelType, level->levelType );
+			break;
+	}
+	app->UpdateLevels();
+}
+
+void EditLevelPage::OnButton( wxCommandEvent & event )
+{
+}
+
+void EditLevelPage::OnToolAdd( wxCommandEvent & event )
+{
+}
+
+void EditLevelPage::OnToolDelete( wxCommandEvent & event )
+{
+}
+
+void EditLevelPage::OnToolMove( wxCommandEvent & event )
+{
+}
+
+// ---------------------------------------------------------------------------
 // EditFactionPage
 // ---------------------------------------------------------------------------
 
+/**
+ * Default constructor. Creates all necessary controls
+ */
 EditFactionPage::EditFactionPage( wxWindow *parent, const wxPoint& pos,
                    const wxSize& size )
          : EditPage( parent, pos, size )
@@ -1065,44 +1301,18 @@ EditFactionPage::EditFactionPage( wxWindow *parent, const wxPoint& pos,
 	toolBar->EnableTool( Edit_Tool_Move, false );
 }
 
+/**
+ * Default destructor
+ */
 EditFactionPage::~EditFactionPage()
 {
 	DeleteCombo( editTemformat );
 	DeleteCombo( editQuit );
 }
 
-void EditFactionPage::LoadData()
-{
-	editWait = true;
-	EnableAllControls( true );
-	ClearAllControls();
-
-	int count = app->selectedFactions->GetCount();
-	if( count == 1 ) {
-		Faction * f = ( Faction * ) app->selectedFactions->Item( 0 );
-		border->SetTitle( f->name->Str() );
-	} else {
-		AString temp = AString( count ) + " Factions";
-		border->SetTitle( temp.Str() );
-	}
-
-	for( int i = 0; i < count; i++ ) {
-		Faction * f = ( Faction * ) app->selectedFactions->Item( i );
-		AddToControl( editNumber, f->num );
-		AddToControl( editLastChange, f->lastchange );
-		AddToControl( editLastOrders, f->lastorders );
-		AddToControl( editUnclaimed, f->unclaimed );
-		AddToControl( editName, f->name->Str() );
-		AddToControl( editAddress, f->address->Str() );
-		AddToControl( editPassword, f->password->Str() );
-		AddToControl( editTimes, f->times );
-		AddToControl( editTemformat, f->temformat );
-		AddToControl( editQuit, f->quit );
-	}
-	editWait = false;
-
-}
-
+/** 
+ * Enable/Disable all controls on page
+ */
 void EditFactionPage::EnableAllControls( bool b )
 {
 	editNumber->Enable( b );
@@ -1117,6 +1327,9 @@ void EditFactionPage::EnableAllControls( bool b )
 	editQuit->Enable( b );
 }
 
+/**
+ * Clear all controls on page
+ */
 void EditFactionPage::ClearAllControls()
 {
 	border->SetTitle( "Faction" );
@@ -1132,11 +1345,16 @@ void EditFactionPage::ClearAllControls()
 	editQuit->SetSelection( -1 );
 }
 
+/**
+ * Process event when a textbox is updated.
+ * Update the actual game data, and the tree/list view display
+ *  for the updated data for the current selection
+ */
 void EditFactionPage::OnTextUpdate( wxCommandEvent & event )
 {
 	if( editWait ) return;
-	for( int i = 0; i < abs( app->selectedFactions->GetCount() ); i++ ) {
-		Faction * f = ( Faction * ) app->selectedFactions->Item( i );
+	for( int i = 0; i < (int) editTop->selectedElems->GetCount(); i++ ) {
+		Faction * f = ( Faction * ) editTop->selectedElems->Item( i );
 	
 		switch ( event.GetId() )
 		{
@@ -1175,58 +1393,71 @@ void EditFactionPage::OnTextUpdate( wxCommandEvent & event )
 	app->UpdateFactions();
 }
 
+/**
+ * Process event when a button is pressed.
+ */
 void EditFactionPage::OnButton( wxCommandEvent & event )
 {
 	if( editWait )
 		return;
 
 	if( event.GetId() == Edit_Tool_Add_Unit ) {
+		// Add unit to selected factions
+		// Todo: test with multiple factions selected
 		ARegion * r = GetRegionChoice( "Select region to add unit(s) to.", "New unit" );
 		if( !r ) return;
 
-		app->selectedUnits->Clear();
-		for( int i = 0; i < abs( app->selectedFactions->GetCount() ); i++ ) {
-			Faction * f = ( Faction * ) app->selectedFactions->Item( i );
+		AElemArray * tempSelection = new AElemArray();
+		for( int i = 0; i < (int) editTop->selectedElems->GetCount(); i++ ) {
+			Faction * f = ( Faction * ) editTop->selectedElems->Item( i );
 			Unit * u = app->AddUnit(f);
 			u->MoveUnit( r->GetDummy() );
-			frame->tree->canvas->AddItem( u );
-			app->SelectUnit(u, true);
+			frame->tree->AddItem( u );
+			tempSelection->Add( u );
 		}
+		app->UpdateSelection( tempSelection, SELECT_UNIT );
+		delete tempSelection;
 	}
 }
 
+/**
+ * Clone faction
+ */
 void EditFactionPage::OnToolAdd( wxCommandEvent & event )
 {
 	Faction * f = app->AddFaction();
-	frame->tree->canvas->AddItem( f );
-	app->SelectFaction( f );
+	frame->tree->AddItem( f );
+	app->Select( f );
 }
 
+/**
+ * Delete faction
+ */
 void EditFactionPage::OnToolDelete( wxCommandEvent & event )
 {
-	if( app->selectedFactions->GetCount() == 0 ) return;
+	if( editTop->selectedElems->GetCount() == 0 ) return;
 
 	int answer = wxMessageBox( "Really delete faction(s) and units?", "Confirm",
 	                          wxYES_NO | wxCENTRE | wxICON_QUESTION );
 
 	if( answer == wxYES ) {
-		for( int i = abs( app->selectedFactions->GetCount()-1 ); i >= 0; i-- ) {
-			Faction * f = ( Faction * ) app->selectedFactions->Item( i );
+		for( int i = (int) editTop->selectedElems->GetCount()-1 ; i >= 0; i-- ) {
+			Faction * f = ( Faction * ) editTop->selectedElems->Item( i );
 			{
-				forlist( app->GetRegions() ) {
+				forlist( &app->m_game->regions ) {
 					ARegion * r = ( ARegion * ) elem;
 					forlist( &r->objects ) {
 						Object * o = ( Object * ) elem;
 						forlist( &o->units ) {
 							Unit * u = ( Unit * ) elem;
 							if( u->faction == f ) {
-								app->TrashUnit( u );
+								app->Trash( u );
 							}
 						}
 					}
 				}
 			}
-			app->TrashFaction( f );
+			app->Trash( f );
 		}
 	}
 	( ( EditFrame * )GetParent() )->HideAllPages();
@@ -1241,6 +1472,9 @@ void EditFactionPage::OnToolMove( wxCommandEvent & event )
 // EditMarketPage
 // ---------------------------------------------------------------------------
 
+/**
+ * Default constructor. Creates all necessary controls
+ */
 EditMarketPage::EditMarketPage( wxWindow *parent, const wxPoint& pos,
                    const wxSize& size )
          : EditPage( parent, pos, size )
@@ -1275,42 +1509,18 @@ EditMarketPage::EditMarketPage( wxWindow *parent, const wxPoint& pos,
 	toolBar->EnableTool( Edit_Tool_Move, true );
 }
 
+/**
+ * Default destructor
+ */
 EditMarketPage::~EditMarketPage()
 {
 	DeleteCombo( editType );
 	DeleteCombo( editItem );
 }
 
-void EditMarketPage::LoadData()
-{
-	editWait = true;
-	EnableAllControls( true );
-	ClearAllControls();
-
-	int count = app->selectedMarkets->GetCount();
-	if( count == 1 ) {
-		border->SetTitle( "Market" );
-	} else {
-		AString temp = AString( count ) + " Markets";
-		border->SetTitle( temp.Str() );
-	}
-
-	for( int i = 0; i < count; i++ ) {
-		Market * m = ( Market * ) app->selectedMarkets->Item( i );
-
-		AddToControl( editPrice, m->price );
-		AddToControl( editAmount, m->amount );
-		AddToControl( editMinpop, m->minpop );
-		AddToControl( editMaxpop, m->maxpop );
-		AddToControl( editMinamt, m->minamt );
-		AddToControl( editMaxamt, m->maxamt );
-		AddToControl( editType, m->type );
-		AddToControl( editItem, m->item );	
-	}
-	editWait = false;
-
-}
-
+/** 
+ * Enable/Disable all controls on page
+ */
 void EditMarketPage::EnableAllControls( bool b )
 {
 	editType->Enable( b );
@@ -1324,6 +1534,9 @@ void EditMarketPage::EnableAllControls( bool b )
 
 }
 
+/**
+ * Clear all controls on page
+ */
 void EditMarketPage::ClearAllControls()
 {
 	border->SetTitle( "Market" );
@@ -1337,11 +1550,16 @@ void EditMarketPage::ClearAllControls()
 	editMaxamt->Clear();
 }
 
+/**
+ * Process event when a textbox is updated.
+ * Update the actual game data, and the tree/list view display
+ *  for the updated data for the current selection
+ */
 void EditMarketPage::OnTextUpdate( wxCommandEvent & event )
 {
 	if( editWait ) return;
-	for( int i = 0; i < abs( app->selectedMarkets->GetCount() ); i++ ) {
-		Market * m = ( Market * ) app->selectedMarkets->Item( i );
+	for( int i = 0; i < (int) editTop->selectedElems->GetCount(); i++ ) {
+		Market * m = ( Market * ) editTop->selectedElems->Item( i );
 	
 		switch ( event.GetId() )
 		{
@@ -1374,58 +1592,92 @@ void EditMarketPage::OnTextUpdate( wxCommandEvent & event )
 	app->UpdateMarkets();
 }
 
+/**
+ * Process event when a button is pressed.
+ */
 void EditMarketPage::OnButton( wxCommandEvent & event ){
 }
 
+/**
+ * Clone market(s)
+ */
 void EditMarketPage::OnToolAdd( wxCommandEvent & event )
 {
-	Market * mOld = ( Market * ) app->selectedMarkets->Item(0);
-	ARegion * r = app->GetRegions()->GetRegion(mOld->region);
-	Market * m = new Market( M_BUY, 0, 0, 0, 0, 0, 0, 0 );
+	Market * mOld = ( Market * ) editTop->selectedElems->Item(0);
+	ARegion * r = app->m_game->regions.GetRegion(mOld->region);
+	Market * m = new Market( mOld->type, mOld->item, mOld->price, mOld->amount,
+							 mOld->minpop, mOld->maxpop, mOld->minamt, mOld->maxamt );
 	r->markets.Add( m );
 	m->region = r->num;
-	frame->tree->canvas->AddItem( m );
-	app->SelectMarket( m );
+	frame->tree->AddItem( m );
+	app->Select( m );
 }
 
+/**
+ * Delete market(s)
+ */
 void EditMarketPage::OnToolDelete( wxCommandEvent & event )
 {
-	if( app->selectedMarkets->GetCount() == 0 ) return;
+	if( editTop->selectedElems->GetCount() == 0 ) return;
 
 	int answer = wxMessageBox( "Really delete market(s)?", "Confirm",
 	                          wxYES_NO | wxCENTRE | wxICON_QUESTION );
 
 	if( answer == wxYES ) {
-		for( int i = abs( app->selectedMarkets->GetCount()-1 ); i >= 0; i-- ) {
-			Market * m = ( Market * ) app->selectedMarkets->Item( i );
-			app->TrashMarket( m );
+		for( int i = (int) editTop->selectedElems->GetCount()-1; i >= 0; i-- ) {
+			Market * m = ( Market * ) editTop->selectedElems->Item( i );
+			app->Trash( m );
 		}
 	}
 	( ( EditFrame * )GetParent() )->HideAllPages();
 
 }
 
+/**
+ * Move market(s)
+ */
 void EditMarketPage::OnToolMove( wxCommandEvent & event )
 {
-	ARegion * newReg = GetRegionChoice( "Select region to move to.", "Move market" );
-	if( !newReg ) return;
+	int x, y, width, height;
+	GetParent()->GetSize( &width, &height );
+	GetParent()->GetPosition( &x, &y );
+	GetParent()->ClientToScreen( &x, &y );
 
-	for( int i = 0; i < abs( app->selectedMarkets->GetCount() ); i++ )
-	{
-		Market * m = ( Market * ) app->selectedMarkets->Item( i );
-		ARegion * oldReg = app->GetRegions()->GetRegion( m->region );
-		frame->tree->canvas->RemoveItem( m );
-		oldReg->markets.Remove( m );
-		newReg->markets.Add( m );
-		m->region = newReg->num;
-		frame->tree->canvas->AddItem( m );
+	EditRegionAux aux( this, wxPoint( x + width + 3, y + 3 ), wxSize( 250, frame->map->GetSize().y - 2 ) );
+
+	AElemArray selected;
+	for( int i = 0; i < (int) editTop->selectedElems->GetCount(); i++ ) {
+ 		Market * m = ( Market * ) editTop->selectedElems->Item( i );
+		ARegion * r = app->m_game->regions.GetRegion( m->region );
+		selected.Add( r );
 	}
+	aux.Init( &selected );
+
+	if( aux.ShowModal() == wxID_OK ) {
+		if( aux.selectedArray.GetCount()>0 ) {
+			ARegion * dest = ( ARegion * ) aux.selectedArray[0];
+			for( int i = 0; i < (int) editTop->selectedElems->GetCount(); i++ ) {
+ 				Market * m = ( Market * ) editTop->selectedElems->Item( i );
+				ARegion * oldReg = app->m_game->regions.GetRegion( m->region );
+				frame->tree->RemoveItem( m );
+				oldReg->markets.Remove( m );
+				dest->markets.Add( m );
+				m->region = dest->num;
+				frame->tree->AddItem( m );
+			}
+		}
+	}
+	selected.Clear();
+
 }
 
 // ---------------------------------------------------------------------------
 // EditProductionPage
 // ---------------------------------------------------------------------------
 
+/**
+ * Default constructor. Creates all necessary controls
+ */
 EditProductionPage::EditProductionPage( wxWindow *parent, const wxPoint& pos,
                    const wxSize& size )
          : EditPage( parent, pos, size )
@@ -1438,6 +1690,11 @@ EditProductionPage::EditProductionPage( wxWindow *parent, const wxPoint& pos,
 
 	// Fill Combo boxes
 	for( int i = 0; i < NITEMS; i++ ) {
+		if( i == I_SILVER ) {
+			editItemtype->Append( ItemDefs[i].names, new int( i ) );
+			continue;
+		}
+
 		if( ItemDefs[i].flags & ItemType::DISABLED ||
 		   ItemDefs[i].pSkill == -1 ) continue;
 		if( ItemDefs[i].pInput[0].item != -1 ) continue;
@@ -1452,36 +1709,17 @@ EditProductionPage::EditProductionPage( wxWindow *parent, const wxPoint& pos,
 	toolBar->EnableTool( Edit_Tool_Move, true );
 }
 
+/**
+ * Default destructor
+ */
 EditProductionPage::~EditProductionPage()
 {
 	DeleteCombo( editItemtype );
 }
 
-void EditProductionPage::LoadData()
-{
-	editWait = true;
-	EnableAllControls( true );
-	ClearAllControls();
-
-	int count = app->selectedProductions->GetCount();
-	if( count == 1 ) {
-		border->SetTitle( "Production" );
-	} else {
-		AString temp = AString( count ) + " Productions";
-		border->SetTitle( temp.Str() );
-	}
-
-	for( int i = 0; i < count; i++ ) {
-		Production * p = ( Production * ) app->selectedProductions->Item( i );
-
-		AddToControl( editAmount, p->amount );
-		AddToControl( editBaseamount, p->baseamount );
-		AddToControl( editItemtype, p->itemtype );
-	}
-	editWait = false;
-
-}
-
+/** 
+ * Enable/Disable all controls on page
+ */
 void EditProductionPage::EnableAllControls( bool b )
 {
 	editItemtype->Enable( b );
@@ -1489,6 +1727,9 @@ void EditProductionPage::EnableAllControls( bool b )
 	editBaseamount->Enable( b );
 }
 
+/**
+ * Clear all controls on page
+ */
 void EditProductionPage::ClearAllControls()
 {
 	border->SetTitle( "Production" );
@@ -1497,11 +1738,16 @@ void EditProductionPage::ClearAllControls()
 	editBaseamount->Clear();
 }
 
+/**
+ * Process event when a textbox is updated.
+ * Update the actual game data, and the tree/list view display
+ *  for the updated data for the current selection
+ */
 void EditProductionPage::OnTextUpdate( wxCommandEvent & event )
 {
 	if( editWait ) return;
-	for( int i = 0; i < abs( app->selectedProductions->GetCount() ); i++ ) {
-		Production * p = ( Production * ) app->selectedProductions->Item( i );
+	for( int i = 0; i < (int) editTop->selectedElems->GetCount(); i++ ) {
+		Production * p = ( Production * ) editTop->selectedElems->Item( i );
 	
 		switch ( event.GetId() )
 		{
@@ -1523,56 +1769,91 @@ void EditProductionPage::OnButton( wxCommandEvent & event )
 {
 }
 
+/**
+ * Clone production
+ */
 void EditProductionPage::OnToolAdd( wxCommandEvent & event )
 {
-	Production * pOld = ( Production * ) app->selectedProductions->Item(0);
-	ARegion * r = app->GetRegions()->GetRegion(pOld->region);
-	Production * p = new Production( 0 ,0 );
+	Production * pOld = ( Production * ) editTop->selectedElems->Item(0);
+	ARegion * r = app->m_game->regions.GetRegion(pOld->region);
+	Production * p = new Production( pOld->itemtype, 0 );
+	p->amount = pOld->amount;
+	p->baseamount = pOld->baseamount;
+	p->skill = pOld->skill;
+	p->productivity = pOld->productivity;
+
 	r->products.Add( p );
 	p->region = r->num;
-	frame->tree->canvas->AddItem( p );
-	app->SelectProduction( p );
+	frame->tree->AddItem( p );
+	app->Select( p );
 
 }
 
+/**
+ * Delete production
+ */
 void EditProductionPage::OnToolDelete( wxCommandEvent & event )
 {
-	if( app->selectedProductions->GetCount() == 0 ) return;
+	if( editTop->selectedElems->GetCount() == 0 ) return;
 
 	int answer = wxMessageBox( "Really delete production(s)?", "Confirm",
 	                          wxYES_NO | wxCENTRE | wxICON_QUESTION );
 
 	if( answer == wxYES ) {
-		for( int i = abs( app->selectedProductions->GetCount()-1 ); i >= 0; i-- ) {
-			Production * p = ( Production * ) app->selectedProductions->Item( i );
-			app->TrashProduction( p );
+		for( int i = (int) editTop->selectedElems->GetCount()-1; i >= 0; i-- ) {
+			Production * p = ( Production * ) editTop->selectedElems->Item( i );
+			app->Trash( p );
 		}
 	}
 	( ( EditFrame * )GetParent() )->HideAllPages();
 
 }
 
+/**
+ * Move production
+ */
 void EditProductionPage::OnToolMove( wxCommandEvent & event )
 {
-	ARegion * newReg = GetRegionChoice( "Select region to move to.", "Move product" );
-	if( !newReg ) return;
+	int x, y, width, height;
+	GetParent()->GetSize( &width, &height );
+	GetParent()->GetPosition( &x, &y );
+	GetParent()->ClientToScreen( &x, &y );
 
-	for( int i = 0; i < abs( app->selectedProductions->GetCount() ); i++ )
-	{
-		Production * p = ( Production * ) app->selectedProductions->Item( i );
-		ARegion * oldReg = app->GetRegions()->GetRegion( p->region );
-		frame->tree->canvas->RemoveItem( p );
-		oldReg->products.Remove( p );
-		newReg->products.Add( p );
-		p->region = newReg->num;
-		frame->tree->canvas->AddItem( p );
+	EditRegionAux aux( this, wxPoint( x + width + 3, y + 3 ), wxSize( 250, frame->map->GetSize().y - 2 ) );
+
+	AElemArray selected;
+	for( int i = 0; i < (int) editTop->selectedElems->GetCount(); i++ ) {
+ 		Production * p = ( Production * ) editTop->selectedElems->Item( i );
+		ARegion * r = app->m_game->regions.GetRegion( p->region );
+		selected.Add( r );
 	}
+	aux.Init( &selected );
+
+
+	if( aux.ShowModal() == wxID_OK ) {
+		if( aux.selectedArray.GetCount() > 0 ) {
+			ARegion * dest = ( ARegion * ) aux.selectedArray[0];
+			for( int i = 0; i < (int) editTop->selectedElems->GetCount(); i++ ) {
+ 				Production * p = ( Production * ) editTop->selectedElems->Item( i );
+				ARegion * oldReg = app->m_game->regions.GetRegion( p->region );
+				frame->tree->RemoveItem( p );
+				oldReg->products.Remove( p );
+				dest->products.Add( p );
+				p->region = dest->num;
+				frame->tree->AddItem( p );
+			}
+		}
+	}
+	selected.Clear();
 }
 
 // ---------------------------------------------------------------------------
 // EditObjectPage
 // ---------------------------------------------------------------------------
 
+/**
+ * Default constructor. Creates all necessary controls
+ */
 EditObjectPage::EditObjectPage( wxWindow *parent, const wxPoint& pos,
                    const wxSize& size )
          : EditPage( parent, pos, size )
@@ -1606,60 +1887,17 @@ EditObjectPage::EditObjectPage( wxWindow *parent, const wxPoint& pos,
 	toolBar->EnableTool( Edit_Tool_Move, true );
 }
 
+/**
+ * Default destructor
+ */
 EditObjectPage::~EditObjectPage()
 {
 	DeleteCombo( editType );
 }
 
-void EditObjectPage::LoadData()
-{
-	editWait = true;
-	EnableAllControls( true );
-	ClearAllControls();
-
-	int count = app->selectedObjects->GetCount();
-	if( count == 1 ) {
-		Object * o = ( Object * ) app->selectedObjects->Item( 0 );
-		border->SetTitle( o->name->Str() );
-	} else {
-		AString temp = AString( count ) + " Objects";
-		border->SetTitle( temp.Str() );
-	}
-
-	bool dummy = false;
-	for( int i = 0; i < count; i++ ) {
-		Object * o = ( Object * ) app->selectedObjects->Item( i );
-		AString temp;
-
-		if( o->region->GetDummy() == o ) dummy = true;
-
-		if( o->inner != -1 ) {
-			ARegion * r = app->GetRegions()->GetRegion( o->inner );
-			temp = AString( "( " ) + r->xloc + ", " + r->yloc + ", " +
-						   r->zloc + " )";
-		} else {
-			temp = "";
-		}
-
-		AddToControl( editName, o->name->Str() );
-		if( o->describe )
-			AddToControl( editDescribe, o->describe->Str() );
-		AddToControl( editInner, temp.Str() );
-		AddToControl( editNum, o->num );
-		AddToControl( editIncomplete, o->incomplete );
-		AddToControl( editRunes, o->runes );
-		AddToControl( editType, o->type );
-	}
-	if( dummy ) {
-		toolBar->EnableTool( Edit_Tool_Delete, false );
-		toolBar->EnableTool( Edit_Tool_Move, false );
-	} else {
-		toolBar->EnableTool( Edit_Tool_Delete, true );
-		toolBar->EnableTool( Edit_Tool_Move, true );
-	}
-	editWait = false;
-}
-
+/** 
+ * Enable/Disable all controls on page
+ */
 void EditObjectPage::EnableAllControls( bool b )
 {
 	editName->Enable( b );
@@ -1671,6 +1909,9 @@ void EditObjectPage::EnableAllControls( bool b )
 	editType->Enable( b );
 }
 
+/**
+ * Clear all controls on page
+ */
 void EditObjectPage::ClearAllControls()
 {
 	border->SetTitle( "Object" );
@@ -1683,11 +1924,16 @@ void EditObjectPage::ClearAllControls()
 	editType->SetSelection( -1 );
 }
 
+/**
+ * Process event when a textbox is updated.
+ * Update the actual game data, and the tree/list view display
+ *  for the updated data for the current selection
+ */
 void EditObjectPage::OnTextUpdate( wxCommandEvent & event )
 {
 	if( editWait ) return;
-	for( int i = 0; i < abs( app->selectedObjects->GetCount() ); i++ ) {
-		Object * o = ( Object * ) app->selectedObjects->Item( i );
+	for( int i = 0; i < (int) editTop->selectedElems->GetCount(); i++ ) {
+		Object * o = ( Object * ) editTop->selectedElems->Item( i );
 
 		switch ( event.GetId() )
 		{
@@ -1716,103 +1962,142 @@ void EditObjectPage::OnTextUpdate( wxCommandEvent & event )
 	app->UpdateObjects();
 }
 
-void EditObjectPage::OnButton( wxCommandEvent & event ){
+/**
+ * Process event when a button is pressed.
+ */
+void EditObjectPage::OnButton( wxCommandEvent & event )
+{
 	if( editWait ) return;
-	int pw,ph;
-	GetParent()->GetSize( &pw,&ph );
+
+	int x, y, width, height;
+	GetParent()->GetSize( &width, &height );
+	GetParent()->GetPosition( &x, &y );
+	GetParent()->ClientToScreen( &x, &y );
 
 	if( event.GetId() == Edit_Tool_Add_Unit ) {
-		app->selectedUnits->Clear();
-		for( int i = 0; i < abs( app->selectedObjects->GetCount() ); i++ ) {
-			Object * o = ( Object * ) app->selectedObjects->Item( i );
+		// Add unit to object(s)
+		AElemArray * tempSelection = new AElemArray();
+		editTop->selectedElems->Clear();
+		for( int i = 0; i < (int) editTop->selectedElems->GetCount(); i++ ) {
+			Object * o = ( Object * ) editTop->selectedElems->Item( i );
 			Unit * u = app->AddUnit();
 			u->MoveUnit( o );
-			frame->tree->canvas->AddItem( u );
-			app->SelectUnit(u, true);
+			frame->tree->AddItem( u );
+			tempSelection->Add( u );
 		}
+		app->UpdateSelection( tempSelection, SELECT_UNIT );
+		delete tempSelection;
 	} else if( event.GetId() == Edit_Object_Inner ){
-		EditRegionAux aux( this, wxPoint( pw,0 ), wxSize( 180,ph/2 ) );
+		// Change inner location
+		EditRegionAux aux( this, wxPoint( x + width + 3, y + 3 ), wxSize( 250, frame->map->GetSize().y - 2 ) );
 
 		AElemArray selected;
-		for( int i = 0; i < abs( app->selectedObjects->GetCount() ); i++ ) {
- 		Object * o = ( Object * ) app->selectedObjects->Item( i );
-			ARegion * r = app->GetRegions()->GetRegion( o->inner );
+		for( int i = 0; i < (int) editTop->selectedElems->GetCount(); i++ ) {
+ 		Object * o = ( Object * ) editTop->selectedElems->Item( i );
+			ARegion * r = app->m_game->regions.GetRegion( o->inner );
 			selected.Add( r );
 		}
 		aux.Init( &selected );
 
-		aux.ShowModal();
-
-		//update edit window and objects
-		editInner->SetLabel( "" );
-		if( aux.array.GetCount()>0 ) {
-			for( int i = 0; i < abs( app->selectedObjects->GetCount() ); i++ ) {
-				Object * o = ( Object * ) app->selectedObjects->Item( i );
-				ARegion * r = ( ARegion * ) aux.array[0];
-				o->inner = r->num;
-				AString temp = AString( "( " ) + r->xloc + ", " + r->yloc + ", "
-				               + r->zloc + " )";
-				editInner->SetLabel( temp.Str() );
+		if( aux.ShowModal() == wxID_OK ) {
+			if( aux.selectedArray.GetCount() > 0 ) {
+				//update edit window and objects
+				editInner->SetLabel( "" );
+				for( int i = 0; i < (int) editTop->selectedElems->GetCount(); i++ ) {
+					Object * o = ( Object * ) editTop->selectedElems->Item( i );
+					ARegion * r = ( ARegion * ) aux.selectedArray[0];
+					o->inner = r->num;
+					AString temp = AString( "( " ) + r->xloc + ", " + r->yloc + ", "
+								   + r->zloc + " )";
+					editInner->SetLabel( temp.Str() );
+				}		
 			}
-		
 		}
 		selected.Clear();
-		aux.array.Clear();
+		aux.selectedArray.Clear();
 	}
 	app->UpdateObjects();
 }
 
+/**
+ * Clone object
+ */
 void EditObjectPage::OnToolAdd( wxCommandEvent & event )
 {
-	Object * oOld = ( Object * ) app->selectedObjects->Item(0);
+	Object * oOld = ( Object * ) editTop->selectedElems->Item(0);
 	ARegion * r = oOld->region;
 	Object * o = new Object( r );
 	o->num = r->buildingseq++;
 	o->name = new AString( AString( ObjectDefs[O_DUMMY].name ) + " [" + o->num + "]" );
 	r->objects.Add( o );
-	frame->tree->canvas->AddItem( o, false );
-	app->SelectObject(o);
+	frame->tree->AddItem( o, false );
+	app->Select(o);
 }
 
+/**
+ * Delete object
+ */
 void EditObjectPage::OnToolDelete( wxCommandEvent & event )
 {
-	if( app->selectedObjects->GetCount() == 0 ) return;
+	if( editTop->selectedElems->GetCount() == 0 ) return;
 
 	int answer = wxMessageBox( "Really delete object(s)?", "Confirm",
 	                          wxYES_NO | wxCENTRE | wxICON_QUESTION );
 
 	if( answer == wxYES ) {
-		for( int i = abs( app->selectedObjects->GetCount()-1 ); i >= 0; i-- ) {
-			Object * o = ( Object * ) app->selectedObjects->Item( i );
-			app->TrashObject( o );
+		for( int i = (int) editTop->selectedElems->GetCount()-1; i >= 0; i-- ) {
+			Object * o = ( Object * ) editTop->selectedElems->Item( i );
+			app->Trash( o );
 		}
 	}
 	( ( EditFrame * )GetParent() )->HideAllPages();
 
 }
 
+/**
+ * Move object
+ */
 void EditObjectPage::OnToolMove( wxCommandEvent & event )
 {
-	ARegion * newReg = GetRegionChoice( "Select region to move to.", "Move object" );
-	if( !newReg ) return;
+	int x, y, width, height;
+	GetParent()->GetSize( &width, &height );
+	GetParent()->GetPosition( &x, &y );
+	GetParent()->ClientToScreen( &x, &y );
 
-	for( int i = 0; i < abs( app->selectedObjects->GetCount() ); i++ )
-	{
-		Object * o = ( Object * ) app->selectedObjects->Item( i );
-		ARegion * oldReg = o->region;
-		frame->tree->canvas->RemoveItem( o );
-		oldReg->objects.Remove( o );
-		newReg->objects.Add( o );
-		o->region = newReg;
-		frame->tree->canvas->AddItem( o );
+	EditRegionAux aux( this, wxPoint( x + width + 3, y + 3 ), wxSize( 250, frame->map->GetSize().y - 2 ) );
 
+	AElemArray selected;
+	for( int i = 0; i < (int) editTop->selectedElems->GetCount(); i++ ) {
+ 		Object * o = ( Object * ) editTop->selectedElems->Item( i );
+		ARegion * r = o->region;
+		selected.Add( r );
 	}
+	aux.Init( &selected );
+
+	if( aux.ShowModal() == wxID_OK ) {
+		if( aux.selectedArray.GetCount() > 0 ) {
+			ARegion * dest = ( ARegion * ) aux.selectedArray[0];
+			for( int i = 0; i < (int) editTop->selectedElems->GetCount(); i++ ) {
+ 				Object * o = ( Object * ) editTop->selectedElems->Item( i );
+				ARegion * oldReg = o->region ;
+				frame->tree->RemoveItem( o );
+				oldReg->objects.Remove( o );
+				dest->objects.Add( o );
+				o->region = dest;
+				frame->tree->AddItem( o );
+			}
+		}
+	}
+	selected.Clear();
 }
 
 // ---------------------------------------------------------------------------
 // EditUnitPage
 // ---------------------------------------------------------------------------
 
+/**
+ * Default constructor. Creates all necessary controls
+ */
 EditUnitPage::EditUnitPage( wxWindow *parent, const wxPoint& pos,
                    const wxSize& size )
          : EditPage( parent, pos, size )
@@ -1841,6 +2126,10 @@ EditUnitPage::EditUnitPage( wxWindow *parent, const wxPoint& pos,
 	// Fill Combo boxes
 	editType->Append( "Normal", new int( U_NORMAL ) );
 	editType->Append( "Mage", new int( U_MAGE ) );
+//	editType->Append( "Warrior", new int( U_WARRIOR ) );
+//	editType->Append( "Noble", new int( U_NOBLE ) );
+//	editType->Append( "Trader", new int( U_TRADER ) );
+
 	editType->Append( "Guard", new int( U_GUARD ) );
 	editType->Append( "Monster", new int( U_WMON ) );
 	editType->Append( "Guard mage", new int( U_GUARDMAGE ) );
@@ -1863,6 +2152,9 @@ EditUnitPage::EditUnitPage( wxWindow *parent, const wxPoint& pos,
 	toolBar->EnableTool( Edit_Tool_Move, true );
 }
 
+/**
+ * Default destructor
+ */
 EditUnitPage::~EditUnitPage()
 {
 	DeleteCombo( editType );
@@ -1870,40 +2162,9 @@ EditUnitPage::~EditUnitPage()
 	DeleteCombo( editReveal );
 }
 
-void EditUnitPage::LoadData()
-{
-	editWait = true;
-	EnableAllControls( true );
-	ClearAllControls();
-
-	int count = app->selectedUnits->GetCount();
-	if( count == 1 ) {
-		Unit * u = ( Unit * ) app->selectedUnits->Item( 0 );
-		border->SetTitle( u->name->Str() );
-	} else {
-		AString temp = AString( count ) + " Units";
-		border->SetTitle( temp.Str() );
-	}
-
-	for( int i = 0; i < count; i++ ) {
-		Unit * u = ( Unit * ) app->selectedUnits->Item( i );
-		AString comb = ( u->combat==-1 ? "" : SkillDefs[u->combat].name );
-		AString item = ( u->readyItem == -1? "" : ItemDefs[u->readyItem].name );
-
-		AddToControl( editNum, u->num );
-		AddToControl( editName, u->name->Str() );
-		if( u->describe )
-			AddToControl( editDescribe, u->describe->Str() );
-		AddToControl( editFaction, u->faction->name->Str() );
-		AddToControl( editType, u->type );
-		AddToControl( editGuard, u->guard );
-		AddToControl( editReveal, u->reveal );
-		AddToControl( editCombat, comb.Str() );
-		AddToControl( editReadyItem, item.Str() );
-	}
-	editWait = false;
-}
-
+/** 
+ * Enable/Disable all controls on page
+ */
 void EditUnitPage::EnableAllControls( bool b )
 {
 	editNum->Enable( b );
@@ -1921,6 +2182,9 @@ void EditUnitPage::EnableAllControls( bool b )
 //	editReadyArmor->Enable( b );
 }
 
+/**
+ * Clear all controls on page
+ */
 void EditUnitPage::ClearAllControls()
 {
 	border->SetTitle( "Unit" );
@@ -1935,11 +2199,16 @@ void EditUnitPage::ClearAllControls()
 	editReadyItem->SetLabel( "" );
 }
 
+/**
+ * Process event when a textbox is updated.
+ * Update the actual game data, and the tree/list view display
+ *  for the updated data for the current selection
+ */
 void EditUnitPage::OnTextUpdate( wxCommandEvent & event )
 {
 	if( editWait ) return;
-	for( int i = 0; i < abs( app->selectedUnits->GetCount() ); i++ ) {
-		Unit * u = ( Unit * ) app->selectedUnits->Item( i );
+	for( int i = 0; i < (int) editTop->selectedElems->GetCount(); i++ ) {
+		Unit * u = ( Unit * ) editTop->selectedElems->Item( i );
 		switch ( event.GetId() )
 		{
 		case Edit_Unit_Num:
@@ -1967,174 +2236,1073 @@ void EditUnitPage::OnTextUpdate( wxCommandEvent & event )
 	app->UpdateUnits();
 }		
 
+/**
+ * Process event when a button is pressed.
+ */
 void EditUnitPage::OnButton( wxCommandEvent & event )
 {
 	if( editWait ) return;
 
-	int pw,ph;
-	GetParent()->GetSize( &pw,&ph );
+	int x, y, width, height;
+	GetParent()->GetSize( &width, &height );
+	GetParent()->GetPosition( &x, &y );
+	GetParent()->ClientToScreen( &x, &y );
 
 	if( event.GetId() == Edit_Unit_Combat ){
-		EditSkillTypeAux aux( this, wxPoint( pw,0 ), wxSize( 180,ph/2 ) );
+		EditSkillTypeAux aux( this, wxPoint( x + width + 3, y + 3 ), wxSize( 250, frame->map->GetSize().y - 2 ) );
 
 		Skill * s = NULL;
 		AElemArray selected;
-		for( int i = 0; i < abs( app->selectedUnits->GetCount() ); i++ ) {
-			Unit * u = ( Unit * ) app->selectedUnits->Item( i );
+		for( int i = 0; i < (int) editTop->selectedElems->GetCount(); i++ ) {
+			Unit * u = ( Unit * ) editTop->selectedElems->Item( i );
 			s = new Skill();
 			s->type = u->combat;
 			selected.Add( s );
 		}
 		aux.Init( &selected, SkillType::COMBAT );
 
-		aux.ShowModal();
+		if( aux.ShowModal() == wxID_OK ) {
+			if( aux.selectedArray.GetCount() > 0 ) {
+				//update edit window and objects
+				editCombat->SetLabel( "" );
+				for( int i = 0; i < (int) editTop->selectedElems->GetCount(); i++ ) {
+					Unit * u = ( Unit * ) editTop->selectedElems->Item( i );
 
-		//update edit window and objects
-		editCombat->SetLabel( "" );
-		if( aux.array.GetCount()>0 ) {
-			for( int i = 0; i < abs( app->selectedUnits->GetCount() ); i++ ) {
-				Unit * u = ( Unit * ) app->selectedUnits->Item( i );
-
-				int type = ( ( Skill * ) aux.array[0] )->type;
-				u->combat = type;
-				AddToControl( editCombat, SkillDefs[type].name );
+					int type = ( ( Skill * ) aux.selectedArray[0] )->type;
+					u->combat = type;
+					if( type != -1 )
+						AddToControl( editCombat, SkillDefs[type].name );
+				}
 			}
 		}
 		WX_CLEAR_ARRAY( selected );
-		WX_CLEAR_ARRAY( aux.array );
 
 	} else if( event.GetId() == Edit_Unit_ReadyItem ){
-		EditItemTypeAux aux( this, wxPoint( pw,0 ), wxSize( 180,ph/2 ) );
+		EditItemTypeAux aux( this, wxPoint( x + width + 3, y + 3 ), wxSize( 250, frame->map->GetSize().y - 2 ) );
 
 		Item * it = NULL;
 		AElemArray selected;
-		for( int i = 0; i < abs( app->selectedUnits->GetCount() ); i++ ) {
-			Unit * u = ( Unit * ) app->selectedUnits->Item( i );
+		for( int i = 0; i < (int) editTop->selectedElems->GetCount(); i++ ) {
+			Unit * u = ( Unit * ) editTop->selectedElems->Item( i );
 			it = new Item();
 			it->type = u->readyItem;
 			selected.Add( it );
 		}
 		aux.Init( &selected );
 
-		aux.ShowModal();
+		if( aux.ShowModal() == wxID_OK ) {
+			//update edit window and objects
+			editReadyItem->SetLabel( "" );
+			if( aux.selectedArray.GetCount() > 0 ) {
+				for( int i = 0; i < (int) editTop->selectedElems->GetCount(); i++ ) {
+					Unit * u = ( Unit * ) editTop->selectedElems->Item( i );
 
-		//update edit window and objects
-		editReadyItem->SetLabel( "" );
-		if( aux.array.GetCount()>0 ) {
-			for( int i = 0; i < abs( app->selectedUnits->GetCount() ); i++ ) {
-				Unit * u = ( Unit * ) app->selectedUnits->Item( i );
-
-				int type = ( ( Item * ) aux.array[0] )->type;
-				u->readyItem = type;
-				AddToControl( editReadyItem, ItemDefs[type].name );
+					int type = ( ( Item * ) aux.selectedArray[0] )->type;
+					u->readyItem = type;
+					if( type != -1 )
+						AddToControl( editReadyItem, ItemDefs[type].name );
+				}
 			}
 		}
 		WX_CLEAR_ARRAY( selected );
-		WX_CLEAR_ARRAY( aux.array );
 
 	} else if( event.GetId() == Edit_Unit_Faction ){
-		EditFactionAux aux( this, wxPoint( pw,0 ), wxSize( 180,ph/2 ) );
+		EditFactionAux aux( this, wxPoint( x + width + 3, y + 3 ), wxSize( 250, frame->map->GetSize().y - 2 ) );
 
 		AElemArray selected;
-		for( int i = 0; i < abs( app->selectedUnits->GetCount() ); i++ ) {
-			Unit * u = ( Unit * ) app->selectedUnits->Item( i );
+		for( int i = 0; i < (int) editTop->selectedElems->GetCount(); i++ ) {
+			Unit * u = ( Unit * ) editTop->selectedElems->Item( i );
 			selected.Add( u->faction );
 		}
 		aux.Init( &selected );
-		aux.ShowModal();
 
-		//update edit window and objects
-		editFaction->SetLabel( "" );
-		if( aux.array.GetCount()>0 ) {
-			for( int i = 0; i < abs( app->selectedUnits->GetCount() ); i++ ) {
-				Unit * u = ( Unit * ) app->selectedUnits->Item( i );
-				u->faction = ( Faction * ) aux.array[0];
-				AddToControl( editFaction, u->faction->name->Str() );
+		if( aux.ShowModal() == wxID_OK ) {
+			if( aux.selectedArray.GetCount()>0 ) {
+				//update edit window and objects
+				editFaction->SetLabel( "" );
+				for( int i = 0; i < (int) editTop->selectedElems->GetCount(); i++ ) {
+					Unit * u = ( Unit * ) editTop->selectedElems->Item( i );
+					u->faction = ( Faction * ) aux.selectedArray[0];
+					AddToControl( editFaction, u->faction->name->Str() );
+				}
+			
 			}
-		
 		}
 		selected.Clear();
-		aux.array.Clear();
+		aux.selectedArray.Clear();
 	} else if( event.GetId() == Edit_Unit_Items ) {
-		EditItemAux aux( this, wxPoint( pw,0 ), wxSize( 180,ph/2 ) );
+		EditItemAux aux( this, wxPoint( x + width + 3, y + 3 ), wxSize( 250, frame->map->GetSize().y - 2 ) );
 
-		aux.Init( app->selectedUnits );
-		aux.ShowModal();
+		aux.Init( editTop->selectedElems );
 
-		//update edit window and objects
-		if( aux.array.GetCount()>0 ) {
-			for( int i = 0; i < abs( app->selectedUnits->GetCount() ); i++ ) {
-				Unit * u = ( Unit * ) app->selectedUnits->Item( i );
-				for( int j = 0; j < abs( aux.array.GetCount() ); j++ ) {
-					Item * it = ( Item * ) aux.array[j];
-					u->items.SetNum( it->type, it->num );
+		if( aux.ShowModal() == wxID_OK ) {
+			//update edit window and objects
+			if( aux.selectedArray.GetCount()>0 ) {
+				for( int i = 0; i < (int) editTop->selectedElems->GetCount(); i++ ) {
+					Unit * u = ( Unit * ) editTop->selectedElems->Item( i );
+					for( int j = 0; j < (int) aux.selectedArray.GetCount(); j++ ) {
+						Item * it = ( Item * ) aux.selectedArray[j];
+						u->items.SetNum( it->type, it->num );
+					}
 				}
 			}
 		}
-		WX_CLEAR_ARRAY( aux.array );
 
 	} else if( event.GetId() == Edit_Unit_Skills ) {
-		EditSkillAux aux( this, wxPoint( pw,0 ), wxSize( 180,ph/2 ) );
+		EditSkillAux aux( this, wxPoint( x + width + 3, y + 3 ), wxSize( 250, frame->map->GetSize().y - 2 ) );
 
-		aux.Init( app->selectedUnits );
-		aux.ShowModal();
+		aux.Init( editTop->selectedElems );
 
-		//update edit window and objects
-		if( aux.array.GetCount()>0 ) {
-			for( int i = 0; i < abs( app->selectedUnits->GetCount() ); i++ ) {
-				Unit * u = ( Unit * ) app->selectedUnits->Item( i );
-				for( int j = 0; j < abs( aux.array.GetCount() ); j++ ) {
-					Skill * s = ( Skill * ) aux.array[j];
-					u->skills.SetDays( s->type, s->days * u->GetMen() );
+		if( aux.ShowModal() == wxID_OK ) {
+			//update edit window and objects
+			if( aux.selectedArray.GetCount()>0 ) {
+				for( int i = 0; i < (int) editTop->selectedElems->GetCount(); i++ ) {
+					Unit * u = ( Unit * ) editTop->selectedElems->Item( i );
+					for( int j = 0; j < (int) aux.selectedArray.GetCount(); j++ ) {
+						Skill * s = ( Skill * ) aux.selectedArray[j];
+						u->skills.SetDays( s->type, s->days * u->GetMen() );
+					}
 				}
-			}
-		
+			}		
 		}
-		WX_CLEAR_ARRAY( aux.array );
 	}
 	app->UpdateUnits();
 }
 
 
+/**
+ * Clone unit
+ */
 void EditUnitPage::OnToolAdd( wxCommandEvent & event )
 {
-	Unit * uOld = ( Unit * ) app->selectedUnits->Item( 0 );
+	Unit * uOld = ( Unit * ) editTop->selectedElems->Item( 0 );
 	Object * o = uOld->object;
 	Faction * f = uOld->faction;
 	Unit * u = app->AddUnit( f );
 	u->MoveUnit( o );
-	frame->tree->canvas->AddItem( u );
-	app->SelectUnit(u);
+	frame->tree->AddItem( u );
+	app->Select(u);
+	app->UpdateSelection();
 }
 
+/**
+ * Delete unit
+ */
 void EditUnitPage::OnToolDelete( wxCommandEvent & event )
 {
-	if( app->selectedUnits->GetCount() == 0 ) return;
+	if( editTop->selectedElems->GetCount() == 0 ) return;
 
 	int answer = wxMessageBox( "Really delete unit(s)?", "Confirm",
 	                          wxYES_NO | wxCENTRE | wxICON_QUESTION );
 
 	if( answer == wxYES ) {
-		for( int i = abs( app->selectedUnits->GetCount()	-1 ); i >= 0; i-- ) {
-			Unit * u = ( Unit * ) app->selectedUnits->Item( i );
-			app->TrashUnit( u );
+		for( int i = (int) editTop->selectedElems->GetCount() -1; i >= 0; i-- ) {
+			Unit * u = ( Unit * ) editTop->selectedElems->Item( i );
+			app->Trash( u );
 		}
 	}
 	( ( EditFrame * )GetParent() )->HideAllPages();
 }
 
+/**
+ * Move unit
+ */
 void EditUnitPage::OnToolMove( wxCommandEvent & event )
 {
-	ARegion * newReg = GetRegionChoice( "Select region to move to.", "Move unit" );
+	int x, y, width, height;
+	GetParent()->GetSize( &width, &height );
+	GetParent()->GetPosition( &x, &y );
+	GetParent()->ClientToScreen( &x, &y );
 
-	if( !newReg ) return;
+	EditRegionAux aux( this, wxPoint( x + width + 3, y + 3 ), wxSize( 250, frame->map->GetSize().y - 2 ) );
 
-	for( int i = 0; i < abs( app->selectedUnits->GetCount() ); i++ )
+	AElemArray selected;
+	for( int i = 0; i < (int) editTop->selectedElems->GetCount(); i++ ) {
+ 		Unit * u = ( Unit * ) editTop->selectedElems->Item( i );
+		ARegion * r = u->object->region;
+		selected.Add( r );
+	}
+	aux.Init( &selected );
+
+	selected.Clear();
+
+	if( aux.ShowModal() == wxID_OK ) {
+		if( aux.selectedArray.GetCount()>0 ) {
+			ARegion * destReg = (ARegion *) aux.selectedArray[0];
+			EditObjectAux objAux( this, wxPoint( x + width + 3, y + 3 ), wxSize( 250, frame->map->GetSize().y - 2 ) );
+			objAux.Init( destReg, NULL );
+			if( objAux.ShowModal() == wxID_OK && objAux.selectedArray.GetCount() > 0 ) {
+				Object * destObj = ( Object * ) objAux.selectedArray[0];
+				for( int i = 0; i < (int) editTop->selectedElems->GetCount(); i++ ) {
+					Unit * u = ( Unit * ) editTop->selectedElems->Item( i );
+					frame->tree->RemoveItem( u );
+					u->MoveUnit( destObj );
+					frame->tree->AddItem( u );
+				}
+			}
+		}
+	}
+	
+}
+
+// ---------------------------------------------------------------------------
+// EditGamePage
+// ---------------------------------------------------------------------------
+
+/**
+ * Default constructor. Creates all necessary controls
+ */
+EditGamePage::EditGamePage( wxWindow *parent, const wxPoint& pos,
+                   const wxSize& size )
+         : EditPage( parent, pos, size )
+{
+	CreateControl( &editMonth, Edit_Game_Month, "Month: ", true );
+	CreateControl( &editYear, Edit_Game_Year, "Year: ", true );
+	CreateControl( &editFactionSeq, Edit_Game_FactionSeq, "Faction seq: ", true );
+	CreateControl( &editUnitSeq, Edit_Game_UnitSeq, "Unit seq: ", true );
+	CreateControl( &editShipSeq, Edit_Game_ShipSeq, "Ship seq: ", true );
+	CreateControl( &editGuardFaction, Edit_Game_GuardFaction, "Guard faction: " );
+	CreateControl( &editMonFaction, Edit_Game_MonFaction, "Monster faction: " );
+
+	toolBar->EnableTool( Edit_Tool_Add, false );
+	toolBar->EnableTool( Edit_Tool_Delete, false );
+	toolBar->EnableTool( Edit_Tool_Move, false );
+}
+
+/**
+ * Default destructor
+ */
+EditGamePage::~EditGamePage()
+{
+}
+
+/** 
+ * Enable/Disable all controls on page
+ */
+void EditGamePage::EnableAllControls( bool b )
+{
+	editMonth->Enable( b );
+	editYear->Enable( b );
+	editFactionSeq->Enable( b );
+	editUnitSeq->Enable( b );
+	editShipSeq->Enable( b );
+	editGuardFaction->Enable( b );
+	editMonFaction->Enable( b );
+}
+
+/**
+ * Clear all controls on page
+ */
+void EditGamePage::ClearAllControls()
+{
+	border->SetTitle( "Game" );
+	editMonth->Clear();
+	editYear->Clear();
+	editFactionSeq->Clear();
+	editUnitSeq->Clear();
+	editShipSeq->Clear();
+	editGuardFaction->SetLabel( "" );
+	editMonFaction->SetLabel( "" );
+}
+
+/**
+ * Process event when a textbox is updated.
+ * Update the actual game data, and the tree/list view display
+ *  for the updated data for the current selection
+ */
+void EditGamePage::OnTextUpdate( wxCommandEvent & event )
+{
+	if( editWait ) return;
+
+	Game * game = app->m_game;
+	
+	switch ( event.GetId() )
 	{
-		Unit * u = ( Unit * ) app->selectedUnits->Item( i );
-		frame->tree->canvas->RemoveItem( u );
-		u->MoveUnit( newReg->GetDummy() );
-		frame->tree->canvas->AddItem( u );
+		case Edit_Game_Month:
+			UpdateControl( editMonth, game->month );
+			break;
+		case Edit_Game_Year:
+			UpdateControl( editYear, game->year );
+			break;
+		case Edit_Game_FactionSeq:
+			UpdateControl( editFactionSeq, game->factionseq );
+			break;
+		case Edit_Game_UnitSeq:
+			UpdateControl( editUnitSeq, game->unitseq );
+			break;
+		case Edit_Game_ShipSeq:
+			UpdateControl( editShipSeq, game->shipseq );
+			break;
+	}
+	app->UpdateLevels();
+}
+
+/**
+ * Process event when a button is pressed.
+ */
+void EditGamePage::OnButton( wxCommandEvent & event )
+{
+	if( editWait ) return;
+
+	int x, y, width, height;
+	GetParent()->GetSize( &width, &height );
+	GetParent()->GetPosition( &x, &y );
+	GetParent()->ClientToScreen( &x, &y );
+
+	Game * game = app->m_game;
+	if( event.GetId() == Edit_Game_GuardFaction ){
+		EditFactionAux aux( this, wxPoint( x + width + 3, y + 3 ), wxSize( 250, frame->map->GetSize().y - 2 ) );
+
+		Faction * fac = NULL;
+		forlist(&app->m_game->factions) {
+			if( (( Faction * ) elem )->num == game->guardfaction )
+				fac = ( Faction * ) elem;
+		}
+		AElemArray selected;
+		if( !fac ) {
+			aux.Init( NULL );
+		} else {
+			selected.Add( fac );
+			aux.Init( &selected );
+		}
+
+		if( aux.ShowModal() == wxID_OK ) {
+			//update edit window and objects
+			editGuardFaction->SetLabel( "" );
+			if( aux.selectedArray.GetCount()>0 ) {
+				Faction * f = ( Faction * ) aux.selectedArray[0];
+				game->guardfaction = f->num;
+				AddToControl( editGuardFaction, f->name->Str() );
+			}
+		}
+		selected.Clear();
+		aux.selectedArray.Clear();
+
+	} else if( event.GetId() == Edit_Game_MonFaction ){
+		EditFactionAux aux( this, wxPoint( x + width + 3, y + 3 ), wxSize( 250, frame->map->GetSize().y - 2 ) );
+		AElemArray selected;
+
+		Faction * fac = NULL;
+		forlist(&app->m_game->factions) {
+			if( (( Faction * ) elem )->num == game->monfaction )
+				fac = ( Faction * ) elem;
+		}
+		if( !fac ) {
+			aux.Init( NULL );
+		} else {
+			selected.Add( fac );
+			aux.Init( &selected );
+		}
+
+		if( aux.ShowModal() == wxID_OK ) {
+			//update edit window and objects
+			editGuardFaction->SetLabel( "" );
+			if( aux.selectedArray.GetCount()>0 ) {
+				Faction * f = ( Faction * ) aux.selectedArray[0];
+				game->monfaction = f->num;
+				AddToControl( editMonFaction, f->name->Str() );
+			}
+		}
+		selected.Clear();
+		aux.selectedArray.Clear();
+	}
+	
+}
+
+void EditGamePage::OnToolAdd( wxCommandEvent & event )
+{
+}
+
+void EditGamePage::OnToolDelete( wxCommandEvent & event )
+{
+}
+
+void EditGamePage::OnToolMove( wxCommandEvent & event )
+{
+}
+
+/**
+ * Synch displayed selection with current selection
+ */
+void EditFrame::UpdateSelection()
+{
+	int i;
+	// Change selections
+	if( app->curSelection == curSelection ) {
+		// New selection is the same type as the current selection
+		// Deselect everything if there are items that aren't in the new selection
+		// Select items in the new selection as necessary
+
+		if( curSelection == SELECT_LEVEL ) {
+			if( selectedLevel != app->selectedLevel ) {
+				DeselectAll();
+				SelectItem( selectedLevel );
+			}
+		} else if( curSelection == SELECT_GAME ) {
+			// Nothing to do here
+		} else {
+			// Unselect any items not in the new selection
+			for( i = 0; i < (int) selectedElems->GetCount(); i++ ) {
+				AListElem * elem = selectedElems->Item( i );
+				if( app->selectedElems->Index( elem ) == wxNOT_FOUND )  {
+					DeselectAll();
+					selectedElems->Clear();
+					break;
+				}
+			}
+		
+			// Now select any items that are not in the current selection
+			if( app->curSelection == SELECT_REGION ) {
+				regionPage->SelectItems( app->selectedElems );
+			} else {
+				for( i = 0; i < (int) app->selectedElems->GetCount(); i++ ) {
+					AListElem * elem = app->selectedElems->Item( i );
+					if( selectedElems->Index( elem ) == wxNOT_FOUND )
+						SelectItem( elem, app->curSelection );
+				}
+			}
+		}
+	} else {
+		// New selection is a different type than the current selection
+		// Deselect all items in the current selection and select all those in the new selection
+
+		DeselectAll();
+
+		// Now select the new selection
+		if( app->curSelection == SELECT_LEVEL ) {
+			SelectItem( app->selectedLevel );
+		} else if( app->curSelection == SELECT_GAME ) {
+			SelectItem( app->m_game );
+		} else if( app->curSelection == SELECT_REGION ) {
+			regionPage->SelectItems( app->selectedElems );
+		} else {
+			for( i = 0; i < (int) app->selectedElems->GetCount(); i++ ) {
+				AListElem * elem = app->selectedElems->Item( i );
+				SelectItem( elem, app->curSelection );
+			}
+		}
 	}
 
+	PostLoad( app->curSelection );
+
+	// Synch selection values
+	curSelection = app->curSelection;
+	selectedLevel = app->selectedLevel;
+	selectedElems->Clear();
+	for( i = 0; i < (int) app->selectedElems->GetCount(); i++ ) {
+		AListElem * elem = app->selectedElems->Item( i );
+		selectedElems->Add( elem );
+	}
+
+	// And finally, display the last selection
+
+}
+
+/**
+ * Select game element
+ */
+void EditFrame::SelectItem( Game * pGame )
+{
+	gamePage->SelectItem( pGame );
+}
+
+/**
+ * Select level element
+ */
+void EditFrame::SelectItem( ARegionArray * level )
+{
+	levelPage->SelectItem( level );
+}
+
+/**
+ * Select element
+ */
+void EditFrame::SelectItem( AListElem * element, int type )
+{
+	EditPage * page = NULL;
+	switch( type ) {
+		case SELECT_REGION:
+			page = regionPage;
+			break;
+		case SELECT_OBJECT:
+			page = objectPage;
+			break;
+		case SELECT_FACTION:
+			page = factionPage;
+			break;
+		case SELECT_UNIT:
+			page = unitPage;
+			break;
+		case SELECT_MARKET:
+			page = marketPage;
+			break;
+		case SELECT_PRODUCTION:
+			page = productionPage;
+			break;
+		case SELECT_LEVEL:
+			page = levelPage;
+			break;
+		case SELECT_GAME:
+			page = gamePage;
+			break;
+	}
+	page->SelectItem( element );
+}
+
+/**
+ * Update controls with new selection
+ */
+void EditRegionPage::SelectItem( AListElem * element )
+{
+	editWait = true;
+
+	bool multiple = false;
+	if( app->selectedElems->Count() > 1 ) multiple = true;
+
+	ARegion * r = ( ARegion * ) element;
+	AddToControl( editType, TerrainDefs[r->type].name );
+	AddToControl( editRace, ( r->race != -1 ? ItemDefs[r->race].names : "" ) );
+	AddToControl( editNumber, r->num );
+	AddToControl( editName, r->name->Str() );
+	AddToControl( editBuildingseq, r->buildingseq );
+	AddToControl( editGate, r->gate );
+	AddToControl( editPop, r->population );
+	AddToControl( editBasepop, r->basepopulation );
+	AddToControl( editWages, r->wages );
+	AddToControl( editMaxwages, r->maxwages );
+	AddToControl( editMoney, r->money );
+	for( int j=0; j < NDIRS; j++ ) {
+		ARegion * reg = r->neighbors[j];
+		if( !reg ) continue;
+		AString temp = AString( "( " ) + reg->xloc + ", " + reg->yloc + ", " +
+					   reg->zloc + " )";
+		AddToControl( editExits[j], temp.Str() );
+	}
+
+	if( r->town && !multiple ) {
+		editTown->SetLabel( "Remove town... *" );
+		AddToControl( editTownName, r->town->name->Str() );
+		AddToControl( editTownPop, r->town->pop );
+		AddToControl( editTownBasepop, r->town->basepop );
+	} else {
+		editTown->SetLabel( "Add Town... *" );
+		editTownName->Enable( false );
+		editTownPop->Enable( false );
+		editTownBasepop->Enable( false );
+	}
+	editWait = false;
+
+}
+
+/**
+ * Update controls with new selection
+ */
+void EditRegionPage::SelectItems( AElemArray * array )
+{
+	editWait = true;
+
+	int count = (int) array->Count();
+	int i;
+
+	for( i = 0; i < count; i++ ) {
+		ARegion * r = ( ARegion * ) array->Item( i );
+		if( !(AddToControl( editType, TerrainDefs[r->type].name ) ) ) break;
+	}
+
+	for( i = 0; i < count; i++ ) {
+		ARegion * r = ( ARegion * ) array->Item( i );
+		if( !(AddToControl( editRace, ( r->race != -1 ? ItemDefs[r->race].names : "" ) ) ) ) break;
+	}
+	for( i = 0; i < count; i++ ) {
+		ARegion * r = ( ARegion * ) array->Item( i );
+		if( !(AddToControl( editNumber, r->num ) ) ) break;
+	}
+	for( i = 0; i < count; i++ ) {
+		ARegion * r = ( ARegion * ) array->Item( i );
+		if( !(AddToControl( editName, r->name->Str() ) ) ) break;
+	}
+	for( i = 0; i < count; i++ ) {
+		ARegion * r = ( ARegion * ) array->Item( i );
+		if( !(AddToControl( editBuildingseq, r->buildingseq ) ) ) break;
+	}
+	for( i = 0; i < count; i++ ) {
+		ARegion * r = ( ARegion * ) array->Item( i );
+		if( !(AddToControl( editGate, r->gate ) ) ) break;
+	}
+	for( i = 0; i < count; i++ ) {
+		ARegion * r = ( ARegion * ) array->Item( i );
+		if( !(AddToControl( editPop, r->population ) ) ) break;
+	}
+	for( i = 0; i < count; i++ ) {
+		ARegion * r = ( ARegion * ) array->Item( i );
+		if( !(AddToControl( editBasepop, r->basepopulation ) ) ) break;
+	}
+	for( i = 0; i < count; i++ ) {
+		ARegion * r = ( ARegion * ) array->Item( i );
+		if( !(AddToControl( editWages, r->wages ) ) ) break;
+	}
+	for( i = 0; i < count; i++ ) {
+		ARegion * r = ( ARegion * ) array->Item( i );
+		if( !(AddToControl( editMaxwages, r->maxwages ) ) ) break;
+	}
+	for( i = 0; i < count; i++ ) {
+		ARegion * r = ( ARegion * ) array->Item( i );
+		if( !(AddToControl( editMoney, r->money ) ) ) break;
+	}
+
+	int town = 0;
+	if( count == 1 ) {
+		ARegion * r = ( ARegion * ) array->Item( 0 );
+		for( int j = 0; j < NDIRS; j++ ) {
+			editExits[j]->Enable( true );
+			ARegion * reg = r->neighbors[j];
+			if( !reg ) continue;
+			AString temp = AString( "( " ) + reg->xloc + ", " + reg->yloc + ", " +
+						   reg->zloc + " )";
+			AddToControl( editExits[j], temp.Str() );
+		}
+		if( r->town ) {
+			town = 1;
+			editTown->SetLabel( "Remove town... *" );
+			AddToControl( editTownName, r->town->name->Str() );
+			AddToControl( editTownPop, r->town->pop );
+			AddToControl( editTownBasepop, r->town->basepop );
+		}
+	} else {
+		for( int j = 0; j < NDIRS; j++ ) {
+			editExits[j]->Enable( false );
+		}
+	}
+
+	if( !town ) {
+		editTown->SetLabel( "Add Town... *" );
+		editTownName->Enable( false );
+		editTownPop->Enable( false );
+		editTownBasepop->Enable( false );
+	}
+	editWait = false;
+
+}
+
+/**
+ * Update controls with new selection
+ */
+void EditFactionPage::SelectItem( AListElem * element )
+{
+	editWait = true;
+
+	Faction * f = ( Faction * ) element;
+	AddToControl( editNumber, f->num );
+	AddToControl( editLastChange, f->lastchange );
+	AddToControl( editLastOrders, f->lastorders );
+	AddToControl( editUnclaimed, f->unclaimed );
+	AddToControl( editName, f->name->Str() );
+	AddToControl( editAddress, f->address->Str() );
+	AddToControl( editPassword, f->password->Str() );
+	AddToControl( editTimes, f->times );
+	AddToControl( editTemformat, f->temformat );
+	AddToControl( editQuit, f->quit );
+
+	editWait = false;
+
+}
+
+/**
+ * Update controls with new selection
+ */
+void EditLevelPage::SelectItem( AListElem * element )
+{
+	// do nothing
+}
+
+/**
+ * Update controls with new selection
+ */
+void EditLevelPage::SelectItem( ARegionArray * level )
+{
+	editWait = true;
+	EnableAllControls( true );
+	ClearAllControls();
+
+	AddToControl( editName, level->strName ? level->strName->Str() : "");
+	AddToControl( editLevelType, level->levelType );
+
+	editWait = false;
+}
+
+/**
+ * Update controls with new selection
+ */
+void EditGamePage::SelectItem( AListElem * element )
+{
+	// do nothing
+}
+
+/**
+ * Update controls with new selection
+ */
+void EditGamePage::SelectItem( Game * game )
+{
+	editWait = true;
+
+	AddToControl( editMonth, game->month );
+	AddToControl( editYear, game->year );
+	AddToControl( editFactionSeq, game->factionseq );
+	AddToControl( editUnitSeq, game->unitseq );
+	AddToControl( editShipSeq, game->shipseq );
+
+	Faction * fac = NULL;
+	{
+		forlist(&app->m_game->factions) {
+			if( (( Faction * ) elem )->num == game->guardfaction )
+				fac = ( Faction * ) elem;
+		}
+	}
+	if( fac )
+		AddToControl( editGuardFaction, fac->name->Str() );
+
+	fac = NULL;
+	forlist(&app->m_game->factions) {
+		if( (( Faction * ) elem )->num == game->monfaction )
+			fac = ( Faction * ) elem;
+	}
+	if( fac )
+		AddToControl( editMonFaction, fac->name->Str() );
+
+	editWait = false;
+
+}
+
+/**
+ * Update controls with new selection
+ */
+void EditUnitPage::SelectItem( AListElem * element )
+{
+	editWait = true;
+
+	Unit * u = ( Unit * ) element;
+	AString comb = ( u->combat==-1 ? "" : SkillDefs[u->combat].name );
+	AString item = ( u->readyItem == -1? "" : ItemDefs[u->readyItem].name );
+
+	AddToControl( editNum, u->num );
+	AddToControl( editName, u->name->Str() );
+	if( u->describe )
+		AddToControl( editDescribe, u->describe->Str() );
+	AddToControl( editFaction, u->faction->name->Str() );
+	AddToControl( editType, u->type );
+	AddToControl( editGuard, u->guard );
+	AddToControl( editReveal, u->reveal );
+	AddToControl( editCombat, comb.Str() );
+	AddToControl( editReadyItem, item.Str() );
+
+	editWait = false;
+
+}
+
+/**
+ * Update controls with new selection
+ */
+void EditObjectPage::SelectItem( AListElem * element )
+{
+	editWait = true;
+
+	Object * o = ( Object * ) element;
+
+	AString temp;
+
+	if( o->inner != -1 ) {
+		ARegion * r = app->m_game->regions.GetRegion( o->inner );
+		temp = AString( "( " ) + r->xloc + ", " + r->yloc + ", " +
+					   r->zloc + " )";
+	} else {
+		temp = "";
+	}
+
+	AddToControl( editName, o->name->Str() );
+	if( o->describe )
+		AddToControl( editDescribe, o->describe->Str() );
+	AddToControl( editInner, temp.Str() );
+	AddToControl( editNum, o->num );
+	AddToControl( editIncomplete, o->incomplete );
+	AddToControl( editRunes, o->runes );
+	AddToControl( editType, o->type );
+	
+	editWait = false;
+
+}
+
+/**
+ * Update controls with new selection
+ */
+void EditMarketPage::SelectItem( AListElem * element )
+{
+	editWait = true;
+
+	Market * m = ( Market * ) element;
+
+	AddToControl( editPrice, m->price );
+	AddToControl( editAmount, m->amount );
+	AddToControl( editMinpop, m->minpop );
+	AddToControl( editMaxpop, m->maxpop );
+	AddToControl( editMinamt, m->minamt );
+	AddToControl( editMaxamt, m->maxamt );
+	AddToControl( editType, m->type );
+	AddToControl( editItem, m->item );	
+
+	editWait = false;
+}
+
+/**
+ * Update controls with new selection
+ */
+void EditProductionPage::SelectItem( AListElem * element )
+{
+	editWait = true;
+
+	Production * p = ( Production * ) element;
+
+	AddToControl( editAmount, p->amount );
+	AddToControl( editBaseamount, p->baseamount );
+	AddToControl( editItemtype, p->itemtype );
+
+	editWait = false;
+
+}
+
+void EditPage::SelectItem( AListElem * element )
+{
+}
+
+void EditPage::PostLoad()
+{
+}
+
+/**
+ * Set border label, and enable/disable controls as necessary
+ */
+void EditFactionPage::PostLoad()
+{
+	int count = app->selectedElems->GetCount();
+	if( count == 1 ) {
+		Faction * f = ( Faction * ) app->selectedElems->Item( 0 );
+		border->SetTitle( f->name->Str() );
+	} else {
+		AString temp = AString( count ) + " Factions";
+		border->SetTitle( temp.Str() );
+	}
+}
+
+/**
+ * Set border label, and enable/disable controls as necessary
+ */
+void EditLevelPage::PostLoad()
+{
+	if( app->selectedLevel && app->selectedLevel->regions && app->selectedLevel->regions[0] ) {
+		AString temp = AString( "Level " ) + AString( app->selectedLevel->regions[0]->zloc )
+			+ " : ";
+		if( app->selectedLevel->strName ) 
+			temp += *app->selectedLevel->strName;
+		else
+			temp += "(Surface)";
+		border->SetTitle( temp.Str() );
+	}
+}
+
+/**
+ * Set border label, and enable/disable controls as necessary
+ */
+void EditGamePage::PostLoad()
+{
+	border->SetTitle( Globals->WORLD_NAME );
+}
+
+/**
+ * Set border label, and enable/disable controls as necessary
+ */
+void EditRegionPage::PostLoad()
+{
+	AString temp;
+
+	int count = (int) app->selectedElems->Count();
+	if( count == 1 ) {
+		ARegion * r = ( ARegion * ) app->selectedElems->Item( 0 );
+		temp = AString( "( " ) + r->xloc + ", " + r->yloc + ", " +
+						   r->zloc + " ) ";
+		border->SetTitle( temp.Str() );
+	} else {
+		editTown->Enable( false );
+		editTownName->Enable( false );
+		editTownPop->Enable( false );
+		editTownBasepop->Enable( false );
+		temp = AString( count ) + " Regions";
+		border->SetTitle( temp.Str() );
+	}
+}
+
+/**
+ * Set border label, and enable/disable controls as necessary
+ */
+void EditObjectPage::PostLoad()
+{
+	AString temp;
+
+	int count = app->selectedElems->GetCount();
+	if( count == 1 ) {
+		Object * o = ( Object * ) app->selectedElems->Item( 0 );
+		border->SetTitle( o->name->Str() );
+	} else {
+		AString temp = AString( count ) + " Objects";
+		border->SetTitle( temp.Str() );
+	}
+
+	bool dummy = false;
+
+	for( int i = 0; i < count; i++ ) {
+		Object * o = ( Object * ) app->selectedElems->Item( i );
+		if( o->region->GetDummy() == o ) {
+			dummy = true;
+			break;
+		}
+	}
+
+	if( dummy ) {
+		toolBar->EnableTool( Edit_Tool_Delete, false );
+		toolBar->EnableTool( Edit_Tool_Move, false );
+	} else {
+		toolBar->EnableTool( Edit_Tool_Delete, true );
+		toolBar->EnableTool( Edit_Tool_Move, true );
+	}
+
+}
+
+/**
+ * Set border label, and enable/disable controls as necessary
+ */
+void EditUnitPage::PostLoad()
+{
+	int count = app->selectedElems->GetCount();
+	if( count == 1 ) {
+		Unit * u = ( Unit * ) app->selectedElems->Item( 0 );
+		border->SetTitle( u->name->Str() );
+	} else {
+		AString temp = AString( count ) + " Units";
+		border->SetTitle( temp.Str() );
+	}
+}
+
+/**
+ * Set border label, and enable/disable controls as necessary
+ */
+void EditProductionPage::PostLoad()
+{
+	int count = app->selectedElems->GetCount();
+	if( count == 1 ) {
+		border->SetTitle( "Production" );
+	} else {
+		AString temp = AString( count ) + " Productions";
+		border->SetTitle( temp.Str() );
+	}
+}
+
+/**
+ * Set border label, and enable/disable controls as necessary
+ */
+void EditMarketPage::PostLoad()
+{
+	int count = app->selectedElems->GetCount();
+	if( count == 1 ) {
+		border->SetTitle( "Market" );
+	} else {
+		AString temp = AString( count ) + " Markets";
+		border->SetTitle( temp.Str() );
+	}
+}
+
+/**
+ * Run final processing for current page
+ */
+void EditFrame::PostLoad( int type )
+{
+	EditPage * page = NULL;
+	switch( type ) {
+		case SELECT_REGION:
+			page = regionPage;
+			break;
+		case SELECT_OBJECT:
+			page = objectPage;
+			break;
+		case SELECT_FACTION:
+			page = factionPage;
+			break;
+		case SELECT_UNIT:
+			page = unitPage;
+			break;
+		case SELECT_MARKET:
+			page = marketPage;
+			break;
+		case SELECT_PRODUCTION:
+			page = productionPage;
+			break;
+		case SELECT_LEVEL:
+			page = levelPage;
+			break;
+		case SELECT_GAME:
+			page = gamePage;
+			break;
+	}
+	if( !page ) return;
+	page->PostLoad();
+	ShowPage( page );
+}
+
+/**
+ * Repopulate controls with current selection
+ */
+void EditPage::ReloadPage()
+{
+	editTop->selectedElems->Clear();
+	editTop->DeselectAll();
+	editTop->UpdateSelection();
+}
+
+/**
+ * Reset all pages and controls
+ */
+void EditFrame::DeselectAll()
+{
+	SetWait( true );
+
+	factionPage->ClearAllControls();
+	regionPage->ClearAllControls();
+	marketPage->ClearAllControls();
+	productionPage->ClearAllControls();
+	objectPage->ClearAllControls();
+	unitPage->ClearAllControls();
+	levelPage->ClearAllControls();
+	gamePage->ClearAllControls();
+	factionPage->EnableAllControls( true );
+	regionPage->EnableAllControls( true );
+	marketPage->EnableAllControls( true );
+	productionPage->EnableAllControls( true );
+	objectPage->EnableAllControls( true );
+	unitPage->EnableAllControls( true );
+	levelPage->EnableAllControls( true );
+	gamePage->EnableAllControls( true );
+
+	SetWait( false );
+}
+
+/**
+ * Sets wait flag on all pages
+ */
+void EditFrame::SetWait( bool wait )
+{
+	factionPage->editWait = wait;
+	regionPage->editWait = wait;
+	marketPage->editWait = wait;
+	productionPage->editWait = wait;
+	objectPage->editWait = wait;
+	unitPage->editWait = wait;
+	levelPage->editWait = wait;
+	gamePage->editWait = wait;
 }

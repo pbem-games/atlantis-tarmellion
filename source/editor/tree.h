@@ -1,7 +1,10 @@
 // START A3HEADER
 //
-// This source file is part of the Atlantis PBM game program.
-// Copyright (C) 1995-1999 Geoff Dunbar
+// This source file is part of Atlantis GUI
+// Copyright (C) 2003-2004 Ben Lloyd
+//
+// To be used with the Atlantis PBM game program.
+// Copyright (C) 1995-2004 Geoff Dunbar
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -28,6 +31,7 @@
 
 #include "../alist.h"
 #include "../aregion.h"
+#include "aextend.h"
 
 #include "wx/wx.h"
 #include "wx/treectrl.h"
@@ -42,15 +46,9 @@ enum
 class TreeCanvas : public wxScrolledWindow
 {
 public:
-	TreeCanvas( wxWindow *parent, const wxPoint& pos, const wxSize& size );
+	TreeCanvas( wxWindow *parent );
+	~TreeCanvas();
 	void Init();
-
-	void SelectItem( Faction *, bool add = false );
-	void SelectItem( ARegion *, bool add = false );
-	void SelectItem( Market *, bool add = false );
-	void SelectItem( Production *, bool add = false );
-	void SelectItem( Object *, bool add = false );
-	void SelectItem( Unit *, bool add = false );
 
 	void AddItem( Faction *, bool populate = true );
 	void AddItem( ARegion *, bool populate = true );
@@ -67,20 +65,21 @@ public:
 	void RemoveItem( Unit * );
 
 	void UpdateItem( Faction * );
-	void UpdateItem( ARegion * );
+	void UpdateItem( ARegion *, bool populate = false );
 	void UpdateItem( Market * );
 	void UpdateItem( Production * );
 	void UpdateItem( Object * );
 	void UpdateItem( Unit * );
+	void UpdateItem( ARegionArray * );
 
-	wxTreeCtrl * tree;
+	void UpdateSelection();
+	void ToggleHeaders( bool toggle );
+
+	bool lastUnitByFaction;
 
 	DECLARE_EVENT_TABLE()
-private:
-	bool treeWait;
-	wxTreeItemId treeFactions;
-	wxTreeItemId treeLevels;
 
+private:
 	wxTreeItemId FindItem( ARegionArray * );
 	wxTreeItemId FindItem( ARegion * );
 	wxTreeItemId FindItem( Faction * );
@@ -88,95 +87,134 @@ private:
 	wxTreeItemId FindItem( Unit *, bool unitByFaction = true );
 	wxTreeItemId FindItem( Market * );
 	wxTreeItemId FindItem( Production * );
+	wxTreeItemId FindCategory( const char *, wxTreeItemId );
+	wxTreeItemId FindSelected( AListElem *, int type, bool unitByFaction = false );
+
+	void UpdateSelectionLeafs( int type );
+	void UpdateSelectionRegions();
+	void UpdateSelectionFactions();
+	void UpdateSelectionObjects();
+	void UpdateSelectionMarkets();
+	void UpdateSelectionProductions();
+	void UpdateSelectionUnits( bool unitByFaction = true );
 
 	void OnResize( wxSizeEvent & );
 	void OnLeafSelection( wxTreeEvent & );
+	void OnLeafSelecting( wxTreeEvent & );
+	bool IsLeafHighlighted( wxTreeItemId );
 
-};
+	void DeselectAll();
+	void UnHighlightLeaf( wxTreeItemId );
+	void HighlightLeaf( wxTreeItemId );
 
-class TreeChild : public wxMDIChildFrame
-{
-public:
-	TreeChild( wxMDIParentFrame *parent, const wxString& title, const wxPoint& pos, const wxSize& size, const long style );
-	
-	TreeCanvas * canvas;
-	void InitTree();
-private:
+	wxTreeCtrl * tree;
 
-	void OnClose( wxCloseEvent & );
-	void OnMultiToggle( wxCommandEvent & );
-	DECLARE_EVENT_TABLE()
+	wxTreeItemId treeFactions;
+	wxTreeItemId treeLevels;
+	wxTreeItemId lastSelected;
+
+	ARegionArray * selectedLevel;
+	AElemArray * selectedElems;
+	int curSelection;
+
+	int selectOK;
+	bool treeWait;
+	bool showHeaders;
+
 };
 
 class TreeLeaf : public wxTreeItemData
 {
-public:
-	~TreeLeaf();
-	virtual void UpdateEditor();
+	public:
+		~TreeLeaf();
+		virtual void MakeSelection( bool add = false );
+
+		int class_id;
 };
 
 class RegionLeaf : public TreeLeaf
 {
-public:
-	RegionLeaf( ARegion * );
-	void UpdateEditor();
+	public:
+		RegionLeaf( ARegion * );
+		void MakeSelection( bool add = false );
 
-	ARegion * region;
+		ARegion * region;
 };
 
 class LevelLeaf : public TreeLeaf
 {
-public:
-	LevelLeaf( ARegionArray *, int );
-	void UpdateEditor();
+	public:
+		LevelLeaf( ARegionArray *, int );
+		void MakeSelection( bool add = false );
 
-	ARegionArray * regionArray;
-	int level;
+		ARegionArray * regionArray;
+		int level;
 };
 
 class FactionLeaf : public TreeLeaf
 {
-public:
-	FactionLeaf( Faction * );
-	void UpdateEditor();
+	public:
+		FactionLeaf( Faction * );
+		void MakeSelection( bool add = false );
 
-	Faction * faction;
+		Faction * faction;
 };
 
 class MarketLeaf : public TreeLeaf
 {
-public:
-	MarketLeaf( Market * );
-	void UpdateEditor();
+	public:
+		MarketLeaf( Market * );
+		void MakeSelection( bool add = false );
 
-	Market * market;
+		Market * market;
 };
 
 class ObjectLeaf : public TreeLeaf
 {
-public:
-	ObjectLeaf( Object * );
-	void UpdateEditor();
+	public:
+		ObjectLeaf( Object * );
+		void MakeSelection( bool add = false );
 
-	Object * object;
+		Object * object;
 };
 
 class UnitLeaf : public TreeLeaf
 {
-public:
-	UnitLeaf( Unit * );
-	void UpdateEditor();
+	public:
+		UnitLeaf( Unit *, bool byFac );
+		void MakeSelection( bool add = false );
 
-	Unit * unit;
+		bool byFaction;
+		Unit * unit;
 };
 
 class ProductionLeaf : public TreeLeaf
 {
-public:
-	ProductionLeaf( Production * );
-	void UpdateEditor();
+	public:
+		ProductionLeaf( Production * );
+		void MakeSelection( bool add = false );
 
-	Production * production;
+		Production * production;
+};
+
+class GameLeaf : public TreeLeaf
+{
+	public:
+		GameLeaf( Game * );
+		void MakeSelection( bool add = false );
+
+		Game * game;
+};
+
+enum {
+	LEAF_REG,
+	LEAF_LEV,
+	LEAF_FAC,
+	LEAF_MAR,
+	LEAF_OBJ,
+	LEAF_UNI,
+	LEAF_PRO,
+	LEAF_GAM,
 };
 
 #endif

@@ -1,7 +1,10 @@
 // START A3HEADER
 //
-// This source file is part of the Atlantis PBM game program.
-// Copyright (C) 1995-1999 Geoff Dunbar
+// This source file is part of Atlantis GUI
+// Copyright (C) 2003-2004 Ben Lloyd
+//
+// To be used with the Atlantis PBM game program.
+// Copyright (C) 1995-2004 Geoff Dunbar
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -29,101 +32,148 @@
 #include "../astring.h"
 #include "../unit.h"
 
-#include "alistex.h"
+#include "aextend.h"
 
 #include "wx/wx.h"
 #include "wx/grid.h"
 
 class EditAux : public wxDialog
 {
-public:
-	EditAux( wxWindow *parent, const wxString & title, const wxPoint& pos, const wxSize& size );
-	~EditAux();
+	public:
+		EditAux( wxWindow *parent, const wxString & title, const wxPoint& pos, const wxSize& size );
+		~EditAux();
 
-	void InitGrid( int, bool selectRows = true );
-	int AddRowToGrid( AListElem *, wxGridCellAttr * rowAttr = NULL );
-	void InitSizer();
+		AElemArray selectedArray;
 
-	void PreSelectRows( AElemArray * );
+	protected:
+		void OnClose( wxCommandEvent & event );
+		void OnOK( wxCommandEvent & event );
 
-	void OnClose( wxCloseEvent & );
+		virtual void WriteGrid();
 
-	bool editWait;
-	bool canDelete;
+		void InitGrid( int, bool selectRows = true );
+		void InitSizer();
 
-	AElemArray array;
-	wxGrid * grid;
-	wxSizer * sizerAux;
+		void PreSelectRows( AElemArray * );
 
-	DECLARE_EVENT_TABLE()
+		void OnClose( wxCloseEvent & );
+		void OnSort( wxGridEvent & );
+		void OnEdit( wxGridEvent & );
+//		void OnOK( wxCommandEvent & );
+
+		void FinalizeArray();
+
+		wxGrid * grid;
+		wxSizer * sizerAux;
+
+		bool editWait;
+		bool canDelete;
+		int editCol;
+		int sortCol;
+
+		AElemArray array;
+
+		DECLARE_EVENT_TABLE()
 };
 
 class EditRegionAux : public EditAux
 {
-public:
-	EditRegionAux( wxWindow* parent, const wxPoint& pos, const wxSize& size );
-	~EditRegionAux();
-	void Init( AElemArray * );
+	public:
+		EditRegionAux( wxWindow* parent, const wxPoint& pos, const wxSize& size );
+		~EditRegionAux();
+		void Init( AElemArray * );
+
+	private:
+		void WriteGrid();
 };
 
 class EditSkillTypeAux : public EditAux
 {
-public:
-	EditSkillTypeAux( wxWindow* parent, const wxPoint& pos, const wxSize& size );
-	~EditSkillTypeAux();
-	void Init( AElemArray *, int type = 0 );
-	void PreSelectRows( AElemArray * );
+	public:
+		EditSkillTypeAux( wxWindow* parent, const wxPoint& pos, const wxSize& size );
+		~EditSkillTypeAux();
+		void Init( AElemArray *, int type = 0 );
+
+	private:
+		void WriteGrid();
+		void PreSelectRows( AElemArray * );
 };
 
 class EditItemTypeAux : public EditAux
 {
-public:
-	EditItemTypeAux( wxWindow* parent, const wxPoint& pos, const wxSize& size );
-	~EditItemTypeAux();
-	void Init( AElemArray *, int type = 0 );
-	void PreSelectRows( AElemArray * );
+	public:
+		EditItemTypeAux( wxWindow* parent, const wxPoint& pos, const wxSize& size );
+		~EditItemTypeAux();
+		void Init( AElemArray *, int type = 0 );
+
+	private:
+		void WriteGrid();
+		void PreSelectRows( AElemArray * );
 
 };
 
 class EditFactionAux : public EditAux
 {
-public:
-	EditFactionAux( wxWindow* parent, const wxPoint& pos, const wxSize& size );
-	~EditFactionAux();
-	void Init( AElemArray * );
+	public:
+		EditFactionAux( wxWindow* parent, const wxPoint& pos, const wxSize& size );
+		~EditFactionAux();
+		void Init( AElemArray * );
+
+	private:
+		void WriteGrid();
 };
 
 class EditSkillAux : public EditAux
 {
-public:
-	EditSkillAux( wxWindow* parent, const wxPoint& pos, const wxSize& size );
-	~EditSkillAux();
-	void Init( AElemArray * );
-	void OnSelect( wxGridEvent & );
-	void OnClose( wxCloseEvent & );
+	public:
+		EditSkillAux( wxWindow* parent, const wxPoint& pos, const wxSize& size );
+		~EditSkillAux();
+		void Init( AElemArray * );
 
-	DECLARE_EVENT_TABLE()
+	private:
+		void OnOK( wxCommandEvent & event );
+		void WriteGrid();
+		void FinalizeArray();
+
+		DECLARE_EVENT_TABLE()
 };
 
 class EditItemAux : public EditAux
 {
-public:
-	EditItemAux( wxWindow* parent, const wxPoint& pos, const wxSize& size );
-	~EditItemAux();
-	void Init( AElemArray * );
-	void OnSelect( wxGridEvent & );
-	void OnClose( wxCloseEvent & );
+	public:
+		EditItemAux( wxWindow* parent, const wxPoint& pos, const wxSize& size );
+		~EditItemAux();
+		void Init( AElemArray * );
 
-	DECLARE_EVENT_TABLE()
+	private:
+		void OnOK( wxCommandEvent & event );
+		void WriteGrid();
+		void FinalizeArray();
+
+		DECLARE_EVENT_TABLE()
 };
 
 class EditTerrainTypeAux : public EditAux
 {
-public:
-	EditTerrainTypeAux( wxWindow* parent, const wxPoint& pos, const wxSize& size );
-	~EditTerrainTypeAux();
-	void Init( AElemArray *, int type = 0 );
-	void PreSelectRows( AElemArray * );
+	public:
+		EditTerrainTypeAux( wxWindow* parent, const wxPoint& pos, const wxSize& size );
+		~EditTerrainTypeAux();
+		void Init( AElemArray *, int type = 0 );
+
+	private:
+		void WriteGrid();
+		void PreSelectRows( AElemArray * );
+};
+
+class EditObjectAux : public EditAux
+{
+	public:
+		EditObjectAux( wxWindow* parent, const wxPoint& pos, const wxSize& size );
+		~EditObjectAux();
+		void Init( ARegion *, AElemArray * );
+
+	private:
+		void WriteGrid();
 };
 
 #endif

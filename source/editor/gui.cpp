@@ -1,7 +1,10 @@
 // START A3HEADER
 //
-// This source file is part of the Atlantis PBM game program.
-// Copyright (C) 1995-1999 Geoff Dunbar
+// This source file is part of Atlantis GUI
+// Copyright (C) 2003-2004 Ben Lloyd
+//
+// To be used with the Atlantis PBM game program.
+// Copyright (C) 1995-2004 Geoff Dunbar
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -38,252 +41,432 @@
 #define SUPPRESS_MSG 1
 
 #include "wx/toolbar.h"
+#include "wx/colordlg.h"
 
 #include "bitmaps/open.xpm"
 #include "bitmaps/save.xpm"
-#include "bitmaps/help.xpm"
+//#include "bitmaps/list.xpm"
+//#include "bitmaps/help.xpm"
 // #include "bitmaps/gui_big.xpm"
-#include "bitmaps/gui_small.xpm"
-#include "bitmaps/map.xpm"
-#include "bitmaps/tree.xpm"
+#include "bitmaps/gui.xpm"
+//#include "bitmaps/map.xpm"
+//#include "bitmaps/tree.xpm"
 
+#include "config.h"
 #include "gui.h"
 #include "map.h"
+#include "run.h"
 #include "tree.h"
+#include "../gamedata.h"
+#include "options.h"
 
 #include <math.h>
-IMPLEMENT_APP( MyApp )
+
+IMPLEMENT_APP( GuiApp )
 
 // ---------------------------------------------------------------------------
 // global variables
 // ---------------------------------------------------------------------------
 
-MyFrame *frame = ( MyFrame * ) NULL;
-MyApp *app = ( MyApp * ) NULL;
+GuiFrame *frame = ( GuiFrame * ) NULL;
+GuiApp *app = ( GuiApp * ) NULL;
 
 // ---------------------------------------------------------------------------
 // event tables
 // ---------------------------------------------------------------------------
 
-BEGIN_EVENT_TABLE( MyFrame, wxMDIParentFrame )
-	EVT_MENU( Gui_Options_Recreate, MyFrame::OnOptionsRecreate )
-	EVT_MENU( Gui_Game_Open, MyFrame::OnGameOpen )
-	EVT_MENU( Gui_Game_Save, MyFrame::OnGameSave )
-	EVT_MENU( Gui_Show_Tree, MyFrame::OnShowTree )
-	EVT_MENU( Gui_Show_Map, MyFrame::OnShowMap )
-	EVT_MENU( Gui_About, MyFrame::OnAbout )
-	EVT_MENU( Gui_Quit, MyFrame::OnQuit )
+BEGIN_EVENT_TABLE( GuiFrame, wxFrame )
+	EVT_MENU( Gui_Game_Options, GuiFrame::OnGameOptions )
+	EVT_MENU( Gui_Game_Open, GuiFrame::OnGameOpen )
+	EVT_MENU( Gui_Game_Save, GuiFrame::OnGameSave )
+	EVT_MENU( Gui_Game_Run, GuiFrame::OnGameRun )
 
-	EVT_CLOSE( MyFrame::OnClose )
+	EVT_MENU( Gui_About, GuiFrame::OnAbout )
+	EVT_MENU( Gui_Quit, GuiFrame::OnQuit )
 
-	EVT_SIZE( MyFrame::OnSize )
+//	EVT_CLOSE( GuiFrame::OnClose )
+
+	EVT_SIZE( GuiFrame::OnSize )
 
 END_EVENT_TABLE()
 
-// ===========================================================================
-// implementation
-// ===========================================================================
 
 // ---------------------------------------------------------------------------
-// MyApp
+// GuiApp
 // ---------------------------------------------------------------------------
 
-MyApp::~MyApp()
+/**
+ * Destructor
+ */
+GuiApp::~GuiApp()
 {
-	if( m_game )
+	/// Auto-save terrain colour definitions
+	if( wxFileExists( "terrain.txt" ) )
+		wxRemoveFile( "terrain.txt" );
+
+	SaveTerrainColors( "terrain.txt" );
+
+	/// Auto-save config
+	if( wxFileExists( "config.txt" ) )
+		wxRemoveFile( "config.txt" );
+
+	SaveConfig( "config.txt" );
+
+	/// Clean up
+	WX_CLEAR_ARRAY( TerrainColors );
+	if( m_game ) {
+		if( wxFileExists( "game.bak" ) )
+			wxRemoveFile( "game.bak" );
+		m_game->SaveGame( "game.bak" );
 		delete m_game;
+	}
+	delete selectedElems;
 }
 
-bool MyApp::OnInit()
+/**
+ * Initialise application
+ */
+bool GuiApp::OnInit()
 {
-	// Create the main frame window
+	app = this;
+
+	/// Load terrain colors
+	LoadTerrainColors( "terrain.txt" );
+
+	/// Load config
+	if( wxFileExists( "config.txt" ) )
+		LoadConfig( "config.txt" );
+
+	/// Set window colours
+	guiColourLt.Set( 210, 235, 235 );
+	guiColourDk.Set( 200, 225, 245 );
+
+	/// Create the main frame window
+	frame = new GuiFrame( wxSize( 500, 400 ) );
 	
-	frame = new MyFrame( ( wxFrame * )NULL, -1, _T( "Atlantis Gui Demo" ),
-	                       wxPoint( -1, -1 ), wxSize( 500, 400 ),
-		wxDEFAULT_FRAME_STYLE | 
-		wxHSCROLL | wxVSCROLL );
-	
-	// Give it an icon
+	/// Give it an icon
 #ifdef __WXMSW__
 	frame->SetIcon( wxIcon( _T( "gui_icn" ) ) );
 #else
-	frame->SetIcon( wxIcon( gui_small_xpm ) );
+	frame->SetIcon( wxIcon( gui_xpm ) );
 #endif
 	
-	// Set menubar
-	wxMenu *file_menu = new wxMenu;
-	
-	file_menu->Append( Gui_Game_Open, _T( "&Open\tCtrl-O" ),
-	                   _T( "Open new game" ) );
-	file_menu->Append( Gui_Game_Save, _T( "&Save\tCtrl-S" ),
-	                   _T( "Save game" ) );
-	file_menu->Append( Gui_Quit, _T( "&Exit\tAlt-X" ),
-	                   _T( "Quit the program" ) );
+	/// Set menubar
+	fileMenu = new wxMenu;
+	fileMenu->Append( Gui_Game_Open, "&Open\tCtrl-O", "Open new game" );
+	fileMenu->Append( Gui_Game_Save, "&Save\tCtrl-S", "Save game" );
+	fileMenu->Append( Gui_Game_Run, "&Run\tCtrl-R", "Run game" );
+	fileMenu->Append( Gui_Game_Options, "O&ptions\tCtrl-P", "Options" );
+	fileMenu->Append( Gui_Quit, "&Exit\tAlt-X", "Quit the program" );
 
-	wxMenu *options_menu = new wxMenu;
-	options_menu->AppendCheckItem( Gui_Options_Recreate, _T( "&Recreate data *" ),
-	                   _T( "Recreate data when marked fields are altered" ) );
+	fileMenu->Enable( Gui_Game_Run, false );
 	
-	wxMenu *help_menu = new wxMenu;
-	help_menu->Append( Gui_About, _T( "&About\tF1" ) );
+	wxMenu *helpMenu = new wxMenu;
+	helpMenu->Append( Gui_About, "&About\tF1" );
 	
-	wxMenuBar *menu_bar = new wxMenuBar;
+	wxMenuBar *menuBar = new wxMenuBar;
 	
-	menu_bar->Append( file_menu, _T( "&File" ) );
-	menu_bar->Append( options_menu, _T( "&Options" ) );
-	menu_bar->Append( help_menu, _T( "&Help" ) );
+	menuBar->Append( fileMenu, "&File" );
+	menuBar->Append( helpMenu, "&Help" );
 	
-	frame->SetMenuBar( menu_bar );
+	frame->SetMenuBar( menuBar );
 	
-	// Set statusbar
+	/// Set statusbar
 	frame->CreateStatusBar();
 	int widths[5] = {50, -3, -1, -1, -1};
-	frame->GetStatusBar()->SetFieldsCount( 5,widths );
-	
+	frame->GetStatusBar()->SetFieldsCount( 5, widths );
 	frame->Show( TRUE );
-	frame->Maximize( true );
+	frame->SetSize( 800, 600 );
 	
 	SetTopWindow( frame );
-	
+
+	/// Init variables
 	m_game = NULL;
-	selectedFactions = new AElemArray();
-	selectedRegions = new AElemArray();
-	selectedMarkets = new AElemArray();
-	selectedProductions = new AElemArray();
-	selectedObjects = new AElemArray();
-	selectedUnits = new AElemArray();
-	
-	app = this;
-	
-	// Open game file automatically if asked
+	selectedElems = new AElemArray();
+	selectedLevel = NULL;
+	runStep = 0;
+	curSelection = -1;
+
+	/// Open game file automatically if asked
 	if( argc>1 ) {
 		LoadGame( argv[1] );
+		Select( m_game );
+		UpdateSelection();
 	} else {
-		if( wxFileExists( "game.in" ) )
-			LoadGame( "game.in" );
+		AString s = GuiConfig.lastGameFile;
+		if( !( s == "" ) && wxFileExists( s.Str() ) ) {
+			LoadGame( s.Str() );
+		}
 	}
 
-	recreateData = false;
-	
 	return TRUE;
 }
 
-ARegionList * MyApp::GetRegions()
-{
-	if( m_game )
-		return &( m_game->regions );
-	else
-		return NULL;
-}
-
-AList * MyApp::GetFactions()
-{
-	if( m_game )
-		return &( m_game->factions );
-	else
-		return NULL;
-}
-
-Faction * MyApp::AddFaction()
+/**
+ * Create a new faction
+ */
+Faction * GuiApp::AddFaction()
 {
 	Faction *temp = new Faction( m_game->factionseq );
 	AString x( "NoAddress" );
 	temp->SetAddress( x );
 	temp->lastorders = m_game->TurnNumber();
-	
+
 	m_game->factions.Add( temp );
 	m_game->factionseq++;
 	return temp;
 }
 
-Unit * MyApp::AddUnit(Faction * pFaction)
+/**
+ * Create a new unit
+ */
+Unit * GuiApp::AddUnit(Faction * pFaction)
 {
-	if( pFaction )
-		return m_game->GetNewUnit(pFaction);
+	Unit * nu = 0;
 
-	forlist( &m_game->factions ) {
-		Faction * f = ( Faction * ) elem;
-		if( f->num == m_game->guardfaction )
-			return m_game->GetNewUnit( f );
+	/// Add new unit to specified faction, or to guard faction if none specified
+	if( pFaction ) {
+		nu = m_game->GetNewUnit(pFaction);
+	} else {
+		forlist( &m_game->factions ) {
+			Faction * f = ( Faction * ) elem;
+			if( f->num == m_game->guardfaction ) {
+				nu =  m_game->GetNewUnit( f );
+				break;
+			}
+		}
 	}
 
-	return NULL;
+	/// If we've already got a unit selected, copy everything over to the new units
+	if( nu && curSelection == SELECT_UNIT && selectedElems->GetCount() > 0 ) {
+		Unit * u = (Unit * ) selectedElems->Item(0);
+		nu->combat = u->combat;
+		nu->SetDescribe( u->describe );
+		nu->flags = u->flags;
+		nu->free = u->free;
+		nu->readyItem = u->readyItem;
+		nu->SetName( u->name->getlegal2() );
+		nu->type = u->type;
+		nu->guard = u->guard;
+		forlist( &u->items ) {
+			Item * i = ( Item * ) elem;
+			nu->items.SetNum( i->type, i->num );
+		}
+		{	forlist( &u->skills ) {
+				Skill * s = ( Skill * ) elem;
+				nu->SetSkill( s->type, s->days );
+			}
+		}
+	}
+
+	return nu;
 }
 
-int MyApp::LoadGame ( const char * FName )
+/**
+ * Create and initialise the main window panes
+ */
+void GuiFrame::CreatePanes()
+{
+	app->selectedElems->Clear();
+	app->selectedLevel = NULL;
+	app->curSelection = -1;
+
+	// Delete windows if they're already created
+	if( map ) delete map;
+	if( list ) delete list;
+	if( tree ) delete tree;
+	if( vSplitter ) delete vSplitter;
+	if( hSplitter ) delete hSplitter;
+	editor->HideAllPages();
+	hSplitter = new GuiSplitter(this);
+	vSplitter = new GuiSplitter(hSplitter);
+
+	// Create tree view
+	tree = new TreeCanvas( vSplitter );
+	tree->ToggleHeaders( GuiConfig.showTreeHeaders );
+ 	tree->Init();
+	tree->Show( true );
+
+	// Create list view
+	list = new ListCanvas( vSplitter );
+	list->Init();
+	list->Show( true );
+
+	// Create map view
+	map = new MapCanvas( hSplitter );
+
+	// Show everything
+	hSplitter->SplitHorizontally( map, vSplitter, 315 );
+	vSplitter->SplitVertically( list, tree, 315 );
+	map->Show( true );
+	RefreshWindows();
+
+	// Select the main game
+	app->Select( app->m_game );
+	app->UpdateSelection();
+}
+
+/**
+ * Load a game file
+ */
+int GuiApp::LoadGame ( const char * FName )
 {
 	int ok = 0;
 	wxBeginBusyCursor();
-	
 	if( FName && *FName )
 	{
+		GuiConfig.lastGameFile = FName;
 		if( m_game )
 			delete m_game;
+		fileMenu->Enable( Gui_Game_Run, false );
 		
 		m_game = new Game;
-		
 		m_game->ModifyTablesPerRuleset();
-		
 		if( m_game->OpenGame( FName ) ) {
-			if( !frame->tree ) {
-				frame->tree = new TreeChild( frame, _T( "Tree View" ),
-					wxPoint( -1, -1 ), wxSize( -1, -1 ),
-					wxDEFAULT_FRAME_STYLE );
-			}
- 			frame->tree->InitTree();
-			frame->tree->Show( true );
-			if( !frame->map ) {
-				frame->map = new MapChild( frame, _T( "Map Frame" ),
-					wxPoint( -1, -1 ), wxSize( -1, -1 ),
-					wxDEFAULT_FRAME_STYLE );
-			} else {
-				frame->map->InitPlane( 1 );
-			}
-			frame->map->Show( true );
-			wxToolBar * toolBar = frame->GetToolBar();
-			toolBar->EnableTool( Gui_Game_Save, true );
-			toolBar->EnableTool( Gui_Show_Tree, true );
-			toolBar->EnableTool( Gui_Show_Map, true );
-			ok = 1;
-		} else {
-			wxMessageBox( "Couldn't open game", "Error" );
+			PostLoadGame();
+			frame->CreatePanes();
+			Select( m_game );
+			fileMenu->Enable( Gui_Game_Run, true );
+			wxEndBusyCursor();
+			return 1;
 		}
 	}
-	
+	wxMessageBox( "Couldn't open game", "Error" );
 	wxEndBusyCursor();
-	
-	if( ok )
-		return TRUE;
-	else
-		return FALSE;
+	return 0;
 }
 
-int MyApp::SaveGame ( const char * FName )
+/**
+ * Extract orders from a text file
+ */
+int GuiApp::ParseOrder ( const char * FName )
 {
-	int ok = 0;
-	wxBeginBusyCursor();
-	
+	int fac = 0;
+
+	AString ordersName;
+
 	if( FName && *FName )
 	{
-		if( m_game->SaveGame( FName ) ) {
-			ok = 1;
-		} else {
-			wxMessageBox( "Couldn't save game", "Error" );
+		Aorders f;
+		if( f.OpenByName( FName ) == -1 ) {
+			wxMessageBox( "Couldn't open orders file", "Error" );
+			wxEndBusyCursor();
+			return 0;
+		}
+
+		Aoutfile file;
+
+		AString *order = f.GetLine();
+		while (order) {
+			AString line( *order );
+			AString * token = order->gettoken();
+
+			if (token) {
+				int i = Parse1Order(token);
+				delete token;
+				if( i == O_ATLANTIS ) {
+					if( !fac ) {
+						// start of a faction's orders
+						token = order->gettoken();
+						if (!token) {
+							// no faction number given...
+							f.Close();
+							return 0;
+						} else {
+
+							fac = token->value();
+							delete token;
+							ordersName = AString( "orders." ) + fac;
+
+							if( wxFileExists( ordersName.Str() ) )
+								wxRemoveFile( ordersName.Str() );
+
+							if( file.OpenByName( ordersName ) == -1 ) {
+								fac = 0;
+							}
+						}
+					}
+				} else if( i == O_END ) {
+					// end of factions orders
+					delete order;
+					break;
+				}
+			}
+			if( fac )
+				file.PutStr( line );
+
+			order = f.GetLine();
+		}
+		if( fac ) {
+			file.Close();
+		}
+
+		f.Close();
+	} else {
+		wxMessageBox( "Couldn't open orders file", "Error" );
+		wxEndBusyCursor();
+		return 0;
+	}
+	return fac;
+
+}
+
+/**
+ * Add some stuff to make market/production selections quicker
+ */
+void GuiApp::PostLoadGame()
+{
+	forlist( &m_game->regions ) {
+		ARegion * r = ( ARegion * ) elem;
+		forlist( &r->markets ) {
+			((Market *) elem)->region = r->num;
+		}
+		{
+			forlist( &r->products ) {
+				((Production *) elem)->region = r->num;
+			}
 		}
 	}
-	
-	wxEndBusyCursor();
-	
-	if( ok ) return TRUE;
-	else return FALSE;
 }
 
-void MyFrame::AdjustSizers()
+/**
+ * Save a game
+ */
+int GuiApp::SaveGame ()
 {
+	wxFileDialog dialog( frame, "Save Game File", "", "game.out",
+						 "Game files (game.*)|game.*|"
+					     "All files (*.*)|*.*",
+						 wxSAVE | wxOVERWRITE_PROMPT );
+	
+	dialog.SetDirectory( wxGetCwd() );
+	
+	if( dialog.ShowModal() == wxID_OK ) {
+		const char * fname = dialog.GetPath().c_str();
+		if( wxFileExists( fname ) )
+			wxRemoveFile( fname );
+
+		wxBeginBusyCursor();
+		
+		if( fname && *fname ) {
+			if( !m_game->SaveGame( fname ) ) {
+				wxMessageBox( "Couldn't save game", "Error" );
+				return 0;
+			}
+		}
+		
+		wxEndBusyCursor();
+		return 1;
+	}
+
+	return 0;
 	
 }
 
-void MyApp::UpdateStatusBar( ARegion * pRegion )
+/**
+ * Update status bar with region info
+ */
+void GuiApp::UpdateStatusBar( ARegion * pRegion )
 {
 	wxStatusBar * status = frame->GetStatusBar();
 	
@@ -309,90 +492,30 @@ void MyApp::UpdateStatusBar( ARegion * pRegion )
 			status->SetStatusText( _T( "" ),i );
 		}
 	}
-	
 }
 
-void MyApp::SelectRegion( ARegion * pRegion, bool add )
+/**
+ * Used for debugging...
+ */
+void GuiApp::UpdateStatusBarDebug( int xpos, int ypos, int hexX, int hexY, int scrollX, int scrollY, int hexSize, int hexHeight )
 {
-	bool selected = false;
-	int index = selectedRegions->Index( pRegion );
-	if( index != wxNOT_FOUND ) selected = true;
-	if( add ) {
-		if( selected ) {
-			selectedRegions->Remove( pRegion );
-			frame->map->canvas->DeselectRegion( pRegion, true );
-		} else {
-			selectedRegions->Add( pRegion );
-			frame->map->canvas->SelectRegion( pRegion, true );
-		}
-	} else {
-		int num = abs( selectedRegions->GetCount() );
-		for( int i = 0; i < num; i++ ) {
-			ARegion * r = ( ARegion * ) selectedRegions->Item( i );
-			frame->map->canvas->DeselectRegion( r, false );
-		}
-		selectedRegions->Clear();
-		if( !selected || num > 1 ) {
-			selectedRegions->Add( pRegion );
-			frame->map->canvas->SelectRegion( pRegion, true );
-		}
-	}
-	frame->tree->canvas->SelectItem( pRegion, add );
-	frame->editor->ShowEditRegion();
+	wxStatusBar * status = frame->GetStatusBar();
+
+	status->SetStatusText( wxString( "(" ) << xpos << ", " 
+		                   << ypos << ")", 0 );
+	status->SetStatusText( wxString( " Hex (") << hexX << ", "
+		                   << hexY << ")", 1 );
+	status->SetStatusText( wxString( " Scroll (") << scrollX << ", "
+		                   << scrollY << ")", 2 );
+	status->SetStatusText( wxString( " HexSize (") << hexSize << ", "
+		                   << hexHeight << ")", 3 );
+
 }
 
-void MyApp::SelectProduction( Production * pProduction, bool add )
-{
-	SelectElem( selectedProductions, pProduction, add );
-	
-	frame->tree->canvas->SelectItem( pProduction, add );
-	frame->editor->ShowEditProduction();
-}
-
-void MyApp::SelectMarket( Market * pMarket, bool add )
-{
-	SelectElem( selectedMarkets, pMarket, add );
-	
-	frame->tree->canvas->SelectItem( pMarket, add );
-	frame->editor->ShowEditMarket();
-}
-
-void MyApp::SelectFaction( Faction * pFaction, bool add )
-{
-	SelectElem( selectedFactions, pFaction, add );
-	
-	frame->tree->canvas->SelectItem( pFaction, add );
-	frame->editor->ShowEditFaction();
-}
-
-void MyApp::SelectUnit( Unit * pUnit, bool add )
-{
-	SelectElem( selectedUnits, pUnit, add );
-	
-	frame->tree->canvas->SelectItem( pUnit, add );
-	frame->editor->ShowEditUnit();
-}
-
-void MyApp::SelectObject( Object * pObject, bool add )
-{
-	SelectElem( selectedObjects, pObject, add );
-	
-	frame->tree->canvas->SelectItem( pObject, add );
-	frame->editor->ShowEditObject();
-}
-
-void MyApp::DeselectAllRegions()
-{
-	for( int i=0; i < abs( selectedRegions->GetCount() ) -1; i++ ) {
-		ARegion * r = ( ARegion * ) selectedRegions->Item( i );
-		frame->map->canvas->DeselectRegion( r, false );
-	}
-	selectedRegions->Clear();
-	frame->map->canvas->RedrawBorders();
-	frame->editor->ShowEditRegion();
-}
-
-void MyApp::TrashUnit( Unit * pUnit )
+/**
+ * Remove an item from the game, and from the list and tree views
+ */
+void GuiApp::Trash( Unit * pUnit )
 {
 	{
 		forlist( &pUnit->items ) {
@@ -405,21 +528,24 @@ void MyApp::TrashUnit( Unit * pUnit )
 		pUnit->skills.SetDays( s->type,0 );
 	}
 	
-	frame->tree->canvas->RemoveItem( pUnit );
+	frame->tree->RemoveItem( pUnit );
 	
-	int index = selectedUnits->Index( pUnit );
-	if( index != wxNOT_FOUND ) selectedUnits->RemoveAt( index );
+	int index = selectedElems->Index( pUnit );
+	if( index != wxNOT_FOUND ) selectedElems->RemoveAt( index );
 	
 	pUnit->MoveUnit( 0 );
 	delete pUnit;
 }
 
-void MyApp::TrashFaction( Faction * pFaction )
+/**
+ * Remove an item from the game, and from the list and tree views
+ */
+void GuiApp::Trash( Faction * pFaction )
 {
-	frame->tree->canvas->RemoveItem( pFaction );
+	frame->tree->RemoveItem( pFaction );
 	
-	int index = selectedFactions->Index( pFaction );
-	if( index != wxNOT_FOUND ) selectedFactions->RemoveAt( index );
+	int index = selectedElems->Index( pFaction );
+	if( index != wxNOT_FOUND ) selectedElems->RemoveAt( index );
 	
 	m_game->factions.Remove( pFaction );
 	forlist( &m_game->factions )
@@ -428,29 +554,38 @@ void MyApp::TrashFaction( Faction * pFaction )
 	
 }
 
-void MyApp::TrashMarket( Market * pMarket )
+/**
+ * Remove an item from the game, and from the list and tree views
+ */
+void GuiApp::Trash( Market * pMarket )
 {
-	frame->tree->canvas->RemoveItem( pMarket );
+	frame->tree->RemoveItem( pMarket );
 	
 	ARegion * r = m_game->regions.GetRegion( pMarket->region );
 	r->markets.Remove( pMarket );
 	
-	int index = selectedMarkets->Index( pMarket );
-	if( index != wxNOT_FOUND ) selectedMarkets->RemoveAt( index );
+	int index = selectedElems->Index( pMarket );
+	if( index != wxNOT_FOUND ) selectedElems->RemoveAt( index );
 }
 
-void MyApp::TrashProduction( Production * pProduction )
+/**
+ * Remove an item from the game, and from the list and tree views
+ */
+void GuiApp::Trash( Production * pProduction )
 {
-	frame->tree->canvas->RemoveItem( pProduction );
+	frame->tree->RemoveItem( pProduction );
 	
 	ARegion * r = m_game->regions.GetRegion( pProduction->region );
 	r->products.Remove( pProduction );
 	
-	int index = selectedProductions->Index( pProduction );
-	if( index != wxNOT_FOUND ) selectedProductions->RemoveAt( index );
+	int index = selectedElems->Index( pProduction );
+	if( index != wxNOT_FOUND ) selectedElems->RemoveAt( index );
 }
 
-void MyApp::TrashObject( Object * pObject )
+/**
+ * Remove an item from the game, and from the list and tree views
+ */
+void GuiApp::Trash( Object * pObject )
 {
 	ARegion * r = pObject->region;
 	Object * dummy = r->GetDummy();
@@ -459,68 +594,114 @@ void MyApp::TrashObject( Object * pObject )
 		u->MoveUnit( dummy );
 	}
 	
-	frame->tree->canvas->RemoveItem(pObject);
+	frame->tree->RemoveItem(pObject);
 	
-	int index = selectedObjects->Index( pObject );
-	if( index != wxNOT_FOUND ) selectedObjects->RemoveAt( index );
+	int index = selectedElems->Index( pObject );
+	if( index != wxNOT_FOUND ) selectedElems->RemoveAt( index );
 	
 	r->objects.Remove( pObject );
 	delete pObject;
 }
 
-//void MyApp::TrashRegion( ARegion * )
+/**
+ * Remove an item from the game, and from the list and tree views
+ */
+//void GuiApp::Trash( ARegion * )
 //{
 //}
 
-void MyApp::UpdateFactions()
+/**
+ * Update faction entries in tree and list views
+ */
+void GuiApp::UpdateFactions()
 {
-	for( int i = 0; i < abs(selectedFactions->GetCount()); i++ ) {
-		Faction * f = (Faction *) selectedFactions->Item(i);
-		frame->tree->canvas->UpdateItem(f);
+	if( curSelection != SELECT_FACTION ) return;
+	for( int i = 0; i < (int) selectedElems->GetCount(); i++ ) {
+		Faction * f = (Faction *) selectedElems->Item(i);
+		frame->tree->UpdateItem(f);
+		frame->list->UpdateItem(f);
 	}
 }
 
-void MyApp::UpdateRegions()
+/**
+ * Update region entries in tree and list views
+ */
+void GuiApp::UpdateRegions()
 {
-	for( int i = 0; i < abs(selectedRegions->GetCount()); i++ ) {
-		ARegion * r = (ARegion *) selectedRegions->Item(i);
-		frame->tree->canvas->UpdateItem(r);
+	if( curSelection != SELECT_REGION ) return;
+	for( int i = 0; i < (int) selectedElems->GetCount(); i++ ) {
+		ARegion * r = (ARegion *) selectedElems->Item(i);
+		frame->tree->UpdateItem(r);
+		frame->list->UpdateItem(r);
+		frame->map->Refresh();
 	}
 }
 
-void MyApp::UpdateUnits()
+/**
+ * Update unit entries in tree and list views
+ */
+void GuiApp::UpdateUnits()
 {
-	for( int i = 0; i < abs(selectedUnits->GetCount()); i++ ) {
-		Unit * u = (Unit *) selectedUnits->Item(i);
-		frame->tree->canvas->UpdateItem(u);
+	if( curSelection != SELECT_UNIT ) return;
+	for( int i = 0; i < (int)selectedElems->GetCount(); i++ ) {
+		Unit * u = (Unit *) selectedElems->Item(i);
+		frame->tree->UpdateItem(u);
+		frame->list->UpdateItem(u);
 	}
 }
 
-void MyApp::UpdateObjects()
+/**
+ * Update object entries in tree and list views
+ */
+void GuiApp::UpdateObjects()
 {
-	for( int i = 0; i < abs(selectedObjects->GetCount()); i++ ) {
-		Object * o = (Object *) selectedObjects->Item(i);
-		frame->tree->canvas->UpdateItem(o);
+	if( curSelection != SELECT_OBJECT ) return;
+	for( int i = 0; i < (int)selectedElems->GetCount(); i++ ) {
+		Object * o = (Object *) selectedElems->Item(i);
+		frame->tree->UpdateItem(o);
+		frame->list->UpdateItem(o);
 	}
 }
 
-void MyApp::UpdateMarkets()
+/**
+ * Update market entries in tree and list views
+ */
+void GuiApp::UpdateMarkets()
 {
-	for( int i = 0; i < abs(selectedMarkets->GetCount()); i++ ) {
-		Market * m = (Market *) selectedMarkets->Item(i);
-		frame->tree->canvas->UpdateItem(m);
+	if( curSelection != SELECT_MARKET ) return;
+	for( int i = 0; i < (int)selectedElems->GetCount(); i++ ) {
+		Market * m = (Market *) selectedElems->Item(i);
+		frame->tree->UpdateItem(m);
+		frame->list->UpdateItem(m);
 	}
 }
 
-void MyApp::UpdateProductions()
+/**
+ * Update product entries in tree and list views
+ */
+void GuiApp::UpdateProductions()
 {
-	for( int i = 0; i < abs(selectedProductions->GetCount()); i++ ) {
-		Production * p = (Production *) selectedProductions->Item(i);
-		frame->tree->canvas->UpdateItem(p);
+	if( curSelection != SELECT_PRODUCTION ) return;
+	for( int i = 0; i < (int) selectedElems->GetCount(); i++ ) {
+		Production * p = (Production *) selectedElems->Item(i);
+		frame->tree->UpdateItem(p);
+		frame->list->UpdateItem(p);
 	}
 }
 
-bool MyApp::TerrainHasEnabledRace( int ttype )
+/**
+ * Update level entries in tree and list views
+ */
+void GuiApp::UpdateLevels()
+{
+	if( curSelection != SELECT_LEVEL ) return;
+	frame->tree->UpdateItem( selectedLevel );
+}
+
+/**
+ * Checks if the terrain has any races that are enabled
+ */
+bool GuiApp::TerrainHasEnabledRace( int ttype )
 {
 	//Check if terrain has any enabled races
 
@@ -543,135 +724,151 @@ bool MyApp::TerrainHasEnabledRace( int ttype )
 }
 
 // ---------------------------------------------------------------------------
-// MyFrame
+// GuiFrame
 // ---------------------------------------------------------------------------
 
-// Define my frame constructor
-MyFrame::MyFrame( wxWindow *parent,
-				 const wxWindowID id,
-				 const wxString& title,
-				 const wxPoint& pos,
-				 const wxSize& size,
-				 const long style )
-				 : wxMDIParentFrame( parent, id, title, pos, size,
-				 style | wxNO_FULL_REPAINT_ON_RESIZE )
+/**
+ * Default constructor
+ */
+GuiFrame::GuiFrame( const wxSize & size )
+		:wxFrame( (wxFrame * ) NULL, -1, _T( "Atlantis Gui v 0.6" ), wxDefaultPosition,
+		           size, wxDEFAULT_FRAME_STYLE | wxHSCROLL | wxVSCROLL |
+				   wxNO_FULL_REPAINT_ON_RESIZE )
 {
 	editor = new EditFrame( this, wxDefaultPosition, wxDefaultSize );
 	editor->Init();
+	hSplitter = NULL;
+	vSplitter = NULL;
 	tree = NULL;
 	map = NULL;
-	
+	list = NULL;
+	hSplitter = new GuiSplitter(this);
+	vSplitter = new GuiSplitter(hSplitter);
+
+	// Create toolbar
 	CreateToolBar( wxNO_BORDER | wxTB_FLAT | wxTB_HORIZONTAL );
+	GetToolBar()->SetBackgroundColour( app->guiColourDk );
+
 	InitToolBar( GetToolBar() );
-	
+
 	// Accelerators
-	wxAcceleratorEntry entries[4];
+	wxAcceleratorEntry entries[6];
 	entries[0].Set( wxACCEL_CTRL, ( int ) 'O', Gui_Game_Open );
 	entries[1].Set( wxACCEL_CTRL, ( int ) 'S', Gui_Game_Save );
 	entries[2].Set( wxACCEL_CTRL, ( int ) 'X', Gui_Quit );
 	entries[3].Set( wxACCEL_CTRL, ( int ) 'A', Gui_About );
-	wxAcceleratorTable accel( 3, entries );
+	entries[4].Set( wxACCEL_CTRL, ( int ) 'P', Gui_Game_Options );
+	entries[5].Set( wxACCEL_CTRL, ( int ) 'R', Gui_Game_Run );
+	wxAcceleratorTable accel( 5, entries );
 	SetAcceleratorTable( accel );
+
 }
 
-void MyFrame::OnClose( wxCloseEvent& event )
+/**
+ * Default destructor
+ */
+GuiFrame::~GuiFrame()
 {
-	event.Skip();
 }
 
-void MyFrame::OnQuit( wxCommandEvent& WXUNUSED( event ) )
+/**
+ * Resize sub-windows if necessary
+ */
+void GuiFrame::RefreshWindows()
+{
+	int w, h;
+	GetClientSize( &w, &h );
+
+	int editWidth = 200;
+
+	if( editor )
+		editor->SetSize( 0, 0, editWidth, h );
+
+	hSplitter->SetSize( editWidth, 0, w - editWidth, h );
+
+}
+
+/**
+ * Exit the GUI
+ */
+//void GuiFrame::OnClose( wxCloseEvent& event )
+//{
+//	event.Skip();
+//}
+
+/**
+ * Exit the GUI
+ */
+void GuiFrame::OnQuit( wxCommandEvent& WXUNUSED( event ) )
 {
 	Close();
 }
 
-void MyFrame::OnAbout( wxCommandEvent& WXUNUSED( event ) )
+/**
+ * Show program info
+ */
+void GuiFrame::OnAbout( wxCommandEvent& WXUNUSED( event ) )
 {
-	wxMessageBox( _T( "Atlantis GUI Demo\n" )
-	              _T( "Author: Ben Lloyd (c) 2003\n" )
-	              _T( "Usage: gui.exe" ),
-	              _T( "About GUI Demo" ) );
+	wxMessageBox( _T( "Atlantis GUI\n" )
+	              _T( "Author: Ben Lloyd (c) 2004\n" )
+	              _T( "About Atlantis GUI" ) );
 }
 
-void MyFrame::OnSize( wxSizeEvent& event )
+/**
+ * Refresh windows win frame resized
+ */
+void GuiFrame::OnSize( wxSizeEvent& event )
 {
-	int editWidth = 200;
-	
-	int w, h;
-	GetClientSize( &w, &h );
-	
-	editor->SetSize( 0, 0, editWidth, h );
-	GetClientWindow()->SetSize( editWidth, 0, w - editWidth, h );
-	
+	RefreshWindows();
 #ifdef __WXUNIVERSAL__	 
 	event.Skip();
 #endif
+
 }
 
-void MyFrame::OnShowMap( wxCommandEvent & event )
+/**
+ * Show options dialog
+ */
+void GuiFrame::OnGameOptions( wxCommandEvent & event )
 {
-	if( map ) {
-		map->Activate();
-	} else if( app->m_game ) {
-		map = new MapChild( frame, _T( "Map Frame" ),
-		                    wxPoint( -1, -1 ), wxSize( -1, -1 ),
-		                    wxDEFAULT_FRAME_STYLE );
-		map->Show();
-		map->Activate();
-	}
+	OptionsDialog options( this );
+	options.ShowModal();
 }
 
-void MyFrame::OnShowTree( wxCommandEvent & event ) {
-	if( tree ) {
-		tree->Activate();
-	} else if( app->m_game ) {
-		tree = new TreeChild( frame, _T( "Tree View" ),
-		                      wxPoint( -1, -1 ), wxSize( -1, -1 ),
-		                      wxDEFAULT_FRAME_STYLE );
-		tree->Show( true );
-		tree->Activate();
-	}
-}
-
-void MyFrame::OnOptionsRecreate( wxCommandEvent & event )
+/**
+ * Initialise toolbar
+ */
+void GuiFrame::InitToolBar( wxToolBar* toolBar )
 {
-	wxMenuItem * item = GetMenuBar()->FindItem(Gui_Options_Recreate);
-
-	app->recreateData = item->IsChecked();
-
-}
-
-void MyFrame::InitToolBar( wxToolBar* toolBar )
-{
-	wxBitmap* bitmaps[5];
+	wxBitmap* bitmaps[6];
 	
 	bitmaps[0] = new wxBitmap( open_xpm );
 	bitmaps[1] = new wxBitmap( save_xpm );
-	bitmaps[2] = new wxBitmap( help_xpm );
-	bitmaps[3] = new wxBitmap( tree_xpm );
-	bitmaps[4] = new wxBitmap( map_xpm );
+//	bitmaps[2] = new wxBitmap( help_xpm );
 	
 	toolBar->AddTool( Gui_Game_Open, "", *( bitmaps[0] ), _T( "Open file" ) );
 	toolBar->AddTool( Gui_Game_Save, "", *( bitmaps[1] ), _T( "Save file" ) );
-	toolBar->AddSeparator();
-	toolBar->AddTool( Gui_Show_Tree, "", *( bitmaps[3] ), _T( "Tree view" ) );
-	toolBar->AddTool( Gui_Show_Map, "", *( bitmaps[4] ), _T( "Map view" ) );
-	//	toolBar->AddSeparator();
-	//	toolBar->AddTool( Gui_Help", *( bitmaps[2] ), _T( "Help" ) );
+//	toolBar->AddSeparator();
+//	toolBar->AddTool( Gui_Help", *( bitmaps[2] ), _T( "Help" ) );
 	
 	toolBar->EnableTool( Gui_Game_Save, false );
-	toolBar->EnableTool( Gui_Show_Tree, false );
-	toolBar->EnableTool( Gui_Show_Map, false );
 	toolBar->Realize();
 	
 	int i;
-	for ( i = 0; i < 5; i++ )
+	for ( i = 0; i < 2; i++ )
 		delete bitmaps[i];
 }
 
-
-void MyFrame::OnGameOpen( wxCommandEvent& WXUNUSED( event ) )
+/**
+ * Get name of file to open, and load the game from it
+ */
+void GuiFrame::OnGameOpen( wxCommandEvent& WXUNUSED( event ) )
 {
-	wxFileDialog dialog( this, "Open Game File", "", "game.in",
+	AString s = GuiConfig.lastGameFile;
+	if( s == "" ) {
+		s = AString( "game." ) + Globals->WORLD_NAME + "." + 0;
+	}
+	wxFileDialog dialog( this, "Open Game File", "", s.Str(),
 						 "Game files (game.*)|game.*|"
 					     "All files (*.*)|*.*",
 						 wxOPEN | wxHIDE_READONLY );
@@ -682,20 +879,64 @@ void MyFrame::OnGameOpen( wxCommandEvent& WXUNUSED( event ) )
 		app->LoadGame( dialog.GetPath().c_str() );
 }
 
-void MyFrame::OnGameSave( wxCommandEvent& WXUNUSED( event ) )
+/**
+ * Save the game
+ */
+void GuiFrame::OnGameSave( wxCommandEvent& WXUNUSED( event ) )
 {
-	wxFileDialog dialog( this, "Save Game File", "", "game.out",
-						 "Game files (game.*)|game.*|"
-					     "All files (*.*)|*.*",
-						 wxSAVE | wxOVERWRITE_PROMPT );
-	
-	dialog.SetDirectory( wxGetCwd() );
-	
-	if( dialog.ShowModal() == wxID_OK ) {
-		const char * fname = dialog.GetPath().c_str();
-		if( wxFileExists( fname ) )
-			wxRemoveFile( fname );
-
-		app->SaveGame( fname );
-	}
+	app->SaveGame();
 }
+
+/**
+ * Show the run game dialog
+ */
+void GuiFrame::OnGameRun( wxCommandEvent& WXUNUSED( event ) )
+{
+	if( !app->m_game ) return;
+
+	int oldFacSeq = app->m_game->factionseq;
+
+	RunDialog run( this, app->runStep );
+	int step = run.ShowModal();
+	// What do we need to update?
+	bool updateFacs = false;
+	bool updateAll = false;
+	if( app->runStep < RUN_STEP_READPLAYERS && step >= RUN_STEP_READPLAYERS )
+		updateFacs = true;
+	if( app->runStep < RUN_STEP_RUNORDERS && step >= RUN_STEP_RUNORDERS )
+		updateAll = true;
+
+	if( updateFacs && !updateAll && app->m_game->factionseq > oldFacSeq ) {
+		forlist( &app->m_game->factions ) {
+			Faction * f = ( Faction *) elem;
+			if( f->num > oldFacSeq ) {
+				tree->AddItem( f );
+				list->AddItem( f );
+			}
+		}
+	}
+
+	if( updateAll ) {
+		CreatePanes();
+	}
+
+	if( step >= NUM_STEPS - 1 ) step = 0;
+
+	app->runStep = step;
+}
+
+/**
+ * Default constuctor
+ */
+GuiSplitter::GuiSplitter( wxWindow *parent )
+            : wxSplitterWindow( parent, -1,
+                                wxDefaultPosition, wxDefaultSize,
+                                wxSP_3D | wxCLIP_CHILDREN)
+{
+}
+
+void GuiSplitter::OnDoubleClickSash( int x, int y )
+{
+	// do nothing
+}
+

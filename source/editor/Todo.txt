@@ -1,5 +1,7 @@
 GUI TODO (in rough order of priority)
 
+( o = done )
+
 o Edit production
 o Edit list for secondary item lists
 o Add new region/market/unit etc.
@@ -12,27 +14,28 @@ o INITIAL RELEASE
 o Create town
 o Fix opening second game with first still loaded
 * Better move screen
-* Move units to objects
-* Zoom map window
+o Move units to objects
+o Zoom map window
 * Statistics window
-* Clone units/objects etc
-* Add sorting for lists
-* Show hex number bars on map
+o Clone units/objects etc
+o Add sorting for lists
+o Show hex number bars on map
 * Drag and drop items within tree
-* Display town names on map
+o Display town names on map
 * Better icons on map
 * Add random name generator
-* Make edit pane size adjustable
+* Make edit pane size adjustable?
 * Multi select option for tree?
-* Auto-update tree labels and map when item changed in editor
-* List and filter window
-* Change list ordering (f.ex. for units in objects)
+o Auto-update tree labels and map when item changed in editor
+o List window
+* Change list ordering (i.e. PROMOTE equivalent)
 * Create new level
+* Increase level size (Add new regions)
 * Display underworld exits better
 * Test on linux
 * Tooltips
 * Help documentation
-* Customizable map colours + remove terrain enums in config.cpp
-* Turn generation
+o Customizable map colours + remove terrain enums in config.cpp
+o Save window settings
+o Turn generation
 * Undo option
-* Tidy up code

@@ -25,15 +25,26 @@
 #ifndef ALIST_CLASS
 #define ALIST_CLASS
 
+#ifdef __USE_GUI__
+ #include "wx/wx.h"
+ #include "wx/treectrl.h"
+#endif
+
 class AListElem;
 class AList;
 
 class AListElem {
 	public:
+		AListElem();
 		virtual ~AListElem();
 
-		const char * sortString;
+		void SetSortString(const char *);
+
+		char * sortString;
 		AListElem * next;
+#ifdef __USE_GUI__
+		wxTreeItemId treeId;
+#endif
 };
 
 class AList {

@@ -24,7 +24,25 @@
 // END A3HEADER
 #include "alist.h"
 
-AListElem::~AListElem() {
+AListElem::AListElem()
+{
+	sortString = NULL;
+}
+
+AListElem::~AListElem()
+{
+	if (sortString)
+		delete sortString;
+}
+
+void AListElem::SetSortString(const char * str)
+{
+	if (sortString)
+		delete sortString;
+
+	int len = strlen(str);
+	sortString = new char[len+1];
+	strcpy(sortString, str);
 }
 
 AList::AList() {

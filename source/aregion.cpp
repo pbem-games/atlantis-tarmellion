@@ -696,10 +696,10 @@ void ARegion::SetupProds() {
 	}
 }
 
-void ARegion::AddTown() {
+void ARegion::AddTown(int nameIt, int minpop, int maxpop ) {
 	town = new TownInfo;
 
-	town->name = new AString(AGetNameString(AGetName(1)));
+	if( nameIt) town->name = new AString(AGetNameString(AGetName(1)));
 
 	if (Globals->RANDOM_ECONOMY) {
 		int popch = (Globals->CITY_POP * 16/10);
@@ -717,9 +717,18 @@ void ARegion::AddTown() {
 			if (dist < 9)
 				popch = popch - (9 - dist) * ((9 - dist) + 10) * 15;
 		}
-		town->pop = (Globals->CITY_POP/8)+getrandom(popch);
+		if( minpop != -1 && maxpop != -1 ) {
+			int amount = maxpop - minpop;
+			town->pop = minpop + getrandom(amount);
+		} else {
+			town->pop = (Globals->CITY_POP/8)+getrandom(popch);
+		}
 	} else {
-		town->pop = (Globals->CITY_POP/8);
+		if( minpop != -1 ) {
+			town->pop = minpop;
+		} else {
+			town->pop = (Globals->CITY_POP/8);
+		}
 	}
 
 	town->basepop = town->pop;
@@ -1551,6 +1560,7 @@ void ARegion::Writeout(Aoutfile *f) {
 }
 
 void ARegion::Readin(Ainfile * f,AList * facs, ATL_VER v) {
+	if( name ) delete name;
 	name = f->GetStr();
 
 	num = f->GetInt();

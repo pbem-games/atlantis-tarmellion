@@ -1,7 +1,10 @@
 // START A3HEADER
 //
-// This source file is part of the Atlantis PBM game program.
-// Copyright (C) 1995-1999 Geoff Dunbar
+// This source file is part of Atlantis GUI
+// Copyright (C) 2003-2004 Ben Lloyd
+//
+// To be used with the Atlantis PBM game program.
+// Copyright (C) 1995-2004 Geoff Dunbar
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -25,10 +28,14 @@
 #ifndef GUI_CLASS
 #define GUI_CLASS
 
+class GuiFrame;
+class GuiApp;
+
 #include "edit.h"
 #include "map.h"
 #include "tree.h"
-#include "alistex.h"
+#include "aextend.h"
+#include "list.h"
 
 #include "../game.h"
 #include "../aregion.h"
@@ -38,6 +45,7 @@
 #include "../faction.h"
 
 #include "wx/wx.h"
+#include "wx/splitter.h"
 
 // control ids
 enum
@@ -46,105 +54,167 @@ enum
 	Gui_About,
 	Gui_Game_Open,
 	Gui_Game_Save,
+	Gui_Game_Run,
+	Gui_Game_CheckOrders,
 	Gui_Options_Recreate,
 	Gui_Show_Tree,
+	Gui_Show_List,
 	Gui_Show_Map,
+	Gui_Window_Arrange,
+	Gui_Game_Options,
 };
 
-class MyApp : public wxApp
+enum
 {
-public:
-	~MyApp();
-	bool OnInit();
-	Game * m_game;
-	int LoadGame( const char * );
-	int SaveGame( const char * );
-
-	ARegionList * GetRegions();
-	AList * GetFactions();
-	int * GetFacSeq();
-
-	void UpdateStatusBar( ARegion * );
-
-	AElemArray * selectedRegions;
-	AElemArray * selectedUnits;
-	AElemArray * selectedFactions;
-	AElemArray * selectedMarkets;
-	AElemArray * selectedObjects;
-	AElemArray * selectedProductions;
-
-	void SelectRegion( ARegion *, bool add = false );
-	void SelectObject( Object *, bool add = false );
-	void SelectUnit( Unit *, bool add = false );
-	void SelectFaction( Faction *, bool add = false );
-	void SelectMarket( Market *, bool add = false );
-	void SelectProduction( Production *, bool add = false );
-	int DeselectUnit( Unit * );
-	int DeselectFaction( Faction * );
-	int DeselectMarket( Market * );
-	void DeselectAllRegions();
-
-	void TrashUnit( Unit * );
-	void TrashFaction( Faction * );
-	void TrashMarket( Market * );
-	void TrashProduction( Production * );
-	void TrashObject( Object * );
-
-	void UpdateFactions();
-	void UpdateRegions();
-	void UpdateUnits();
-	void UpdateObjects();
-	void UpdateMarkets();
-	void UpdateProductions();
-
-//	void TrashRegion( ARegion * );
-
-	Unit * AddUnit( Faction * pFaction = NULL );
-	Faction * AddFaction();
-	Market * AddMarket();
-	Production * AddProduction();
-	Object * AddObject();
-//	ARegion * AddRegion();
-
-	bool TerrainHasEnabledRace( int );
-	bool recreateData;
+	SELECT_REGION,
+	SELECT_OBJECT,
+	SELECT_UNIT,
+	SELECT_FACTION,
+	SELECT_MARKET,
+	SELECT_PRODUCTION,
+	_SELECT_ELEMENTS,
+	SELECT_GAME,
+	SELECT_LEVEL,
+	NUM_SELECT
 };
 
-class MyFrame : public wxMDIParentFrame
+class GuiApp : public wxApp
 {
-public:
+	friend class GuiFrame;
+	public:
+		~GuiApp();
 
-	MapChild * map;
-	TreeChild * tree;
-	EditFrame * editor;
+		void Select( ARegion *, bool add = false );
+		void Select( Object *, bool add = false );
+		void Select( Unit *, bool add = false );
+		void Select( Game *, bool add = false );
+		void Select( Faction *, bool add = false );
+		void Select( Market *, bool add = false );
+		void Select( Production *, bool add = false );
+		void Select( ARegionArray *, bool add = false );
 
-	wxSizer * sizerSelector;
-	wxSizer * sizerEdit;
-	wxSizer * sizerMap;
+		void UpdateFactions();
+		void UpdateRegions();
+		void UpdateUnits();
+		void UpdateObjects();
+		void UpdateMarkets();
+		void UpdateProductions();
+		void UpdateLevels();
 
-	MyFrame( wxWindow *parent, const wxWindowID id, const wxString& title,
-			const wxPoint& pos, const wxSize& size, const long style );
+		void Trash( Unit * );
+		void Trash( Faction * );
+		void Trash( Market * );
+		void Trash( Production * );
+		void Trash( Object * );
+	//	void TrashLevel( ARegionArray * );
+	//	void TrashRegion( ARegion * );
 
-	void AdjustSizers();
-	void InitToolBar( wxToolBar * );
+		Unit * AddUnit( Faction * pFaction = NULL );
+		Faction * AddFaction();
+		Market * AddMarket();
+		Production * AddProduction();
+		Object * AddObject();
 
-	void OnSize( wxSizeEvent & );
-	void OnAbout( wxCommandEvent & );
-	void OnNewWindow( wxCommandEvent & );
-	void OnQuit( wxCommandEvent & );
-	void OnClose( wxCloseEvent & );
+	//	ARegion * AddRegion();
 
-	void OnGameOpen( wxCommandEvent & );
-	void OnGameSave( wxCommandEvent & );
-	void OnShowMap( wxCommandEvent & );
-	void OnShowTree( wxCommandEvent & );
-	void OnOptionsRecreate( wxCommandEvent & );
+		void UpdateSelection();
+		void UpdateSelection( AElemArray * , int, wxWindow * from = NULL );
 
-	DECLARE_EVENT_TABLE()
+		bool IsSelected( AListElem * );
+		void UpdateStatusBar( ARegion * );
+		void UpdateStatusBarDebug( int xpos, int ypos, int hexX, int hexY, int scrollX, int scrollY , int hexSize, int hexHeight );
+		bool TerrainHasEnabledRace( int );
+		int SaveGame();
+		int ParseOrder( const char * );
+
+		Game * m_game;
+
+		ARegionArray * selectedLevel;
+		AElemArray * selectedElems;
+		int curSelection;
+		wxColour guiColourLt;
+		wxColour guiColourDk;
+
+	private:
+		bool OnInit();
+
+		int LoadGame( const char * );
+
+		void Select( AListElem *, int selectType, bool add ); 
+
+		bool IsSelected( Game * );
+		bool IsSelected( ARegionArray * );
+
+		void AddToSelected( AListElem * );
+		void AddToSelected( Game * );
+		void AddToSelected( ARegionArray * );
+
+		void RemoveFromSelected( AListElem * );
+		void RemoveFromSelected( Game * );
+		void RemoveFromSelected( ARegionArray * );
+
+		void SetSelectionType( int, bool alwaysClear = false );
+
+		void PostLoadGame();
+
+		int runStep;
+		wxMenu * fileMenu;
+};
+
+class GuiSplitter : public wxSplitterWindow 
+{
+	public:
+		GuiSplitter( wxWindow * );
+	
+	private:
+		void OnDoubleClickSash( int x, int y);
+		
+};
+
+class GuiFrame : public wxFrame
+{
+	public:
+		GuiFrame( const wxSize& size );
+		~GuiFrame();
+
+		void CreatePanes();
+
+		MapCanvas * map;
+		TreeCanvas * tree;
+		EditFrame * editor;
+		ListCanvas * list;
+
+	private:
+		bool waitDraw;
+
+		void RefreshWindows();
+		void InitToolBar( wxToolBar * );
+
+		void OnSize( wxSizeEvent & );
+		void OnAbout( wxCommandEvent & );
+		void OnNewWindow( wxCommandEvent & );
+		void OnQuit( wxCommandEvent & );
+		void OnClose( wxCloseEvent & );
+		void OnGameOpen( wxCommandEvent & );
+		void OnGameSave( wxCommandEvent & );
+		void OnGameRun( wxCommandEvent & );
+		void OnGameOptions( wxCommandEvent & );
+		void OnOptionsRecreate( wxCommandEvent & );
+		void OnOptionsTerrain( wxCommandEvent & );
+		void OnOptionsShowTreeHeaders( wxCommandEvent & );
+		void OnOptionsShowFunk( wxCommandEvent & );
+		void OnOptionsShowListMarketsProducts( wxCommandEvent & );
+
+		GuiSplitter * vSplitter;
+		GuiSplitter * hSplitter;
+
+		DECLARE_EVENT_TABLE()
 
 };
 
-extern MyApp * app;
-extern MyFrame * frame;
+extern GuiApp * app;
+extern GuiFrame * frame;
 
 #endif
+
+
