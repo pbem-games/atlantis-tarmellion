@@ -1589,7 +1589,7 @@ elsif ($type eq "weapon"){
     push(@weapons,ALSW);
     push(@weapons,ECLA);
     push(@weapons,ELAR);
-    push(@weapons,ECHA);
+    push(@weapons,ECAR);
     push(@weapons,ESCA);
     push(@weapons,EPLA);
     push(@weapons,BPLA);

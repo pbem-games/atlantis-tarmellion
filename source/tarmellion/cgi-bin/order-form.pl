@@ -63,16 +63,24 @@ print "<HTML>\n";
 print "<HEAD><TITLE>Tarmellion</TITLE></HEAD>";
 if ($ok) {
 	if (open(ORDERS, $file)) {
-		print "<BODY background=/images/background.jpg><p>The orders were stored. <p>Here is the output of the orders checker.<BR><BR>\n";
-		close(ORDERS);
-		open(CHECKER, "<$checkfile");
-		while ($line = <CHECKER>) {
-			$line =~ s/\n/<BR>\n/g;
-			print $line;
+		print "<BODY background=/images/background.jpg><p>The orders were stored. ";
+		$err_num = `grep "*** Error: " $checkfile | wc -l`;
+		if ($err_num == 0){
+			print "<p>There are no syntax errors in your orders.";
+			print "<p>The orders checker was run, but as there are no errors its output won´t be displayed.";
+		} else {
+			print "<p>There are ".$err_num." syntax errors in your orders.";
+			print "<p>Here is the output of the orders checker.<BR><BR>\n";
+			open(CHECKER, "<$checkfile");
+			while ($line = <CHECKER>) {
+				$line =~ s/\n/<BR>\n/g;
+				print $line;
+			}
+			close(CHECKER);
 		}
-		close(CHECKER);
+		close(ORDERS);
 		unlink($checkfile);
-		print LOG "Orders stored.\n";
+		print LOG "Orders stored. $err_num errors\n";
 	} else {
 		print "<BODY background=/images/background.jpg><p>There was an error while storing your orders! Try again or contact the game master!<BR>\n";
 		print LOG "Orders NOT stored: $!\n";

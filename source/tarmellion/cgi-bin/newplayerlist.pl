@@ -412,32 +412,31 @@ while (<PIN>) {
 	}
     }
     #find its starting city
-    if (/^Location:\s/){
-	($dummy,$coor1, $coor2, $coor3) = split(/\s/,$_);
-	$loc = $coor1." ".$coor2." ".$coor3;
-	if ($loc eq "23 61 1"){
+    if (/^StartingPlace:\s(.*)/){
+	($dummy, $startplace) = split(/ /,$_);
+	if ($startplace eq "3"){
 	    $blackkeepcity++;
-	} elsif ($loc eq "104 16 1"){
+	} elsif ($startplace eq "4"){
 	    $ramishempire++;
-	} elsif ($loc eq "28 16 1"){
+	} elsif ($startplace eq "5"){
 	    $amazonnation++;
-	} elsif ($loc eq "86 62 1"){
+	} elsif ($startplace eq "6"){
 	    $silsalon++;
-	} elsif ($loc eq "34 38 1"){
+	} elsif ($startplace eq "7"){
 	    $republicofpelisham++;
-	} elsif ($loc eq "110 60 1"){
+	} elsif ($startplace eq "8"){
 	    $halfingdemocracy++;
-	} elsif ($loc eq "52 66 1"){
+	} elsif ($startplace eq "9"){
 	    $buccaneerfellowship++;
-	} elsif ($loc eq "63 13 1"){
+	} elsif ($startplace eq "10"){
 	    $vikingconfederacy++;
-	} elsif ($loc eq "13 25 5"){
+	} elsif ($startplace eq "11"){
 	    $duergarkingdom++;
-	} elsif ($loc eq "6 10 2"){
+	} elsif ($startplace eq "12"){
 	    $dwarvenkingdom++;
-	} elsif ($loc eq "51 9 5"){
+	} elsif ($startplace eq "13"){
 	    $drowmatriarchy++;
-	} elsif ($loc eq "42 28 2"){
+	} elsif ($startplace eq "14"){
 	    $darkmankingdom++;
 	}
     }
@@ -652,7 +651,7 @@ print "</table>\n";
     print "</td></tr><tr><td valign=top>\n";
 
 #starting cities
-print "<p>Here you can see how many faction are citizens of each starting city (including the new signups but without those that choose new starting locations):\n";
+print "<p>Here you can see how many faction are citizens of each starting city (including the new signups):\n";
 print "<p><table border=1>\n";
 print "<tr><td>starting city</td><td>number of factions</td></tr>\n";
 print "<tr><td>Black Keep</td><td>".$blackkeepcity."</td></tr>\n";
