@@ -106,6 +106,8 @@ Faction::Faction() {
 	pReg = NULL;
 	pStartLoc = NULL;
 	noStartLeader = 0;
+	trade_regions_num = 0;
+	war_regions_num = 0;
 }
 
 Faction::Faction(int n) {
@@ -128,6 +130,8 @@ Faction::Faction(int n) {
 	pReg = NULL;
 	pStartLoc = NULL;
 	noStartLeader = 0;
+	trade_regions_num = 0;
+	war_regions_num = 0;
 }
 
 Faction::~Faction() {
