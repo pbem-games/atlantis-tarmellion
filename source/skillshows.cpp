@@ -526,7 +526,8 @@ AString *ShowSkill::Report(Faction *f) {
 			break;
 		case S_SUMMON_WIND:
 			/* XXX -- This should be cleaner somehow. */
-			if (level == 1) {
+			/* This is cleaner now.*/
+			/*if (level == 1) {
 				*str += "A mage with knowledge of Summon Wind can summon "
 					   "up the powers of the wind to aid him in sea or "
 					   "air travel. Usage of this spell is automatic.";
@@ -549,7 +550,12 @@ AString *ShowSkill::Report(Faction *f) {
 					   "will receive a 2 movement point bonus. Note that "
 					   "study of Summon Wind beyond level 3 does not "
 					   "yield any further powers.";
-			}
+			}*/
+			*str += "A mage with knowledge of Summon Wind can summon "
+				"up the powers of the wind to aid him in sea or "
+				"air travel. Usage of this spell is automatic.";
+			*str += " The vessel the mage is in will recieve a movement bonus equal to his skill level.";
+            *str += " If the mage is flying, he will receive extra movement points equal to his skill level.";
 			break;
 		case S_SUMMON_STORM:
 			if (level > 1) break;

@@ -170,7 +170,7 @@ void Game::MakeLMon(Object *pObj) {
 	Faction *monfac = GetFaction(&factions, 2);
 	Unit *u = GetNewUnit(monfac, 0);
 	switch(montype) {
-		case I_IMP:
+		case I_BALROG:
 			u->MakeWMon("Demons", I_IMP,
 					getrandom(MonDefs[MONSTER_IMPS].number + 1));
 			u->items.SetNum(I_DEMON,
@@ -178,26 +178,169 @@ void Game::MakeLMon(Object *pObj) {
 			u->items.SetNum(I_BALROG,
 					getrandom(MonDefs[MONSTER_BALROG].number + 1));
 			break;
-		case I_SKELETON:
-			u->MakeWMon("Undead", I_SKELETON,
-					getrandom(MonDefs[MONSTER_SKELETONS].number + 1));
-			u->items.SetNum(I_UNDEAD,
-					getrandom(MonDefs[MONSTER_UNDEAD].number + 1));
-			u->items.SetNum(I_LICH,
-					getrandom(MonDefs[MONSTER_LICH].number + 1));
+		case I_LICH:
+		        switch(getrandom(6)) {
+			        case 0:
+				        u->MakeWMon("Undead", I_SKELETON,
+						    getrandom(MonDefs[MONSTER_SKELETONS].number + 1));
+					u->items.SetNum(I_UNDEAD,
+							getrandom(MonDefs[MONSTER_UNDEAD].number + 1));
+					u->items.SetNum(I_LICH,
+							getrandom(MonDefs[MONSTER_LICH].number + 1));
+					break;
+			        case 1:
+				        u->MakeWMon("Undead", I_SKELETON,
+						    getrandom(MonDefs[MONSTER_SKELETONS].number + 100));
+					u->items.SetNum(I_UNDEAD,
+							getrandom(MonDefs[MONSTER_UNDEAD].number + 1));
+					u->items.SetNum(I_LICH,
+							getrandom(MonDefs[MONSTER_LICH].number + 1));
+					break;
+			        case 2:
+				        u->MakeWMon("Undead", I_SKELETON,
+						    getrandom(MonDefs[MONSTER_SKELETONS].number + 1));
+					u->items.SetNum(I_UNDEAD,
+							getrandom(MonDefs[MONSTER_UNDEAD].number + 50));
+					u->items.SetNum(I_LICH,
+							getrandom(MonDefs[MONSTER_LICH].number + 1));
+					break;
+			        case 3:
+				        u->MakeWMon("Evil Mages", I_EVILMAGICIAN,
+						    (MonDefs[MONSTER_EVILMAGICIANS].number +
+						     getrandom(MonDefs[MONSTER_EVILMAGICIANS].number) + 1) / 2);
+					u->items.SetNum(I_EVILWARRIOR,
+							(MonDefs[MONSTER_EVILWARRIORS].number +
+							 getrandom(MonDefs[MONSTER_EVILWARRIORS].number) + 100) / 2);  
+					break;
+			         case 4:
+				        u->MakeWMon("Evil Sorcerers", I_EVILSORCERER,
+						    (MonDefs[MONSTER_EVILSORCERERS].number +
+						     getrandom(MonDefs[MONSTER_EVILSORCERERS].number) + 1) / 2);
+					u->items.SetNum(I_EVILWARRIOR,
+							(MonDefs[MONSTER_EVILWARRIORS].number +
+							 getrandom(MonDefs[MONSTER_EVILWARRIORS].number) + 100) / 2);  
+					break;
+			         case 5:
+				        u->MakeWMon("Evil Wizards", I_EVILMAGICIAN,
+						    (MonDefs[MONSTER_EVILMAGICIANS].number +
+						     getrandom(MonDefs[MONSTER_EVILMAGICIANS].number) + 1) / 2);
+					u->items.SetNum(I_EVILWARRIOR,
+							(MonDefs[MONSTER_EVILWARRIORS].number +
+							 getrandom(MonDefs[MONSTER_EVILWARRIORS].number) + 200) / 2);  
+					u->items.SetNum(I_EVILSORCERER,
+							(MonDefs[MONSTER_EVILSORCERERS].number +
+							 getrandom(MonDefs[MONSTER_EVILSORCERERS].number) + 100) / 2);  
+					break;
+	                }
 			break;
 		case I_EVILMAGICIAN:
-			u->MakeWMon(MonDefs[MONSTER_EVILWARRIORS].name, I_EVILWARRIOR,
-					(MonDefs[MONSTER_EVILWARRIORS].number +
-					 getrandom(MonDefs[MONSTER_EVILWARRIORS].number) + 1) / 2);
-			u->MoveUnit(pObj);
-			u = GetNewUnit(monfac, 0);
-			u->MakeWMon("Evil Mages", I_EVILMAGICIAN,
-					(MonDefs[MONSTER_EVILMAGICIANS].number +
-					 getrandom(MonDefs[MONSTER_EVILMAGICIANS].number) + 1) / 2);
-			u->items.SetNum(I_EVILSORCERER,
-					getrandom(MonDefs[MONSTER_EVILSORCERERS].number + 1));
-			u->SetFlag(FLAG_BEHIND, 1);
+		        switch(getrandom(6)) {
+			        case 0:
+				        u->MakeWMon("Evil Mages", I_EVILMAGICIAN,
+						    (MonDefs[MONSTER_EVILMAGICIANS].number +
+						     getrandom(MonDefs[MONSTER_EVILMAGICIANS].number) + 1) / 2);
+					u->items.SetNum(I_EVILWARRIOR,
+							(MonDefs[MONSTER_EVILWARRIORS].number +
+							 getrandom(MonDefs[MONSTER_EVILWARRIORS].number) + 100) / 2);  
+					break;
+			        case 1:
+				        u->MakeWMon("Evil Mages", I_EVILMAGICIAN,
+						    (MonDefs[MONSTER_EVILMAGICIANS].number +
+						     getrandom(MonDefs[MONSTER_EVILMAGICIANS].number) + 1) / 2);
+					u->items.SetNum(I_GOBLIN,
+							(MonDefs[MONSTER_GOBLINS].number +
+							 getrandom(MonDefs[MONSTER_GOBLINS].number) + 300) / 2);  
+					break;
+			        case 2:
+				        u->MakeWMon("Evil Mages", I_EVILMAGICIAN,
+						    (MonDefs[MONSTER_EVILMAGICIANS].number +
+						     getrandom(MonDefs[MONSTER_EVILMAGICIANS].number) + 1) / 2);
+					u->items.SetNum(I_SKELETON,
+							(MonDefs[MONSTER_SKELETONS].number +
+							 getrandom(MonDefs[MONSTER_SKELETONS].number) + 300) / 2);  
+					break;
+			        case 3:
+				        u->MakeWMon("Evil Mages", I_EVILMAGICIAN,
+						    (MonDefs[MONSTER_EVILMAGICIANS].number +
+						     getrandom(MonDefs[MONSTER_EVILMAGICIANS].number) + 1) / 2);
+					u->items.SetNum(I_MUTANT,
+							(MonDefs[MONSTER_MUTANTS].number +
+							 getrandom(MonDefs[MONSTER_MUTANTS].number) + 100) / 2);  
+					break;
+			        case 4:
+				        u->MakeWMon("Evil Mages", I_EVILMAGICIAN,
+						    (MonDefs[MONSTER_EVILMAGICIANS].number +
+						     getrandom(MonDefs[MONSTER_EVILMAGICIANS].number) + 1) / 2);
+					u->items.SetNum(I_IMP,
+							(MonDefs[MONSTER_IMPS].number +
+							 getrandom(MonDefs[MONSTER_IMPS].number) + 300) / 2);  
+					break;
+		                case 5:
+					u = GetNewUnit(monfac, 0);
+					u->MakeWMon("Evil Mages", I_EVILMAGICIAN,
+						    (MonDefs[MONSTER_EVILMAGICIANS].number +
+						     getrandom(MonDefs[MONSTER_EVILMAGICIANS].number) + 1) / 2);
+					u->items.SetNum(I_EVILSORCERER,
+							getrandom(MonDefs[MONSTER_EVILSORCERERS].number + 1));
+					u->items.SetNum(I_EVILWARRIOR,
+						    (MonDefs[MONSTER_EVILWARRIORS].number +
+						     getrandom(MonDefs[MONSTER_EVILWARRIORS].number) + 100) / 2);
+					break;
+		        }
+		        break;
+		case I_EVILSORCERER:
+		        switch(getrandom(6)) {
+			        case 0:
+				        u->MakeWMon("Evil Sorcerers", I_EVILSORCERER,
+						    (MonDefs[MONSTER_EVILSORCERERS].number +
+						     getrandom(MonDefs[MONSTER_EVILSORCERERS].number) + 1) / 2);
+					u->items.SetNum(I_EVILWARRIOR,
+							(MonDefs[MONSTER_EVILWARRIORS].number +
+							 getrandom(MonDefs[MONSTER_EVILWARRIORS].number) + 100) / 2);  
+					break;
+			        case 1:
+				        u->MakeWMon("Evil Sorcerers", I_EVILSORCERER,
+						    (MonDefs[MONSTER_EVILSORCERERS].number +
+						     getrandom(MonDefs[MONSTER_EVILSORCERERS].number) + 1) / 2);
+					u->items.SetNum(I_GOBLIN,
+							(MonDefs[MONSTER_GOBLINS].number +
+							 getrandom(MonDefs[MONSTER_GOBLINS].number) + 300) / 2);  
+					break;
+			        case 2:
+				        u->MakeWMon("Evil Sorcerers", I_EVILSORCERER,
+						    (MonDefs[MONSTER_EVILSORCERERS].number +
+						     getrandom(MonDefs[MONSTER_EVILSORCERERS].number) + 1) / 2);
+					u->items.SetNum(I_SKELETON,
+							(MonDefs[MONSTER_SKELETONS].number +
+							 getrandom(MonDefs[MONSTER_SKELETONS].number) + 300) / 2);  
+					break;
+			        case 3:
+				        u->MakeWMon("Evil Sorcerers", I_EVILSORCERER,
+						    (MonDefs[MONSTER_EVILSORCERERS].number +
+						     getrandom(MonDefs[MONSTER_EVILSORCERERS].number) + 1) / 2);
+					u->items.SetNum(I_MUTANT,
+							(MonDefs[MONSTER_MUTANTS].number +
+							 getrandom(MonDefs[MONSTER_MUTANTS].number) + 100) / 2);  
+					break;
+			        case 4:
+				        u->MakeWMon("Evil Sorcerers", I_EVILSORCERER,
+						    (MonDefs[MONSTER_EVILSORCERERS].number +
+						     getrandom(MonDefs[MONSTER_EVILSORCERERS].number) + 1) / 2);
+					u->items.SetNum(I_IMP,
+							(MonDefs[MONSTER_IMPS].number +
+							 getrandom(MonDefs[MONSTER_IMPS].number) + 300) / 2);  
+					break;
+		                case 5:
+					u->MakeWMon("Evil Sorcerers", I_EVILMAGICIAN,
+						    (MonDefs[MONSTER_EVILMAGICIANS].number +
+						     getrandom(MonDefs[MONSTER_EVILMAGICIANS].number) + 1) / 2);
+					u->items.SetNum(I_EVILSORCERER,
+							getrandom(MonDefs[MONSTER_EVILSORCERERS].number + 1));
+					u->items.SetNum(I_EVILWARRIOR,
+						    (MonDefs[MONSTER_EVILWARRIORS].number +
+						     getrandom(MonDefs[MONSTER_EVILWARRIORS].number) + 100) / 2);
+					break;
+		        }
 			break;
 //  		   	case I_DARKMAGE:
 //  			   		u->MakeWMon(MonDefs[MONSTER_DROWWARRIORS].name, I_DROWWARRIOR,
@@ -234,6 +377,49 @@ void Game::MakeLMon(Object *pObj) {
 			u->MakeWMon(MonDefs[mondef].name, montype,
 					(MonDefs[mondef].number +
 					 getrandom(MonDefs[mondef].number) + 1) / 2);
+			break;
+		case I_CLOUDGIANT:
+			if (getrandom(3) < 1) {
+				mondef = MONSTER_STORMGIANT;
+				montype = I_STORMGIANT;
+			}
+			u->MakeWMon(MonDefs[mondef].name, montype,
+					(MonDefs[mondef].number +
+					 getrandom(MonDefs[mondef].number) + 1) / 2);
+			break;
+                case I_DARKPRIEST:
+		        switch(getrandom(5)) {
+			        case 0:
+				          u->MakeWMon("Dark Priest", I_DARKPRIEST,
+						      getrandom(MonDefs[MONSTER_DARKPRIEST].number + 1));
+					  u->items.SetNum(I_EVILWARRIOR,
+							  getrandom(MonDefs[MONSTER_EVILWARRIORS].number + 60));
+					  break;
+			        case 1:
+				          u->MakeWMon("Dark Priest", I_DARKPRIEST,
+						      getrandom(MonDefs[MONSTER_DARKPRIEST].number + 1));
+					  u->items.SetNum(I_UNDEAD,
+							  getrandom(MonDefs[MONSTER_UNDEAD].number + 8));
+					  break;
+			        case 2:
+				          u->MakeWMon("Dark Priest", I_DARKPRIEST,
+						      getrandom(MonDefs[MONSTER_DARKPRIEST].number + 1));
+					  u->items.SetNum(I_DEMON,
+							  getrandom(MonDefs[MONSTER_DEMONS].number + 4));
+					  break;
+			        case 3:
+				          u->MakeWMon("Dark Priest", I_DARKPRIEST,
+						      getrandom(MonDefs[MONSTER_DARKPRIEST].number + 1));
+					  u->items.SetNum(I_GOBLIN,
+							  getrandom(MonDefs[MONSTER_GOBLINS].number + 50));
+					  break;
+			        case 4:
+				          u->MakeWMon("Dark Priest", I_DARKPRIEST,
+						      getrandom(MonDefs[MONSTER_DARKPRIEST].number + 1));
+					  u->items.SetNum(I_WILDMAN,
+							  getrandom(MonDefs[MONSTER_WILDMEN].number + 40));
+					  break;
+			}
 			break;
 		default:
 			u->MakeWMon(MonDefs[mondef].name, montype,

@@ -1431,10 +1431,10 @@ enum {
 	O_DUMMY,				//0
 	O_ROWINGBOAT,				//1
 	O_LONGBOAT,				//2
-	O_CLIPPER,				//3
+	O_PINK,  				//3
 	O_GALLEON,				//4
-	O_AGALLEON,				//5
-	O_WGALLEON,				//6
+	O_WARGALLEY,				//5
+	O_WARGALLEON,				//6
 	O_AIRSHIP,				//7
 	O_HERMITSHUT,				//8
 	O_TOWER,				//9
@@ -1598,6 +1598,23 @@ enum {
 	O_ROADSW,				//167
 	O_ROADSE,				//168
 	O_ROADS,				//169
+	O_RAFT,
+	O_TEPUKE,
+	O_SLOOP,
+	O_CUTTER,
+	O_SCHOONER,
+	O_SNOW,
+	O_JUNK,
+	O_DHOW,
+	O_BRIG,
+	O_TARTAN,
+	O_CARAVEL,
+	O_CARRACK,
+	O_GALLEY,
+	O_COG,
+	O_FLOATINGFORTRESS,
+	O_GHOSTSHIP,
+	O_BALLOON,
 	NOBJECTS
 };
 

@@ -100,34 +100,40 @@ ARegion * Game::Do1SailOrder(ARegion * reg,Object * ship,Unit * cap) {
 		}
 
 		// XXX - sheesh... gotta do something about this.
+		// I simply got rid of it, why having different swin skill levels for different ships
+		// Now a different skill level in swin gives different move bonus
 		int windlevel = unit->GetSkill(S_SUMMON_WIND);
 		if (windlevel) {
-			switch (ship->type) {
-				case O_LONGBOAT:
-					movepoints += 2;
-					unit->Event("Casts Summon Wind to aid the ship's "
-								"progress.");
-					unit->Practise(S_SUMMON_WIND);
-					break;
-				case O_CLIPPER:
-				case O_AIRSHIP:
-					if (windlevel > 1) {
-						movepoints += 2;
-						unit->Event("Casts Summon Wind to aid the ship's "
-									"progress.");
-						unit->Practise(S_SUMMON_WIND);
-					}
-					break;
-				default:
-					if (windlevel > 2) {
-						movepoints += 2;
-						unit->Event("Casts Summon Wind to aid the ship's "
-									"progress.");
-						unit->Practise(S_SUMMON_WIND);
-					}
-					break;
-			}
+			movepoints += windlevel;
+			unit->Event("Casts Summon Wind to aid the ship's "
+				"progress.");
+			unit->Practise(S_SUMMON_WIND);
 		}
+		//	switch (ship->type) {
+		//		case O_LONGBOAT:
+		//			movepoints += 2;
+		//			unit->Event("Casts Summon Wind to aid the ship's "
+		//						"progress.");
+		//			unit->Practise(S_SUMMON_WIND);
+		//			break;
+		//		case O_CLIPPER:
+		//		case O_AIRSHIP:
+		//			if (windlevel > 1) {
+		//				movepoints += 2;
+		//				unit->Event("Casts Summon Wind to aid the ship's "
+		//							"progress.");
+		//				unit->Practise(S_SUMMON_WIND);
+		//			}
+		//			break;
+		//		default:
+		//			if (windlevel > 2) {
+		//				movepoints += 2;
+		//				unit->Event("Casts Summon Wind to aid the ship's "
+		//							"progress.");
+		//				unit->Practise(S_SUMMON_WIND);
+		//			}
+		//			break;
+		//	}
 	}
 
 	if (wgt > ObjectDefs[ship->type].capacity) {
