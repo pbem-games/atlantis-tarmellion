@@ -79,7 +79,7 @@ void Game::RunSailOrders() {
 
 ARegion * Game::Do1SailOrder(ARegion * reg,Object * ship,Unit * cap) {
 	SailOrder * o = (SailOrder *) cap->monthorders;
-	int movepoints = Globals->SHIP_SPEED;
+	int movepoints = ObjectDefs[ship->type].sailSpeed;
 	int moveok = 0;
 
 	AList facs;
@@ -104,7 +104,7 @@ ARegion * Game::Do1SailOrder(ARegion * reg,Object * ship,Unit * cap) {
 		if (windlevel) {
 			switch (ship->type) {
 				case O_LONGBOAT:
-					movepoints = Globals->SHIP_SPEED + 2;
+					movepoints += 2;
 					unit->Event("Casts Summon Wind to aid the ship's "
 								"progress.");
 					unit->Practise(S_SUMMON_WIND);
@@ -112,7 +112,7 @@ ARegion * Game::Do1SailOrder(ARegion * reg,Object * ship,Unit * cap) {
 				case O_CLIPPER:
 				case O_AIRSHIP:
 					if (windlevel > 1) {
-						movepoints = Globals->SHIP_SPEED + 2;
+						movepoints += 2;
 						unit->Event("Casts Summon Wind to aid the ship's "
 									"progress.");
 						unit->Practise(S_SUMMON_WIND);
@@ -120,7 +120,7 @@ ARegion * Game::Do1SailOrder(ARegion * reg,Object * ship,Unit * cap) {
 					break;
 				default:
 					if (windlevel > 2) {
-						movepoints = Globals->SHIP_SPEED + 2;
+						movepoints += 2;
 						unit->Event("Casts Summon Wind to aid the ship's "
 									"progress.");
 						unit->Practise(S_SUMMON_WIND);
@@ -1476,7 +1476,7 @@ void Game::Do1TunnelOrder(ARegion * pRegion, Unit * pUnit)
 		int item = TerrainDefs[target->type].prods[i].product;
 		if( item != -1 && ITEM_ENABLED(item) ) {
 			if( getrandom(100) < TerrainDefs[target->type].prods[i].chance ) {
-				int amt = getrandom( TerrainDefs[target->type].prods[i].amount );
+				int amt = getrandom( TerrainDefs[target->type].prods[i].amount ) + 1;
 				pUnit->items.SetNum( item, pUnit->items.GetNum( item ) + amt );
 				pUnit->Event(AString("Produces ") + ItemString(item, amt) + 
 					" from tunnelling.");

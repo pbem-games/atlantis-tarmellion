@@ -667,6 +667,7 @@ void Game::RunACastOrder(ARegion * r,Object *o,Unit * u) {
 		case S_ENCHANT_AMULETS:
 		case S_CREATE_CHARMS:
 			RunCreateArtifact(r,u,sk,((CastItemOrder *)u->castorders)->item);
+			break;
 		case S_CONSTRUCT_PORTAL:
 			RunCreateArtifact(r,u,sk,I_PORTAL);
 			break;
