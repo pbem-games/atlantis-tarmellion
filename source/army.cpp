@@ -197,6 +197,19 @@ Soldier::Soldier(Unit * u,Object * o,int regtype,int r,int ass) {
 			break;
 		}
 	}
+	// If no mount available that can be used for this terrain type, find
+	//  another mount can be ridden. No riding bonus though because of terrain
+	if( riding == -1 ) {
+		for (int mountType = 1; mountType < NUMMOUNTS; mountType++) {
+			item = unit->GetMount(mountType, -1, -1, ridingBonus);
+			if (item == -1) continue;
+			riding = item;
+			if( MountDefs[ItemDefs[riding].index].monster != -1 )
+				mount = new Soldier( u, o, regtype, riding, ass );
+			mount->rider = this;
+			break;
+		}
+	}
  
 	//
 	// Find the correct weapon for this soldier.

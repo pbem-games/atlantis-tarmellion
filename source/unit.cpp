@@ -1737,7 +1737,7 @@ int Unit::GetMount(int index, int canFly, int canRide, int &bonus) {
 		int item = pItem->type;
 		if ((ItemDefs[item].type&IT_MOUNT) && (ItemDefs[item].index==index)) {
 			// Found a possible mount
-			if (canFly) {
+			if (canFly == 1) {
 				if (!ItemDefs[item].fly) {
 					// The mount cannot fly, see if the region allows
 					// riding mounts
@@ -1755,14 +1755,19 @@ int Unit::GetMount(int index, int canFly, int canRide, int &bonus) {
 				bonus = 0;
 				continue;
 			}
-			// Limit to max mount bonus;
-			if (bonus > pMnt->maxBonus) bonus = pMnt->maxBonus;
-			// If the mount can fly and the terrain doesn't allow
-			// flying mounts, limit the bonus to the maximum hampered
-			// bonus allowed by the mount
-			if (ItemDefs[item].fly && !canFly) {
-				if (bonus > pMnt->maxHamperedBonus)
-					bonus = pMnt->maxHamperedBonus;
+			// Is any bonus allowed?
+			if( canRide == -1 && canFly == -1 ) {
+				bonus = 0;
+			} else {
+				// Limit to max mount bonus;
+				if (bonus > pMnt->maxBonus) bonus = pMnt->maxBonus;
+				// If the mount can fly and the terrain doesn't allow
+				// flying mounts, limit the bonus to the maximum hampered
+				// bonus allowed by the mount
+				if (ItemDefs[item].fly && !canFly) {
+					if (bonus > pMnt->maxHamperedBonus)
+						bonus = pMnt->maxHamperedBonus;
+				}
 			}
 			// Get the mount
 			items.SetNum(item, pItem->num - 1);
