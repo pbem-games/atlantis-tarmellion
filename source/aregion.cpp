@@ -913,17 +913,19 @@ void ARegion::UpdateTown()
 		forlist(&markets) {
 			Market * m = (Market *) elem;
 			if (Population() > m->minpop) {
-				if (ItemDefs[m->item].type & IT_TRADE) {
-					if (m->type == M_BUY) {
-						amt += 5 * m->activity;
-						tot += 5 * m->maxamt;
-					}
-				} else {
-					if (m->type == M_SELL) {
-						amt += m->activity;
-						tot += m->maxamt;
-					}
-				}
+			  tot += m->maxamt   * m->price;
+			  amt += m->activity * m->price;
+//  				if (ItemDefs[m->item].type & IT_TRADE) {
+//  					if (m->type == M_BUY) {
+//  						amt += 5 * m->activity;
+//  						tot += 5 * m->maxamt;
+//  					}
+//  				} else {
+//  					if (m->type == M_SELL) {
+//  						amt += m->activity;
+//  						tot += m->maxamt;
+//  					}
+//  				}
 			}
 		}
 

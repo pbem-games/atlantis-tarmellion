@@ -116,6 +116,7 @@ class Army
 
 		int Broken();
 		int NumAlive();
+		int NumBehind();
 		int NumSpoilers();
 		int CanAttack();
 		int NumFront();

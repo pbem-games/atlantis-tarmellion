@@ -1097,7 +1097,7 @@ AString ItemList::Report(int obs,int seeillusions,int nofirstcomma) {
 			}
 			temp += i->Report(seeillusions);
 		} else {
-			if (ItemDefs[i->type].weight) {
+			if (!(ItemDefs[i->type].flags & ItemType::HIDDEN)) {
 				if (nofirstcomma) {
 					nofirstcomma = 0;
 				} else {

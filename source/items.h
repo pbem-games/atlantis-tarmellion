@@ -90,7 +90,8 @@ class ItemType
 			EVIL = 0x20,
 			// this item is only associated with good.
 			GOOD = 0x40,
-			
+			// this item cannot be seen by oponents (used to be weight zero.)
+			HIDDEN = 0x80,
 		};
 		int flags;
 

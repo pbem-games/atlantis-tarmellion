@@ -737,6 +737,7 @@ void Game::RunProduceOrders(ARegion * r)
 	}
 	{
 		forlist((&r->objects)) {
+		  int objrequired = 0;
 			Object * obj = (Object *) elem;
 			int workers = 0;
 			forlist ((&obj->units)) {
@@ -745,16 +746,19 @@ void Game::RunProduceOrders(ARegion * r)
 			    if (u->monthorders->type == O_PRODUCE) {
 			      ProduceOrder *po = (ProduceOrder *)u->monthorders;
 			      if (ItemDefs[po->item].requiredstructure == obj->type) {
+				objrequired = 1;
 				workers += u->GetMen();
 			      }
 			    }
 			  }
 			}
-			if (workers > ObjectDefs[obj->type].workersallowed) {
-			  obj->productionratio = (float)ObjectDefs[obj->type].workersallowed/(float)workers;
-			  obj->Notify(*(obj->name) + AString(" ") + ObjectDefs[obj->type].name + AString(" is over worked, workers are inefficent."));
-			} else {
-			  obj->productionratio = 1.0;
+			if (objrequired) {
+			  if (workers > ObjectDefs[obj->type].workersallowed) {
+			    obj->productionratio = (float)ObjectDefs[obj->type].workersallowed/(float)workers;
+			    obj->Notify(*(obj->name) + AString(" ") + ObjectDefs[obj->type].name + AString(" is over worked, workers are inefficent."));
+			  } else {
+			    obj->productionratio = 1.0;
+			  }
 			}
 			{
 			  forlist ((&obj->units)) {

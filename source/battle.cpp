@@ -58,13 +58,18 @@ void Battle::FreeRound(Army * att,Army * def, int ass)
 	//
 	att->round++;
 
+	int overwhelmed = 0;
+	if (att->NumFront() > 4 * def->NumFront() && def->NumFront() && def->NumBehind()) {
+	  AddLine(*(def->leader->name) + " is overwhelmed.");
+	  overwhelmed = 1;
+	}
 	/* Run attacks until done */
 	int alv = def->NumAlive();
 	while (att->CanAttack() && def->NumAlive()) {
 		int num = getrandom(att->CanAttack());
 		int behind;
 		Soldier * a = att->GetAttacker(num, behind);
-		DoAttack(att->round, a, att, def, behind, ass);
+		DoAttack(att->round, a, att, def, behind, ass, overwhelmed);
 	}
 
 	/* Write losses */
@@ -76,8 +81,10 @@ void Battle::FreeRound(Army * att,Army * def, int ass)
 }
 
 void Battle::DoAttack(int round, Soldier *a, Army *attackers, Army *def,
-		int behind, int ass)
+		int behind, int ass, int canattackback)
 {
+  //  KFA need to add canattackback from here (mostly to DoAnAttack).
+
 	DoSpecialAttack(round, a, attackers, def, behind);
 	if (!def->NumAlive()) return;
 
@@ -166,6 +173,16 @@ void Battle::NormalRound(int round,Army * a,Army * b)
     int aatt = a->CanAttack();
     int batt = b->CanAttack();
 
+    int boverwhelmed = 0;
+    int aoverwhelmed = 0;
+    if (a->NumFront() > 4 * b->NumFront() && b->NumFront() && b->NumBehind()) {
+      AddLine(*(b->leader->name) + " is overwhelmed.");
+      boverwhelmed = 1;
+    } else if (b->NumFront() > 4 * a->NumFront() && a->NumFront() && a->NumBehind()) {
+      AddLine(*(a->leader->name) + " is overwhelmed.");
+      aoverwhelmed = 1;
+    }
+
     /* Run attacks until done */
     while (aalive && balive && (aatt || batt))
     {
@@ -175,12 +192,12 @@ void Battle::NormalRound(int round,Army * a,Army * b)
         {
             num -= aatt;
             Soldier * s = b->GetAttacker(num, behind);
-            DoAttack(b->round, s, b, a, behind);
+            DoAttack(b->round, s, b, a, behind, 0, aoverwhelmed);
         }
         else
         {
             Soldier * s = a->GetAttacker(num, behind);
-            DoAttack(a->round, s, a, b, behind);
+            DoAttack(a->round, s, a, b, behind, 0, boverwhelmed);
         }
         aalive = a->NumAlive();
         balive = b->NumAlive();

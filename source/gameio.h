@@ -27,6 +27,8 @@
 
 #include "astring.h"
 
+#define DEBUG(VAR) cout << #VAR << " " << VAR << endl;
+
 void initIO();
 void doneIO();
 

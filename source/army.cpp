@@ -902,6 +902,11 @@ int Army::NumFront()
 	return (canfront + notfront - canbehind);
 }
 
+int Army::NumBehind()
+{
+  return NumAlive() - NumFront();
+}
+
 Soldier * Army::GetAttacker(int i,int &behind)
 {
 	Soldier * retval = soldiers[i];
