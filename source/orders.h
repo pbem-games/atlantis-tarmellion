@@ -47,6 +47,7 @@ class CastRegionOrder;
 class TeleportOrder;
 class ForgetOrder;
 class EvictOrder;
+class SettleOrder;
 
 #include "unit.h"
 #include "gamedefs.h"
@@ -104,6 +105,7 @@ enum {
 	O_REVEAL,
 	O_SAIL,
 	O_SELL,
+	O_SETTLE,
 	O_SHOW,
 	O_SPOILS,
 	O_STEAL,
@@ -370,5 +372,10 @@ class EvictOrder : public Order {
 		AList targets;
 };
 
+class SettleOrder : public Order {
+	public:
+		SettleOrder();
+		~SettleOrder();
+};
 
 #endif

@@ -83,6 +83,16 @@ class SkillType {
 		int rangeIndex;
 
 		SkillDepend depends[3];
+
+		int failChance;
+		
+		enum {
+			FAIL_CONSTANT,
+			FAIL_MINUS_SKILL,
+			FAIL_DIVIDE_SKILL,
+		};
+		int failType;
+
 };
 extern SkillType * SkillDefs;
 
@@ -245,4 +255,5 @@ class RangeType {
 		int crossLevelPenalty;	// How much extra distance to cross levels?
 };
 extern RangeType *RangeDefs;
+
 #endif

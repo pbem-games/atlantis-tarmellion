@@ -268,6 +268,9 @@ class Unit : public AListElem {
 		Order *presentMonthOrders;
 		int presentTaxing;
 		Unit *former;
+
 };
+
+int GetSpellFailureChance( Unit * u, int sk );
 
 #endif

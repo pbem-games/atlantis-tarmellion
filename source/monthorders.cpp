@@ -577,6 +577,7 @@ void Game::RunBuildHelpers(ARegion *r) {
 void Game::RunMonthOrders() {
 	forlist(&regions) {
 		ARegion * r = (ARegion *) elem;
+		RunSettleOrders(r);
 		RunStudyOrders(r);
 		RunBuildHelpers(r);
 		RunProduceOrders(r);
@@ -1338,4 +1339,59 @@ done_moving:
 	loc->region = region;
 	loc->obj = obj;
 	return loc;
+}
+
+void Game::RunSettleOrders(ARegion * pRegion)
+{
+	forlist(&pRegion->objects) {
+		Object * obj = (Object *) elem;
+		forlist(&obj->units) {
+			Unit * u = (Unit *) elem;
+			if(u->monthorders) {
+				if (u->monthorders->type == O_SETTLE) {
+					Do1SettleOrder(pRegion,u);
+					delete u->monthorders;
+					u->monthorders = 0;
+				}
+			}
+		}
+	}
+}
+
+void Game::Do1SettleOrder(ARegion * pRegion, Unit * pUnit)
+{
+	// Can't settle region if it is guarded by another faction
+	if( !pRegion->CanPillage( pUnit ) ) {
+		pUnit->Error("SETTLE: A unit is on guard.");
+		return;
+	}
+
+	// Men must be >= 10% of population
+	int menNeeded = pRegion->Population() / 10;
+	if( pUnit->GetMen() < menNeeded ) {
+		pUnit->Error("SETTLE: Not enough men to settle this region");
+		return;
+	}
+
+	int newRace = ManDefs[ItemDefs[pRegion->race].index].alternaterace;
+
+	// Change market for this man
+	float ratio = ItemDefs[newRace].baseprice / (float)Globals->BASE_MAN_COST;
+	forlist( &pRegion->markets ) {
+		Market * m = ( Market * ) elem;
+		if( m->type == M_BUY && m->item == pRegion->race ) {
+			pRegion->markets.Remove( m );
+			delete m;
+			m = new Market(M_BUY, newRace, (int)(pRegion->Wages()*4*ratio),
+							pRegion->Population()/5, 0, 10000, 0, 2000);
+			pRegion->markets.Add( m );
+		}
+	}
+
+	// Change race
+	pRegion->race = newRace;
+
+	pUnit->Event(AString("Changes population in ") + pRegion->ShortPrint(&regions) +
+				 " to " + ItemDefs[newRace].names);
+
 }

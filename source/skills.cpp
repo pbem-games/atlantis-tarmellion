@@ -210,3 +210,4 @@ void SkillList::Writeout(Aoutfile * f) {
 		((Skill *) elem)->Writeout(f);
 	}
 }
+

@@ -418,7 +418,7 @@ void Faction::WriteReport(Areport *f, Game *pGame) {
 			f->PutStr(AString("Apprentices: ") + numapprentices + " (" +
 					pGame->AllowedApprentices(this)+ ")");
 		}
-		if(race) {
+		if(race != -1) {
 			f->PutStr(AString("Race: ") + ItemDefs[race].name);
 		}
 	}

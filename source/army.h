@@ -80,6 +80,7 @@ class Soldier {
 		int attacks;
 		int special;
 		int slevel;
+		int specialfail;
 
 		/* Defense info */
 		int dskill[NUM_ATTACK_TYPES];

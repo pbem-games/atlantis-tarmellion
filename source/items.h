@@ -180,6 +180,7 @@ class ManType {
 		M_ALL		= 0xFFFF,
 	};
 	int species;
+	int alternaterace;
 };
 
 extern ManType * ManDefs;

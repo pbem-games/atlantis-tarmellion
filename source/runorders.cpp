@@ -1410,11 +1410,12 @@ int Game::GetBuyAmount(ARegion * r,Market * m) {
 		Object * obj = (Object *) elem;
 		forlist((&obj->units)) {
 			Unit * u = (Unit *) elem;
-			int goodness;
-			if (u->faction->race == -1) {
-				goodness = (ItemDefs[u->faction->race].flags & ItemType::GOOD ? 1 : 0);
-				goodness -= (ItemDefs[u->faction->race].flags & ItemType::EVIL ? 1 : 0);
-			}
+			// Commented out by Ben: goodness isn't used anywhere in this function
+//			int goodness;
+//			if (u->faction->race == -1) {
+//				goodness = (ItemDefs[u->faction->race].flags & ItemType::GOOD ? 1 : 0);
+//				goodness -= (ItemDefs[u->faction->race].flags & ItemType::EVIL ? 1 : 0);
+//			}
 			forlist ((&u->buyorders)) {
 				BuyOrder * o = (BuyOrder *) elem;
 				if (o->item == m->item) {
@@ -1447,13 +1448,16 @@ int Game::GetBuyAmount(ARegion * r,Market * m) {
 							o->num = 0;
 						}
 					}
-					if ((ItemDefs[u->faction->race].flags & ItemType::GOOD) && (ItemDefs[o->item].flags & ItemType::EVIL)) {
-					  	u->Error("BUY: Can't buy evil aligned items.");
-					  	o->num = 0;
-					}
-				 	if ((ItemDefs[u->faction->race].flags & ItemType::EVIL) && (ItemDefs[o->item].flags & ItemType::GOOD)) {
-						u->Error("BUY: Can't buy good aligned items.");
-						o->num = 0;
+					// Race may be set to -1 if we didn't add a race through players.in
+					if( u->faction->race != -1 ) {
+						if ((ItemDefs[u->faction->race].flags & ItemType::GOOD) && (ItemDefs[o->item].flags & ItemType::EVIL)) {
+					  		u->Error("BUY: Can't buy evil aligned items.");
+					  		o->num = 0;
+						}
+				 		if ((ItemDefs[u->faction->race].flags & ItemType::EVIL) && (ItemDefs[o->item].flags & ItemType::GOOD)) {
+							u->Error("BUY: Can't buy good aligned items.");
+							o->num = 0;
+						}
 					}
 					if (ItemDefs[o->item].type & IT_MAN) {
 						if (u->type == U_MAGE) {

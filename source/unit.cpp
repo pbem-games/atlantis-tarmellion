@@ -2020,3 +2020,20 @@ int Unit::CanUseWeapon(WeaponType *pWep) {
 
 	return baseSkillLevel;
 }
+
+/// What's the chance this spell will fail per casting?
+int GetSpellFailureChance( Unit * u, int sk )
+{
+	int chance = SkillDefs[sk].failChance;
+	if( !chance ) return 0;
+
+	int level = u->GetSkill( sk );
+
+	if( SkillDefs[sk].failType == SkillType::FAIL_MINUS_SKILL ) {
+		chance -= level;
+	} else if( SkillDefs[sk].failType == SkillType::FAIL_DIVIDE_SKILL ) {
+		chance /= level;
+	}
+
+	return chance;
+}

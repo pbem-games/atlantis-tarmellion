@@ -202,6 +202,12 @@ void Battle::DoSpecialAttack(int round, Soldier *a, Army *attackers,
 
 	if (!(spd->effectflags & SpecialType::FX_DAMAGE)) return;
 
+	// Check for spell failure
+	if( getrandom( 100 ) < a->specialfail ) {
+		AddLine(a->name + " " + spd->spelldesc + ", but the spell fizzles.");
+		return;
+	}
+
 	for(i = 0; i < 4; i++) {
 		if (spd->damage[i].type == -1) continue;
 		int times = spd->damage[i].value;

@@ -85,4 +85,7 @@ void RunEnchantSwords(ARegion *,Unit *);
 void RunEnchantArmor(ARegion *,Unit *);
 void RunMindReading(ARegion *,Unit *);
 void RunCreateFood(ARegion *,Unit *);
+
+// Spell failure
+int CheckSpellFailure( Unit * u, int sk );
 #endif

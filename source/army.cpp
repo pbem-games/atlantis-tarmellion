@@ -61,6 +61,7 @@ Soldier::Soldier(Unit * u,Object * o,int regtype,int r,int ass) {
 
 	special = -1;
 	slevel = 0;
+	specialfail = 0;
 
 	askill = 0;
 
@@ -295,6 +296,9 @@ void Soldier::SetupSpell() {
 		}
 
 		special = pST->special;
+		// Set spell failure chance
+		specialfail = GetSpellFailureChance( unit, unit->combat );
+
 		unit->Practise(unit->combat);
 	}
 }

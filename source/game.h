@@ -363,6 +363,7 @@ public:
     void ProcessPasswordOrder(Unit *, AString *, OrdersCheck *pCheck );
 	void ProcessExchangeOrder(Unit *, AString *, OrdersCheck *pCheck);
 	AString *ProcessTurnOrder(Unit *, Aorders *, OrdersCheck *pCheck, int);
+    void ProcessSettleOrder(Unit *,AString *, OrdersCheck *pCheck );
 
 	void RemoveInactiveFactions();
 
@@ -511,6 +512,8 @@ public:
     Location * DoAMoveOrder(Unit *,ARegion *,Object *);
     void DoMoveEnter(Unit *,ARegion *,Object **);
     void RunMonthOrders();
+    void RunSettleOrders(ARegion *);
+	void Do1SettleOrder(ARegion *,Unit *);
     void RunStudyOrders(ARegion *);
     void Do1StudyOrder(Unit *,Object *);
     void RunTeachOrders();

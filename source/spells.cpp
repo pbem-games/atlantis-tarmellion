@@ -598,6 +598,14 @@ void Game::RunACastOrder(ARegion * r,Object *o,Unit * u) {
 	}
 
 	int sk = u->castorders->spell;
+
+	// Check for spell failure
+	int failChance = GetSpellFailureChance( u, sk );
+	if( getrandom( 100 ) < failChance ) {
+		u->Event( AString("Attempts to cast ") + SkillDefs[sk].name + " but the spell fails." );
+		return;
+	}
+
 	switch (sk) {
 		case S_MIND_READING:
 			RunMindReading(r,u);

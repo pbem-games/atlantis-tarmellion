@@ -538,7 +538,12 @@ AString *ItemDescription(int item, int full) {
 			*temp += AString(" and other magic skills to level ") + ManDefs[man].defaultmagiclevel + ".";
 		} else {
 			*temp += AString("all skills to level ") +
-				ManDefs[man].defaultlevel;
+				ManDefs[man].defaultlevel + ".";
+		}
+		int altRace = ManDefs[man].alternaterace;
+		if( altRace != -1 && full ) {
+			*temp += AString( " A region with this race may be changed to " ) + ItemDefs[altRace].names +
+				" by using the SETTLE command. ";
 		}
 	}
 	if (ItemDefs[item].type & IT_MONSTER) {

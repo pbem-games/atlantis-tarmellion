@@ -75,6 +75,7 @@ char * od[] = {
 	"reveal",
 	"sail",
 	"sell",
+	"settle",
 	"show",
 	"spoils",
 	"steal",
@@ -278,4 +279,11 @@ EvictOrder::EvictOrder() {
 }
 
 EvictOrder::~EvictOrder() {
+}
+
+SettleOrder::SettleOrder() {
+	type = O_SETTLE;
+}
+
+SettleOrder::~SettleOrder() {
 }

@@ -569,6 +569,9 @@ void Game::ProcessOrder(int orderNum, Unit *unit, AString *o,
 		case O_SELL:
 			ProcessSellOrder(unit, o, pCheck);
 			break;
+		case O_SETTLE:
+			ProcessSettleOrder(unit, o, pCheck);
+			break;
 		case O_SHOW:
 			ProcessReshowOrder(unit, o, pCheck);
 			break;
@@ -1115,6 +1118,22 @@ void Game::ProcessAssassinateOrder(Unit * u,AString * o, OrdersCheck *pCheck) {
 		ord->target = id;
 		u->stealorders = ord;
 	}
+}
+
+void Game::ProcessSettleOrder( Unit * u, AString * o, OrdersCheck * pCheck )
+{
+	if (u->monthorders ||
+		(Globals->TAX_PILLAGE_MONTH_LONG &&
+		 ((u->taxing == TAX_TAX) || (u->taxing == TAX_PILLAGE))))
+	{
+		if (u->monthorders) delete u->monthorders;
+		AString err = "SETTLE: Overwriting previous ";
+		if (u->inTurnBlock) err += "DELAYED ";
+		err += "month-long order.";
+		ParseError(pCheck, u, 0, err);
+	}
+	if (Globals->TAX_PILLAGE_MONTH_LONG) u->taxing = TAX_NONE;
+	u->monthorders = new SettleOrder;
 }
 
 void Game::ProcessStealOrder(Unit * u,AString * o, OrdersCheck *pCheck) {
