@@ -174,7 +174,7 @@ class GuiSplitter : public wxSplitterWindow
 class GuiFrame : public wxFrame
 {
 	public:
-		GuiFrame( const wxSize& size );
+		GuiFrame( wxPoint & pos, wxSize & size );
 		~GuiFrame();
 
 		void CreatePanes();
@@ -183,6 +183,8 @@ class GuiFrame : public wxFrame
 		TreeCanvas * tree;
 		EditFrame * editor;
 		ListCanvas * list;
+
+		void EnableWindows( bool enable );
 
 	private:
 		bool waitDraw;

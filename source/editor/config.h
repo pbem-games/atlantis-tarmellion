@@ -82,14 +82,22 @@ class GuiConfigType
 		bool showTreeHeaders;
 		bool showFunk;
 		bool listMarketsProducts;
-		AString lastGameFile;
-		AString lastOrdersFile;
 		bool useEmail;
+
+		int windowX;
+		int windowY;
+		int windowH;
+		int windowV;
+		bool windowMax;
+		int splitterH;
+		int splitterV;
+
+		AString lastGameFile;
 		AString pop3Server;
-		AString userName;
-		AString password;
 		AString smtpServer;
+		AString userName;
 		AString email;
+		AString password;
 };
 
 WX_DEFINE_ARRAY( TerrainConfigType *, TerrainArray );

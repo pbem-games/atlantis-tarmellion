@@ -9351,7 +9351,7 @@ ArmorType *ArmorDefs = armd;
 
 //
 // Table of mounts
-// skill,minBonus,maxBonus,maxHamperedBonus
+// skill,minBonus,maxBonus,maxHamperedBonus,mountSpecial,specialLev,monster
 //
 MountType mountd[] = {
 	// MOUNT_NONE
@@ -9456,7 +9456,7 @@ static SkillType sd[] = {
 	// flags, special, rangeindex
 	// study building
 	// skill dependancy array
-        // failChance (is the base chance the skill will fail), failType (controls how this chance changes with caster level)
+    // failChance (is the base chance the skill will fail), failType (controls how this chance changes with caster level)
 	//
 	{"mining","MINI",10,
 	 0,

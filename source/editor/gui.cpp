@@ -142,10 +142,16 @@ bool GuiApp::OnInit()
 	guiColourDk.Set( 200, 225, 245 );
 
 	/// Create the main frame window
-	frame = new GuiFrame( wxSize( 500, 400 ) );
-	
-	/// Give it an icon
+	wxPoint p( GuiConfig.windowX, GuiConfig.windowY );
+	wxSize s( GuiConfig.windowH, GuiConfig.windowV );
+	frame = new GuiFrame( p, s );
+
 #ifdef __WXMSW__
+	/// Maximize it?
+	if( GuiConfig.windowMax )
+		frame->Maximize();
+
+	/// Give it an icon
 	frame->SetIcon( wxIcon( _T( "gui_icn" ) ) );
 #else
 	frame->SetIcon( wxIcon( gui_xpm ) );
@@ -176,7 +182,6 @@ bool GuiApp::OnInit()
 	int widths[5] = {50, -3, -1, -1, -1};
 	frame->GetStatusBar()->SetFieldsCount( 5, widths );
 	frame->Show( TRUE );
-	frame->SetSize( 800, 600 );
 	
 	SetTopWindow( frame );
 
@@ -283,7 +288,6 @@ void GuiFrame::CreatePanes()
 
 	// Create tree view
 	tree = new TreeCanvas( vSplitter );
-	tree->ToggleHeaders( GuiConfig.showTreeHeaders );
  	tree->Init();
 	tree->Show( true );
 
@@ -296,8 +300,13 @@ void GuiFrame::CreatePanes()
 	map = new MapCanvas( hSplitter );
 
 	// Show everything
-	hSplitter->SplitHorizontally( map, vSplitter, 315 );
-	vSplitter->SplitVertically( list, tree, 315 );
+	int splitH = GuiConfig.splitterH;
+	if( splitH <= 0 ) splitH = GetClientSize().y / 2;
+	int splitV = GuiConfig.splitterV;
+	if( splitV <= 0 ) splitV = GetClientSize().x / 2;
+
+	hSplitter->SplitHorizontally( map, vSplitter, splitH );
+	vSplitter->SplitVertically( list, tree, splitV );
 	map->Show( true );
 	RefreshWindows();
 
@@ -452,6 +461,7 @@ int GuiApp::SaveGame ()
 			if( !m_game->SaveGame( fname ) ) {
 				wxMessageBox( "Couldn't save game", "Error" );
 				return 0;
+				GuiConfig.lastGameFile = fname;
 			}
 		}
 		
@@ -529,7 +539,7 @@ void GuiApp::Trash( Unit * pUnit )
 	}
 	
 	frame->tree->RemoveItem( pUnit );
-	
+	frame->list->RemoveItem( pUnit );
 	int index = selectedElems->Index( pUnit );
 	if( index != wxNOT_FOUND ) selectedElems->RemoveAt( index );
 	
@@ -543,6 +553,7 @@ void GuiApp::Trash( Unit * pUnit )
 void GuiApp::Trash( Faction * pFaction )
 {
 	frame->tree->RemoveItem( pFaction );
+	frame->list->RemoveItem( pFaction );
 	
 	int index = selectedElems->Index( pFaction );
 	if( index != wxNOT_FOUND ) selectedElems->RemoveAt( index );
@@ -560,6 +571,7 @@ void GuiApp::Trash( Faction * pFaction )
 void GuiApp::Trash( Market * pMarket )
 {
 	frame->tree->RemoveItem( pMarket );
+	frame->list->RemoveItem( pMarket );
 	
 	ARegion * r = m_game->regions.GetRegion( pMarket->region );
 	r->markets.Remove( pMarket );
@@ -574,6 +586,7 @@ void GuiApp::Trash( Market * pMarket )
 void GuiApp::Trash( Production * pProduction )
 {
 	frame->tree->RemoveItem( pProduction );
+	frame->list->RemoveItem( pProduction );
 	
 	ARegion * r = m_game->regions.GetRegion( pProduction->region );
 	r->products.Remove( pProduction );
@@ -594,7 +607,8 @@ void GuiApp::Trash( Object * pObject )
 		u->MoveUnit( dummy );
 	}
 	
-	frame->tree->RemoveItem(pObject);
+	frame->tree->RemoveItem( pObject );
+	frame->list->RemoveItem( pObject );
 	
 	int index = selectedElems->Index( pObject );
 	if( index != wxNOT_FOUND ) selectedElems->RemoveAt( index );
@@ -730,8 +744,8 @@ bool GuiApp::TerrainHasEnabledRace( int ttype )
 /**
  * Default constructor
  */
-GuiFrame::GuiFrame( const wxSize & size )
-		:wxFrame( (wxFrame * ) NULL, -1, _T( "Atlantis Gui v 0.6" ), wxDefaultPosition,
+GuiFrame::GuiFrame( wxPoint & pos, wxSize & size )
+		:wxFrame( ( wxFrame * ) NULL, -1, _T( "Atlantis Gui v 0.7" ), pos,
 		           size, wxDEFAULT_FRAME_STYLE | wxHSCROLL | wxVSCROLL |
 				   wxNO_FULL_REPAINT_ON_RESIZE )
 {
@@ -742,8 +756,8 @@ GuiFrame::GuiFrame( const wxSize & size )
 	tree = NULL;
 	map = NULL;
 	list = NULL;
-	hSplitter = new GuiSplitter(this);
-	vSplitter = new GuiSplitter(hSplitter);
+	hSplitter = new GuiSplitter( this );
+	vSplitter = new GuiSplitter( hSplitter );
 
 	// Create toolbar
 	CreateToolBar( wxNO_BORDER | wxTB_FLAT | wxTB_HORIZONTAL );
@@ -769,6 +783,21 @@ GuiFrame::GuiFrame( const wxSize & size )
  */
 GuiFrame::~GuiFrame()
 {
+	GuiConfig.windowMax = IsMaximized();
+	if( !IsMaximized() ) {
+		if( GetPosition().x > 0 )
+			GuiConfig.windowX = GetPosition().x;
+		if( GetPosition().y > 0 )
+			GuiConfig.windowY = GetPosition().y;
+		if( GetSize().x > 0 )
+		GuiConfig.windowH = GetSize().x;
+		if( GetSize().y > 0 )
+		GuiConfig.windowV = GetSize().y;
+	}
+	if( hSplitter )
+		GuiConfig.splitterH = hSplitter->GetSashPosition();
+	if( vSplitter )
+		GuiConfig.splitterV = vSplitter->GetSashPosition();
 }
 
 /**
@@ -940,3 +969,10 @@ void GuiSplitter::OnDoubleClickSash( int x, int y )
 	// do nothing
 }
 
+void GuiFrame::EnableWindows( bool enable )
+{
+	if( map ) map->Enable( enable );
+	if( tree ) tree->Enable( enable );
+	if( editor ) editor->Enable( enable );
+	if(	list ) editor->Enable( enable );
+}

@@ -45,6 +45,10 @@ enum {
 	NUM_ATTACK_TYPES
 };
 
+/* Note: The following item types are mutually exclusive, as they all share the same
+   index variable: IT_MAN, IT_MONSTER, IT_WEAPON, IT_ARMOR, IT_MOUNT
+*/
+
 enum {
 	IT_NORMAL = 0x0001,
 	IT_ADVANCED = 0x0002,
@@ -328,6 +332,8 @@ class MountType {
 		// combat
 		int mountSpecial;
 		int specialLev;
+
+		// This is the monster definition that this mount fights as in combat
 		int monster;
 };
 

@@ -1427,7 +1427,9 @@ void EditFactionPage::OnToolAdd( wxCommandEvent & event )
 {
 	Faction * f = app->AddFaction();
 	frame->tree->AddItem( f );
+	frame->list->AddItem( f );
 	app->Select( f );
+	app->UpdateSelection();
 }
 
 /**
@@ -1461,6 +1463,7 @@ void EditFactionPage::OnToolDelete( wxCommandEvent & event )
 		}
 	}
 	( ( EditFrame * )GetParent() )->HideAllPages();
+	app->UpdateSelection();
 
 }
 
@@ -1610,7 +1613,9 @@ void EditMarketPage::OnToolAdd( wxCommandEvent & event )
 	r->markets.Add( m );
 	m->region = r->num;
 	frame->tree->AddItem( m );
+	frame->list->AddItem( m );
 	app->Select( m );
+	app->UpdateSelection();
 }
 
 /**
@@ -1785,8 +1790,9 @@ void EditProductionPage::OnToolAdd( wxCommandEvent & event )
 	r->products.Add( p );
 	p->region = r->num;
 	frame->tree->AddItem( p );
+	frame->list->AddItem( p );
 	app->Select( p );
-
+	app->UpdateSelection();
 }
 
 /**
@@ -2031,7 +2037,9 @@ void EditObjectPage::OnToolAdd( wxCommandEvent & event )
 	o->name = new AString( AString( ObjectDefs[O_DUMMY].name ) + " [" + o->num + "]" );
 	r->objects.Add( o );
 	frame->tree->AddItem( o, false );
+	frame->list->AddItem( o );
 	app->Select(o);
+	app->UpdateSelection();
 }
 
 /**
@@ -2381,6 +2389,7 @@ void EditUnitPage::OnToolAdd( wxCommandEvent & event )
 	Unit * u = app->AddUnit( f );
 	u->MoveUnit( o );
 	frame->tree->AddItem( u );
+	frame->list->AddItem( u );
 	app->Select(u);
 	app->UpdateSelection();
 }

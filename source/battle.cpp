@@ -145,6 +145,11 @@ void Battle::DoAttack(int round, Soldier *a, Army *attackers, Army *def,
 	}
 
 	a->ClearOneTimeEffects();
+
+	// Mount gets to attack too
+	if( a->mount )
+		DoAttack(round, a->mount, attackers, def, behind, ass, canattackback);
+
 }
 
 void Battle::NormalRound(int round,Army * a,Army * b) {

@@ -65,6 +65,8 @@ class Soldier {
 		int race;
 		int riding;
 		int building;
+		Soldier * mount;
+		Soldier * rider;
 
 		/* Healing information */
 		int healing;

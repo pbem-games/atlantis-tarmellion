@@ -37,6 +37,17 @@ MapConfigType MapConfig;
 GuiConfigType GuiConfig;
 
 /**
+ * Comparison function for sorting terrain colours
+ */
+int CompareTerrain( TerrainConfigType ** t1, TerrainConfigType ** t2)
+{
+	if( ( *t1 )->terrain > ( *t2 )->terrain ) return 1;
+	if( ( *t1 )->terrain == ( *t2 )->terrain ) return 0;
+	return -1;
+}
+
+
+/**
  * Load default colours and bitmaps for standard terrains
  * These don't necessarily have to be in the same order is in gamedata.h
  */
@@ -228,6 +239,7 @@ void LoadDefaultColors()
 	TerrainColors.Add( new TerrainConfigType( R_CE_BLACKCAVERN, 0,0,0, "" ) );
 	TerrainColors.Add( new TerrainConfigType( R_CE_WHITECAVERN, 0,0,0, "" ) );
 
+	TerrainColors.Sort( CompareTerrain );
 }
 
 /**
@@ -486,7 +498,14 @@ void SaveConfig( const char * filename )
 
 	if (file.OpenByName( filename ) == -1 ) return;
 
-	file.PutStr( "Gui config 0.6" );
+	if( GuiConfig.lastGameFile == "" ) GuiConfig.lastGameFile = "none";
+	if( GuiConfig.pop3Server == "" ) GuiConfig.pop3Server = "none";
+	if( GuiConfig.smtpServer == "" ) GuiConfig.smtpServer = "none";
+	if( GuiConfig.userName == "" ) GuiConfig.userName = "none";
+	if( GuiConfig.email == "" ) GuiConfig.email = "none";
+	if( GuiConfig.password == "" ) GuiConfig.password = "none";
+
+	file.PutStr( "Gui config 0.7" );
 	file.PutInt( MapConfig.showCities );
 	file.PutInt( MapConfig.showObjects );
 	file.PutInt( MapConfig.showGates );
@@ -495,6 +514,7 @@ void SaveConfig( const char * filename )
 	file.PutInt( MapConfig.showCoords );
 	file.PutInt( MapConfig.showOutlines );
 	file.PutInt( MapConfig.spreadBy );
+
 	file.PutInt( MapConfig.lastPlane );
 	file.PutInt( MapConfig.lastZoom );
 	file.PutInt( MapConfig.lastX );
@@ -504,30 +524,24 @@ void SaveConfig( const char * filename )
 	file.PutInt( GuiConfig.showTreeHeaders );
 	file.PutInt( GuiConfig.showFunk );
 	file.PutInt( GuiConfig.listMarketsProducts );
-	file.PutStr( GuiConfig.lastOrdersFile.Str() );
-	file.PutStr( GuiConfig.lastGameFile.Str() );
 	file.PutInt( GuiConfig.useEmail );
+
+	file.PutInt( GuiConfig.windowX );
+	file.PutInt( GuiConfig.windowY );
+	file.PutInt( GuiConfig.windowH );
+	file.PutInt( GuiConfig.windowV );
+	file.PutInt( GuiConfig.windowMax );
+	file.PutInt( GuiConfig.splitterH );
+	file.PutInt( GuiConfig.splitterV );
+
+	file.PutStr( GuiConfig.lastGameFile.Str() );
 	file.PutStr( GuiConfig.pop3Server.Str() );
 	file.PutStr( GuiConfig.smtpServer.Str() );
 	file.PutStr( GuiConfig.userName.Str() );
 	file.PutStr( GuiConfig.email.Str() );
 	file.PutStr( GuiConfig.password.Str() );
-/*	AString * s = GuiConfig.lastGameFile;
-	file.PutStr( s ? *s : "0" );
-	s = GuiConfig.lastOrdersFile;
-	file.PutStr( s ? *s : "0" );
-	file.PutInt( GuiConfig.useEmail );
-	s = GuiConfig.pop3Server;
-	file.PutStr( s ? *s : "0" );
-	s = GuiConfig.userName;
-	file.PutStr( s ? *s : "0" );
-	s = GuiConfig.password;
-	file.PutStr( s ? *s : "0" );
-	s = GuiConfig.smtpServer;
-	file.PutStr( s ? *s : "0" );
-	s = GuiConfig.email;
-	file.PutStr( s ? *s : "0" );
-*/	file.Close();
+	
+	file.Close();
 }
 
 /**
@@ -541,12 +555,7 @@ void LoadConfig( const char * filename )
 
 	AString * title = file.GetStr();
 
-	if( !title ) return;
-
-	if( !(*title == "Gui config 0.6") ) {
-		delete title;
-		return;
-	}
+	if( !title || !( *title == "Gui config 0.7" )) return;
 
 	delete title;
 
@@ -557,7 +566,8 @@ void LoadConfig( const char * filename )
 	MapConfig.showNames = (file.GetInt() ? true:false );
 	MapConfig.showCoords = (file.GetInt() ? true:false );
 	MapConfig.showOutlines = (file.GetInt() ? true:false );
-	MapConfig.spreadBy = (file.GetInt() ? true:false );
+
+	MapConfig.spreadBy = file.GetInt();
 	MapConfig.lastPlane = file.GetInt();
 	MapConfig.lastZoom = file.GetInt();
 	MapConfig.lastX = file.GetInt();
@@ -567,99 +577,60 @@ void LoadConfig( const char * filename )
 	GuiConfig.showTreeHeaders = (file.GetInt() ? true:false );
 	GuiConfig.showFunk = (file.GetInt() ? true:false );
 	GuiConfig.listMarketsProducts = (file.GetInt() ? true:false );
+	GuiConfig.useEmail = (file.GetInt() ? true:false );
+
+	GuiConfig.windowX = file.GetInt();
+	GuiConfig.windowY = file.GetInt();
+	GuiConfig.windowH = file.GetInt();
+	GuiConfig.windowV = file.GetInt();
+	GuiConfig.windowMax = (file.GetInt() ? true:false );
+	GuiConfig.splitterH = file.GetInt();
+	GuiConfig.splitterV = file.GetInt();
+
 	AString * s = file.GetStr();
-	if( s ) {
-		GuiConfig.email = *s;
-		delete s;
-	}
-	s = file.GetStr();
-	if( s ) {
-		GuiConfig.lastOrdersFile = *s;
-		delete s;
-	}
-	GuiConfig.useEmail = (file.GetInt() ? true:false );
-	s = file.GetStr();
-	if( s ) {
-		GuiConfig.pop3Server = *s;
-		delete s;
-	}
-	s = file.GetStr();
-	if( s ) {
-		GuiConfig.smtpServer = *s;
-		delete s;
-	}
-	s = file.GetStr();
-	if( s ) {
-		GuiConfig.userName = *s;
-		delete s;
-	}
-	s = file.GetStr();
-	if( s ) {
-		GuiConfig.email = *s;
-		delete s;
-	}
-	s = file.GetStr();
-	if( s ) {
-		GuiConfig.password = *s;
-		delete s;
-	}
-
-/*		if( *s == "0" )
-			delete s;
-		else
-			GuiConfig.lastGameFile = s;
-	}
-	s = file.GetStr();
-	if( s ) {
-		if( *s == "0" )
-			delete s;
-		else
-			GuiConfig.lastOrdersFile = s;
-	}
-	GuiConfig.useEmail = (file.GetInt() ? true:false );
+	if( !s || *s == "none" )
+		s = new AString( "" );
+	GuiConfig.lastGameFile = *s;
+	delete s;
 
 	s = file.GetStr();
-	if( s ) {
-		if( *s == "0" )
-			delete s;
-		else
-			GuiConfig.pop3Server = s;
-	}
+	if( !s || *s == "none" )
+		s = new AString( "" );
+	GuiConfig.pop3Server = *s;
+	delete s;
+
 	s = file.GetStr();
-	if( s ) {
-		if( *s == "0" )
-			delete s;
-		else
-			GuiConfig.userName = s;
-	}
+	if( !s || *s == "none" )
+		s = new AString( "" );
+	GuiConfig.smtpServer = *s;
+	delete s;
+
 	s = file.GetStr();
-	if( s ) {
-		if( *s == "0" )
-			delete s;
-		else
-			GuiConfig.userName = s;
-	}
+	if( !s || *s == "none" )
+		s = new AString( "" );
+	GuiConfig.userName = *s;
+	delete s;
+
 	s = file.GetStr();
-	if( s ) {
-		if( *s == "0" )
-			delete s;
-		else
-			GuiConfig.smtpServer = s;
-	}
+	if( !s || *s == "none" )
+		s = new AString( "" );
+	GuiConfig.email = *s;
+	delete s;
+
 	s = file.GetStr();
-	if( s ) {
-		if( *s == "0" )
-			delete s;
-		else
-			GuiConfig.email = s;
-	}
-*/
+	if( !s || *s == "none" )
+		s = new AString( "" );
+	GuiConfig.password = *s;
+	delete s;
+
+
 	file.Close();
 #ifndef __USE_EMAIL__
 	GuiConfig.useEmail = false;
 #endif
 
 }
+
 
 /**
  * Default constructor
@@ -686,10 +657,17 @@ MapConfigType::MapConfigType()
 GuiConfigType::GuiConfigType()
 {
 	recreateData = true;
-	showTreeHeaders = false;
+	showTreeHeaders = true;
 	showFunk = true;
 	listMarketsProducts = false;
 	useEmail = true;
+	windowX = -1;
+	windowY = -1;
+	windowH = -1;
+	windowV = -1;
+	windowMax = false;
+	splitterH = -1;
+	splitterV = -1;
 }
 
 /**

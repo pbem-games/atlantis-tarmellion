@@ -49,10 +49,12 @@ END_EVENT_TABLE()
 
 BEGIN_EVENT_TABLE( EditItemAux, wxDialog )
 	EVT_BUTTON( wxID_OK, EditItemAux::OnOK )
+	EVT_GRID_EDITOR_SHOWN( EditAux::OnEdit )
 END_EVENT_TABLE()
 
 BEGIN_EVENT_TABLE( EditSkillAux, wxDialog )
 	EVT_BUTTON( wxID_OK, EditSkillAux::OnOK )
+	EVT_GRID_EDITOR_SHOWN( EditAux::OnEdit )
 END_EVENT_TABLE()
 
 /**
@@ -66,6 +68,7 @@ EditAux::EditAux( wxWindow *parent, const wxString & title, const wxPoint& pos, 
 	grid = NULL;
 	sizerAux = NULL;
 	SetBackgroundColour( app->guiColourLt );
+	frame->EnableWindows( false );
 }
 
 /**
@@ -77,6 +80,7 @@ EditAux::~EditAux()
 	if( sizerAux ) delete sizerAux;
 	array.Clear();
 	selectedArray.Clear();
+	frame->EnableWindows( true );
 }
 
 /**

@@ -93,3 +93,16 @@ v0.5 -> 0.6
 * Moved options into their own screen
 * Fixed a couple of bugs that caused crashes when changing the terrain type of a region
 
+v0.6 -> 0.7
+----------------
+* Fixed a few bugs relating to sending emails ( Thanks Brandon! )
+* Fixed problem where players.in file wasn't being copied between turn runs.
+* Newly created items/objects etc are now added to the list view
+* Bug where game was not always reading the config correctly fixed
+* Bug where changing the 'show tree headers' option was not taking efect straight away
+* Changed icons for shafts to indicate if they lead up or down a level
+* 'Run all' button now works correctly 
+* Number of other small fixes made to the run game screen
+* Fixed item/skill chooser which was allowing use to change the name of the item/skill instead of just the amount
+* Window state is now saved in config file
+

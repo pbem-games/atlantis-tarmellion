@@ -59,7 +59,6 @@ TreeCanvas::TreeCanvas( wxWindow *parent )
 //	SetIcon( wxIcon( tree_xpm ) );
 	tree = 0;
 	treeWait = false;
-	showHeaders = false;
 	selectedElems = new AElemArray();
 	selectedLevel = NULL;
 	curSelection = -1;
@@ -73,11 +72,6 @@ TreeCanvas::~TreeCanvas()
 {
 	delete selectedElems;
 	delete tree;
-}
-
-void TreeCanvas::ToggleHeaders( bool toggle ) 
-{
-	showHeaders = toggle;
 }
 
 void TreeCanvas::OnResize( wxSizeEvent & event )
@@ -201,7 +195,7 @@ void TreeCanvas::AddItem( ARegion * pRegion, bool populate )
 	pRegion->treeId = leaf;
 
 	if( populate ) {
-		if( showHeaders ) current = tree->AppendItem( leaf, "Markets" );
+		if( GuiConfig.showTreeHeaders ) current = tree->AppendItem( leaf, "Markets" );
 		{
 			forlist ( &pRegion->markets ) {
 				Market * m = ( Market * ) elem;
@@ -212,7 +206,7 @@ void TreeCanvas::AddItem( ARegion * pRegion, bool populate )
 			}
 		}
 		//products
-		if( showHeaders ) current = tree->AppendItem( leaf, "Products" );
+		if( GuiConfig.showTreeHeaders ) current = tree->AppendItem( leaf, "Products" );
 		{
 			forlist ( &pRegion->products ) {
 				Production * p = ( Production * ) elem;
@@ -222,7 +216,7 @@ void TreeCanvas::AddItem( ARegion * pRegion, bool populate )
 			}
 		}
 		//objects
-		if( showHeaders ) current = tree->AppendItem( leaf, "Objects" );
+		if( GuiConfig.showTreeHeaders ) current = tree->AppendItem( leaf, "Objects" );
 		forlist ( &pRegion->objects ) {
 			Object * o = ( Object * ) elem;
 			temp = *o->name + " : " + ObjectDefs[o->type].name;
@@ -248,7 +242,7 @@ void TreeCanvas::AddItem( Market * pMarket )
 
 	wxTreeItemId category = region;
 
-	if( showHeaders )
+	if( GuiConfig.showTreeHeaders )
 		category = FindCategory( "Markets", region );
 
 	if( category.IsOk() ) {
@@ -269,7 +263,7 @@ void TreeCanvas::AddItem( Production * pProduction )
 
 	wxTreeItemId category = region;
 
-	if( showHeaders )
+	if( GuiConfig.showTreeHeaders )
 		category = FindCategory( "Products", region );
 
 	if( category.IsOk() ) {
@@ -287,7 +281,7 @@ void TreeCanvas::AddItem( Object * pObject, bool populate )
 	if( region ) {
 		wxTreeItemId category = region;
 
-		if( showHeaders ) {
+		if( GuiConfig.showTreeHeaders ) {
 			category = FindCategory( "Objects", region );
 		}
 
@@ -380,7 +374,7 @@ void TreeCanvas::UpdateItem( ARegion * pRegion, bool populate )
 	
 		wxTreeItemId current, next, last;
 
-		if( !showHeaders ) {
+		if( !GuiConfig.showTreeHeaders ) {
 			//remove markets and products
 			current = tree->GetFirstChild( id, cookie );
 			last = tree->GetLastChild( id );
@@ -399,7 +393,7 @@ void TreeCanvas::UpdateItem( ARegion * pRegion, bool populate )
 		}
 
 		if( current.IsOk() ) {
-			if( showHeaders ) {
+			if( GuiConfig.showTreeHeaders ) {
 				tree->DeleteChildren( current );
 			}
 			forlist( &pRegion->markets ) {
@@ -416,12 +410,12 @@ void TreeCanvas::UpdateItem( ARegion * pRegion, bool populate )
 		}
 
 		found = true;
-		if( showHeaders ) {
+		if( GuiConfig.showTreeHeaders ) {
 			current = FindCategory( "Products", id );
 		}
 
 		if( current.IsOk() ) {
-			if( showHeaders ) {
+			if( GuiConfig.showTreeHeaders ) {
 				tree->DeleteChildren( current );
 			}
 			forlist( &pRegion->products ) {
@@ -610,7 +604,7 @@ wxTreeItemId TreeCanvas::FindItem( Object * pObject )
 		long cookie;
 		wxTreeItemId category = region;
 
-		if( showHeaders ) {
+		if( GuiConfig.showTreeHeaders ) {
 			category = FindCategory( "Objects", region );
 		}
 
@@ -645,7 +639,7 @@ wxTreeItemId TreeCanvas::FindItem( Market * pMarket )
 	long cookie;
 	wxTreeItemId category = region;
 
-	if( showHeaders ) {
+	if( GuiConfig.showTreeHeaders ) {
 		category = FindCategory( "Markets", region );
 	}
 
@@ -678,7 +672,7 @@ wxTreeItemId TreeCanvas::FindItem( Production * pProduction )
 	long cookie;
 	wxTreeItemId category = region;
 
-	if( showHeaders ) {
+	if( GuiConfig.showTreeHeaders ) {
 		category = FindCategory( "Products", region );
 	}
 
@@ -805,7 +799,7 @@ void TreeCanvas::Init()
 				//markets
 				current = curRegion;
 				r->treeId = curRegion;
-				if( showHeaders )
+				if( GuiConfig.showTreeHeaders )
 					current = tree->AppendItem( curRegion, _T( "Markets" ) );
 				{
 					forlist ( &r->markets ) {
@@ -822,7 +816,7 @@ void TreeCanvas::Init()
 				}
 
 				//products
-				if( showHeaders )
+				if( GuiConfig.showTreeHeaders )
 					current = tree->AppendItem( curRegion, _T( "Products" ) );
 				{
 					forlist ( &r->products ) {
@@ -835,7 +829,7 @@ void TreeCanvas::Init()
 					}
 				}
 				//objects
-				if( showHeaders )
+				if( GuiConfig.showTreeHeaders )
 					current = tree->AppendItem( curRegion, _T( "Objects" ) );
 				forlist ( &r->objects ) {
 					Object * o = ( Object * ) elem;

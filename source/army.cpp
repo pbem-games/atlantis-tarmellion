@@ -55,6 +55,8 @@ Soldier::Soldier(Unit * u,Object * o,int regtype,int r,int ass) {
 	shield = -1;
 	riding = -1;
 	weapon = -1;
+	mount = 0;
+	rider = 0;
 
 	amulet = -1;
 	ring1 = -1;
@@ -100,9 +102,12 @@ Soldier::Soldier(Unit * u,Object * o,int regtype,int r,int ass) {
 		o->capacity--;
 	}
 
+
 	/* Is this a monster? */
-	if (ItemDefs[r].type & IT_MONSTER) {
+	if (ItemDefs[r].type & IT_MONSTER || ItemDefs[r].type & IT_MOUNT) {
 		int mon = ItemDefs[r].index;
+		if( ItemDefs[r].type & IT_MOUNT ) 
+			mon = MountDefs[mon].monster;
 		if (u->type == U_WMON)
 			name = AString(MonDefs[mon].name) + " in " + *(unit->name);
 		else
@@ -186,6 +191,9 @@ Soldier::Soldier(Unit * u,Object * o,int regtype,int r,int ass) {
 			// however.
 			dskill[ATTACK_RIDING] += ridingBonus;
 			riding = item;
+			if( MountDefs[ItemDefs[riding].index].monster != -1 )
+				mount = new Soldier( u, o, regtype, riding, ass );
+			mount->rider = this;
 			break;
 		}
 	}
@@ -1171,6 +1179,13 @@ int Army::DoAnAttack(int special, int numAttacks, int attackType,
 		int tarnum = GetTargetNum(special,attackbehind);
 		if (tarnum == -1) continue;
 		Soldier * tar = GetTarget(tarnum);
+		// 3.1  50% chance of hitting mount
+		if( tar->mount ) {
+			if( getrandom(2) ) {
+				// hit mount
+				tar = tar->mount;
+			}
+		}
 		int tarFlags = 0;
 		if (tar->weapon != -1) {
 			tarFlags = WeaponDefs[ItemDefs[tar->weapon].index].flags;
@@ -1227,7 +1242,24 @@ int Army::DoAnAttack(int special, int numAttacks, int attackType,
 			}
 
 			/* 8. Seeya! */
-			Kill(tarnum, attackType == ATTACK_DISPEL);
+			// Did we hit a mount?
+			if( tar->rider ) {
+				if (!tar->amuletofi) {
+					int hitsTaken = 1;
+					if( attackType == ATTACK_DISPEL )
+						hitsTaken = tar->hits;
+					tar->damage += hitsTaken;
+					tar->hits -= hitsTaken;
+					if( tar->hits <= 0 ) {
+						tar = tar->rider;
+						delete tar->mount;
+						tar->mount = 0;
+						tar->riding = -1;
+					}
+				}
+			} else {
+				Kill(tarnum, attackType == ATTACK_DISPEL);
+			}
 			ret++;
 		} else {
 			if (tar->HasEffect(effect)) {
@@ -1259,7 +1291,7 @@ void Army::Kill(int killed, int destroy) {
 		if (ItemDefs[temp->race].type & IT_MONSTER) {
 			hitsalive -= MonDefs[ItemDefs[temp->race].index].hits;
 		} else {
-			// Assume everything that is a solder and isn't a monster is a
+			// Assume everything that is a soldier and isn't a monster is a
 			// man.
 			hitsalive--;
 		}

@@ -414,6 +414,7 @@ void MapCanvas::DrawHex( ARegion * pRegion, wxDC * pDC, int highlight, int drawN
 
 	// Structures
 	bool drawShaft = false;
+	int shaftLevel = 0;
 	bool drawBoat = false;
 	bool drawOther = false;
 
@@ -423,6 +424,7 @@ void MapCanvas::DrawHex( ARegion * pRegion, wxDC * pDC, int highlight, int drawN
 			DrawRoad( x0, y0, pDC, o );
 		} else if( o->type == O_SHAFT ) {
 			drawShaft = true;
+			shaftLevel = pRegion->zloc - app->m_game->regions.GetRegion( o->inner )->zloc;
 		} else if( o->IsBoat() ) {
 			drawBoat = true;
 		} else if( o->type != O_DUMMY ) {
@@ -431,7 +433,7 @@ void MapCanvas::DrawHex( ARegion * pRegion, wxDC * pDC, int highlight, int drawN
 	}
 
 	if( drawShaft ) {
-		DrawShaft( SymLeft, SymBottom, pDC );			 
+		DrawShaft( SymLeft, SymBottom, pDC, shaftLevel );			 
 		GetNextIconPos( x0, y0, SymLeft, SymBottom );
 	}
 	if( drawBoat ) {
@@ -907,16 +909,40 @@ void MapCanvas::DrawGate( int x0, int y0, wxDC * pDC )
 				 x0 + ICON_SIZE / 2, y0 - ICON_SIZE / 2 );
 }
 
-void MapCanvas::DrawShaft( int x0, int y0, wxDC * pDC )
+void MapCanvas::DrawShaft( int x0, int y0, wxDC * pDC, int shaftLevel )
 {
 	if( !MapConfig.showShafts ) return;
 
-	pDC->SetPen  ( *wxBLACK_PEN );
-	pDC->DrawLine( x0 + 1, y0 - ICON_SIZE, x0 + 1, y0 );
-	pDC->DrawLine( x0 + ICON_SIZE - 1, y0 - ICON_SIZE, x0 + ICON_SIZE - 1, y0 );
+	pDC->SetPen  ( *wxWHITE_PEN );
+	pDC->SetBrush( *wxWHITE_BRUSH );
 
-	pDC->DrawLine( x0 + 1, y0 - 2, x0 + ICON_SIZE - 1, y0 - 2 );
-	pDC->DrawLine( x0 + 1, y0 - ICON_SIZE +2, x0 + ICON_SIZE - 1, y0 - ICON_SIZE +2 );
+	if( shaftLevel > 0 ) {
+		// draw upwards shaft arrow
+		wxPoint tri[3] = 
+		{
+			wxPoint( x0, y0 - 1 ),
+			wxPoint( x0 + ICON_SIZE, y0 - 1 ),
+			wxPoint( x0 + ICON_SIZE / 2, y0 - ICON_SIZE + 1)
+		};
+		pDC->DrawPolygon( 3, tri, 0, 0, wxWINDING_RULE );
+	} else if( shaftLevel < 0 ) {
+		// draw downwards shaft arrow
+		wxPoint tri[3] = 
+		{
+			wxPoint( x0, y0 - ICON_SIZE + 1 ),
+			wxPoint( x0 + ICON_SIZE, y0 - ICON_SIZE + 1 ),
+			wxPoint( x0 + ICON_SIZE / 2, y0 - 1)
+		};
+		pDC->DrawPolygon( 3, tri, 0, 0, wxWINDING_RULE );
+	}//	} else if( shaftLevel == 0 ) {
+		// draw normal shaft icon
+		pDC->SetPen  ( *wxBLACK_PEN );
+		pDC->DrawLine( x0 + 1, y0 - ICON_SIZE, x0 + 1, y0 );
+		pDC->DrawLine( x0 + ICON_SIZE - 1, y0 - ICON_SIZE, x0 + ICON_SIZE - 1, y0 );
+
+		pDC->DrawLine( x0 + 1, y0 - 2, x0 + ICON_SIZE - 1, y0 - 2 );
+		pDC->DrawLine( x0 + 1, y0 - ICON_SIZE + 2, x0 + ICON_SIZE - 1, y0 - ICON_SIZE + 2 );
+//	}
 }
 
 void MapCanvas::DrawBoat( int x0, int y0, wxDC * pDC )
@@ -930,7 +956,7 @@ void MapCanvas::DrawBoat( int x0, int y0, wxDC * pDC )
 		wxPoint( x0 + ICON_SIZE, y0 - ICON_SIZE )
 	};
 	pDC->SetPen  ( *wxBLACK_PEN );
-	pDC->SetBrush( *wxBLACK_BRUSH );
+	pDC->SetBrush( *wxWHITE_BRUSH );
 	pDC->DrawPolygon( 3, tri, 0, 0, wxWINDING_RULE );
 }
 

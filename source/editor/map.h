@@ -92,7 +92,7 @@ protected:
 	void DrawTown( int, int, int, wxDC * );
 	void DrawRoad( int, int, wxDC *, Object * );
 	void DrawGate( int, int, wxDC * );
-	void DrawShaft( int, int, wxDC * );
+	void DrawShaft( int, int, wxDC *, int );
 	void DrawBoat( int, int, wxDC * );
 	void DrawOther( int, int, wxDC * );
 	void DrawName( TownInfo *, int, int, wxDC * );

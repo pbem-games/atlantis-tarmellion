@@ -73,7 +73,6 @@ public:
 	void UpdateItem( ARegionArray * );
 
 	void UpdateSelection();
-	void ToggleHeaders( bool toggle );
 
 	bool lastUnitByFaction;
 
@@ -119,7 +118,6 @@ private:
 
 	int selectOK;
 	bool treeWait;
-	bool showHeaders;
 
 };
 
