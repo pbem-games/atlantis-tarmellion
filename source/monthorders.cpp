@@ -644,6 +644,15 @@ void Game::RunUnitProduce(ARegion *r, Object *obj, Unit *u) {
 		return;
 	}
 
+	if (ItemDefs[o->item].requiredstructure != -1) {
+		if (ItemDefs[o->item].requiredstructure != obj->type) {
+			u->Error("PRODUCE: Not inside correct building.");
+			delete u->monthorders;
+			u->monthorders = 0;
+			return;
+		}
+	}
+
 	// LLS
 	int number = u->GetMen() * level + u->GetProductionBonus(o->item);
 
@@ -743,7 +752,6 @@ void Game::RunProduceOrders(ARegion * r) {
 	}
 	{
 		forlist((&r->objects)) {
-			int objrequired = 0;
 			Object * obj = (Object *) elem;
 			int workers = 0;
 			forlist ((&obj->units)) {
@@ -752,18 +760,18 @@ void Game::RunProduceOrders(ARegion * r) {
 					if (u->monthorders->type == O_PRODUCE) {
 						ProduceOrder *po = (ProduceOrder *)u->monthorders;
 						if (ItemDefs[po->item].requiredstructure == obj->type) {
-							objrequired = 1;
 							workers += u->GetMen();
 						}
 					}
 				}
 			}
-			if (objrequired) {
+			obj->productionratio = 1.0;
+			if (workers>0) {
 				if (workers > ObjectDefs[obj->type].workersallowed) {
 					obj->productionratio = (float)ObjectDefs[obj->type].workersallowed/(float)workers;
 					obj->Notify(*(obj->name) + AString(" ") + ObjectDefs[obj->type].name + AString(" is over worked, workers are inefficent."));
-				} else
-					obj->productionratio = 1.0;
+				}// else
+//					obj->productionratio = 1.0;
 			}
 			{
 				forlist ((&obj->units)) {
