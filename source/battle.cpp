@@ -823,8 +823,10 @@ void Game::GetSides( ARegion *r, AList & afacs, AList & dfacs, AList & atts,
 		return;
 	}
 
+	AList defFactionsWantingAid;
+
 	int j=NDIRS;
-	int noaida = 0, noaidd = 0;
+	int noaida = 0;//, noaidd = 0;
 	for (int i=-1;i<j;i++) {
 		ARegion * r2 = r;
 		if (i>=0) {
@@ -887,8 +889,8 @@ void Game::GetSides( ARegion *r, AList & afacs, AList & dfacs, AList & atts,
 					// only units from this region will join on the
 					// defensive side
 					
-					if( i != -1 && noaidd ) {
-						// Unit is in neighbouring region, but defenders no not
+					if( i != -1 && !( GetFaction2( &defFactionsWantingAid, u->faction->num ) ) ) {
+						// Unit is in neighbouring region, but defenders do not
 						// want aid
 						continue;
 					}
@@ -957,13 +959,17 @@ void Game::GetSides( ARegion *r, AList & afacs, AList & dfacs, AList & atts,
 				}
 			}
 
-			noaidd = 1;
+//			noaidd = 1;
 			{
 				forlist (&defs) {
 					Location *l = (Location *) elem;
 					if (!l->unit->GetFlag(FLAG_NOAID)) {
-						noaidd = 0;
-						break;
+//						noaidd = 0;
+						if( !GetFaction2(&defFactionsWantingAid, l->unit->faction->num) ) {
+							FactionPtr * fp = new FactionPtr;
+							fp->ptr = l->unit->faction;
+							defFactionsWantingAid.Add(fp);
+						}
 					}
 				}
 			}

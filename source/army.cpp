@@ -86,7 +86,7 @@ Soldier::Soldier(Unit * u,Object * o,int regtype,int r,int ass) {
 	effects = 0;
 
 	int debug=0;
-//	if( u->num == 121 ) debug = 1;
+//	if( u->num == 1134 ) debug = 1;
 	
 
 	/* Building bonus */
@@ -1243,6 +1243,7 @@ int Army::RemoveEffects(int num, int effect) {
 int Army::DoAnAttack(int special, int numAttacks, int attackType,
 		int attackLevel, int flags, int weaponClass, int effect,
 		int mountBonus, int attackbehind) {
+	int debug = 0;
 	/* 1. Check against Global effects (not sure how yet) */
 	/* 2. Attack shield */
 	Shield *hi;
@@ -1290,10 +1291,16 @@ int Army::DoAnAttack(int special, int numAttacks, int attackType,
 		int tarnum = GetTargetNum(special,attackbehind);
 		if (tarnum == -1) continue;
 		Soldier * tar = GetTarget(tarnum);
-		// 3.1  50% chance of hitting mount
+
+//		if( tar->unit->num == 121 || tar->unit->num == 3745) debug = 1;
+		if( debug ) {
+			Awrite( AString( "Attack against " ) + tar->name + "; askill " + attackLevel + "; attackBehind " + attackbehind + "." );
+		}
+		// 3.1  50% chance of attacking mount
 		if( tar->mount ) {
 			if( getrandom(2) ) {
-				// hit mount
+				// attack mount
+				if( debug ) Awrite( "- Attacking mount instead of rider." );
 				tar = tar->mount;
 			}
 		}
@@ -1331,24 +1338,39 @@ int Army::DoAnAttack(int special, int numAttacks, int attackType,
 		/* 4.3 Add bonuses versus mounted */
 		if (tar->riding != -1) attackLevel += mountBonus;
 
+		if( debug ) {
+			Awrite( AString( "- Attacking: " ) + attackLevel + " vs " + tlev + "." );
+		}
 		/* 5. Attack soldier */
 		if (attackType != NUM_ATTACK_TYPES &&
 			attackType != ATTACK_DISPEL ) {
 			if (!(flags & WeaponType::ALWAYSREADY)) {
 				if (getrandom(2)) {
+					if( debug ) {
+						Awrite( "--Misses!" );
+					}
 					continue;
 				}
 			}
 
 			if (!Hits(attackLevel,tlev)) {
+				if( debug ) {
+					Awrite( "--Fails to hit!" );
+				}
 				continue;
 			}
+		}
+		if( debug ) {
+			Awrite( "--Hits!" );
 		}
 
 		/* 6. If attack got through, apply effect, or kill */
 		if (!effect) {
 			/* 7. Last chance... Check armor */
 			if (tar->ArmorProtect(weaponClass)) {
+				if( debug ) {
+					Awrite( "---Protected by armour!" );
+				}
 				continue;
 			}
 
@@ -1363,6 +1385,9 @@ int Army::DoAnAttack(int special, int numAttacks, int attackType,
 					tar->damage += hitsTaken;
 					tar->hits -= hitsTaken;
 					if( tar->hits <= 0 ) {
+						if( debug ) {
+							Awrite( "---Mount dead!" );
+						}
 						tar = tar->rider;
 						delete tar->mount;
 						tar->mount = 0;
@@ -1370,6 +1395,9 @@ int Army::DoAnAttack(int special, int numAttacks, int attackType,
 					}
 				}
 			} else {
+				if( debug ) {
+					Awrite( AString("---Soldier takes 1 hit, taking it down to ") + tar->hits + ".");
+				}
 				Kill(tarnum, attackType == ATTACK_DISPEL);
 			}
 			ret++;
