@@ -537,7 +537,7 @@ AString * Unit::BattleReport(int obs) {
 	}
 
 //	lvl = GetRealSkill(S_CROSSBOW);
-	lvl = GetSkill(S_ARCHERY);
+	lvl = GetSkill(S_CROSSBOW);
 	if (lvl) {
 		*temp += ", ";
 		*temp += SkillDefs[S_CROSSBOW].name;
