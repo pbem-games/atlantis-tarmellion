@@ -386,7 +386,10 @@ void Game::Do1Assassinate(ARegion * r,Object * o,Unit * u) {
 		}
 	}
 	u->Practise(S_STEALTH);
-	RunBattle(r,u,tar,ass);
+	AList targets;
+	UnitPtr * p = new UnitPtr;
+	p->ptr = tar;
+	RunBattle(r,u,&targets,ass);
 }
 
 void Game::Do1Steal(ARegion * r,Object * o,Unit * u) {
@@ -1159,40 +1162,70 @@ void Game::DoAdvanceAttacks(AList * locs) {
 				u->guard = GUARD_NONE;
 			}
 		}
-	}
+		}
 }
 
-void Game::DoAutoAttackOn(ARegion * r,Unit * t) {
+void Game::DoAutoAttackOn( ARegion * r, Unit * t )
+{
 	forlist(&r->objects) {
 		Object * o = (Object *) elem;
 		forlist(&o->units) {
 			Unit * u = (Unit *) elem;
-			if (u->guard != GUARD_AVOID &&
-					(u->GetAttitude(r,t) == A_HOSTILE) && u->IsAlive() &&
-					u->canattack)
-				AttemptAttack(r,u,t,1);
+			if (u->guard != GUARD_AVOID && u->IsAlive() &&
+				 (u->GetAttitude(r,t) == A_HOSTILE) &&
+				 u->canattack )
+			{
+				AList targets;
+				UnitPtr * up = new UnitPtr;
+				up->ptr = t;
+				targets.Add( up );
+				AttemptAttack(r,u,targets,1);
+			}
 			if (!t->IsAlive()) return;
 		}
 	}
 }
 
-void Game::DoAdvanceAttack(ARegion * r,Unit * u) {
-	Unit * t = r->Forbidden(u);
-	while (t && u->IsAlive() && u->canattack) {
-		AttemptAttack(r,u,t,1,1);
-		t = r->Forbidden(u);
+void Game::DoAdvanceAttack(ARegion * r,Unit * u)
+{
+	AList targets;
+
+	forlist( &r->objects ) {
+		Object * o = (Object *) elem;
+		forlist( &o->units ) {
+			Unit * u2 = (Unit * ) elem;
+			if( u2->Forbids( r, u ) ) {
+				UnitPtr * p = new UnitPtr;
+				p->ptr = u2;
+				targets.Add( p );
+			}
+		}
+	}
+
+	if( targets.Num() > 0 ) {
+		AttemptAttack( r, u, targets, 1, 1 );
 	}
 }
 
-void Game::DoAutoAttack(ARegion * r,Unit * u) {
+void Game::DoAutoAttack(ARegion * r,Unit * u)
+{
+	// Don't initiate attacks if set to avoid
+	if( u->guard == GUARD_AVOID ) return;
+
+	AList targets;
 	forlist(&r->objects) {
 		Object * o = (Object *) elem;
 		forlist(&o->units) {
 			Unit * t = (Unit *) elem;
-			if (u->guard != GUARD_AVOID && (u->GetAttitude(r,t) == A_HOSTILE)) AttemptAttack(r,u,t,1);
-			if (u->IsAlive() == 0 || u->canattack == 0) return;
+			if (u->GetAttitude(r,t) == A_HOSTILE) {
+				UnitPtr * p = new UnitPtr;
+				p->ptr = t;
+				targets.Add( p );
+			}
 		}
 	}
+	if( targets.Num() > 0 )
+		AttemptAttack( r, u, targets, 1 );
 }
 
 int Game::CountWMonTars(ARegion * r,Unit * mon) {
@@ -1230,16 +1263,36 @@ Unit * Game::GetWMonTar(ARegion * r,int tarnum,Unit * mon) {
 	return 0;
 }
 
-void Game::CheckWMonAttack(ARegion * r,Unit * u) {
-	int tars = CountWMonTars(r,u);
-	if (!tars) return;
+void Game::CheckWMonAttack(ARegion * r,Unit * mon)
+{
+	AList targets;
 
-	int rand = 300 - tars;
-	if (rand < 100) rand = 100;
-	if (getrandom(rand) >= u->Hostile()) return;
+	//NEW: Monsters will check hostility for every player unit, then attack
+	//every unit that fails hostility check
 
-	Unit * t = GetWMonTar(r,getrandom(tars),u);
-	if (t) AttemptAttack(r,u,t,1);
+	forlist( &r->objects ) {
+		Object * o = (Object *) elem;
+		forlist( &o->units ) {
+			Unit * u = (Unit *) elem;
+			if( u->type == U_NORMAL || u->type == U_MAGE ||
+				u->type == U_APPRENTICE )
+			{
+				if( mon->CanSee( r, u ) && mon->CanCatch( r, u ) ) {
+					int num = u->GetMen();
+					int rand = 300 - num;
+					if( rand < 100 ) rand = 100;
+					if( getrandom( rand ) < u->Hostile() ) {
+						UnitPtr * p = new UnitPtr;
+						p->ptr = u;
+						targets.Add( p );
+					}
+				}
+			}
+		}
+	}
+
+	if( targets.Num() > 0 )
+		AttemptAttack( r, mon, targets, 1 );
 }
 
 void Game::DoAttackOrders() {
@@ -1252,20 +1305,33 @@ void Game::DoAttackOrders() {
 				if (u->type == U_WMON) {
 					if (u->canattack && u->IsAlive()) CheckWMonAttack(r,u);
 				} else {
-					if (u->IsAlive() && u->attackorders) {
-						AttackOrder * ord = u->attackorders;
-						while (ord->targets.Num()) {
-							UnitId * id = (UnitId *) ord->targets.First();
-							ord->targets.Remove(id);
-							Unit * t = r->GetUnitId(id,u->faction->num);
-							if (u->canattack && u->IsAlive()) {
-								if (t) AttemptAttack(r,u,t,0);
-								else u->Error(AString("ATTACK: Non-existent unit (")+AString(id->unitnum)+").");
+					if (u->IsAlive()) {
+						AList targets;
+						forlist( &u->attackorders ) {
+							AttackOrder * ord = (AttackOrder *) elem;
+							while (ord->targets.Num()) {
+								UnitId * id = (UnitId *) ord->targets.First();
+								ord->targets.Remove(id);
+								Unit * t = r->GetUnitId(id,u->faction->num);
+								if( t ) {
+									UnitPtr * p = new UnitPtr;
+									p->ptr = t;
+									targets.Add( p );
+								}
+								delete id;
+//								if (u->canattack && u->IsAlive()) {
+//									if (t) AttemptAttack(r,u,t,0);
+//									else u->Error(AString("ATTACK: Non-existent unit (")+AString(id->unitnum)+").");
+//								}
 							}
-							delete id;
+							u->attackorders.Remove(ord);
+							delete ord;
+							if( targets.Num() )
+								AttemptAttack( r, u, targets, 0 );
+							else
+								u->Error(AString("ATTACK: Non-existent unit."));
 						}
-						delete ord;
-						u->attackorders = 0;
+						targets.DeleteAll();
 					}
 				}
 			}
@@ -1283,21 +1349,36 @@ void Game::DoAttackOrders() {
  * 2 if u can't see t
  * 3 if u lacks the riding to catch t
  */
-void Game::AttemptAttack(ARegion * r,Unit * u,Unit * t,int silent,int adv) {
-	if (!t->IsAlive()) return;
+void Game::AttemptAttack(ARegion * r,Unit * u,AList & targets,int silent,int adv)
+{
 
-	if (!u->CanSee(r,t)) {
-		if (!silent) u->Error("ATTACK: Non-existent unit.");
-		return;
+	forlist( &targets ) {
+		UnitPtr * up = (UnitPtr *) elem;
+		Unit * t = (Unit *) up->ptr;
+
+		if( !t->IsAlive() ) {
+			targets.Remove( up );
+			delete up;
+			continue;
+		}
+		
+		if( !u->CanSee( r, t ) ) {
+			if( !silent ) u->Error("ATTACK: Non-existent unit.");
+			targets.Remove( up );
+			delete up;
+			continue;
+		}
+
+		if( !u->CanCatch( r, t ) ) {
+			if( !silent ) u->Error("ATTACK: Can't catch that unit.");
+			targets.Remove( up );
+			delete up;
+			continue;
+		}
 	}
 
-	if (!u->CanCatch(r,t)) {
-		if (!silent) u->Error("ATTACK: Can't catch that unit.");
-		return;
-	}
-
-	RunBattle(r,u,t,0,adv);
-	return;
+	if( targets.Num() > 0 ) 
+		RunBattle( r, u, &targets, 0, adv );
 }
 
 void Game::RunSellOrders() {

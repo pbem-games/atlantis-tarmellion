@@ -59,7 +59,7 @@ class Battle : public AListElem {
 		void Report(Areport *,Faction *);
 		void AddLine(const AString &);
 
-		int Run(ARegion *, Unit *, AList *, Unit *, AList *, int ass,
+		int Run(ARegion *, Unit *, AList *, AList *, AList *, int ass,
 				ARegionList *pRegs);
 		void FreeRound(Army *,Army *, int ass = 0);
 		void NormalRound(int,Army *,Army *);
@@ -75,7 +75,7 @@ class Battle : public AListElem {
 		void DoSpecialAttack( int round, Soldier *a, Army *attackers,
 				Army *def, int behind, int canattackback);
 
-		void WriteSides(ARegion *,Unit *,Unit *,AList *,AList *,int,
+		void WriteSides(ARegion *,Unit *,AList *,AList *,AList *,int,
 				ARegionList *pRegs );
 
 		int assassination;

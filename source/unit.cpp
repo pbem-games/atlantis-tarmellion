@@ -71,7 +71,6 @@ Unit::Unit() {
 	}
 	readyItem = -1;
 	object = 0;
-	attackorders = NULL;
 	evictorders = NULL;
 	stealorders = NULL;
 	monthorders = NULL;
@@ -105,7 +104,6 @@ Unit::Unit(int seq, Faction * f, int a) {
 	}
 	readyItem = -1;
 	object = 0;
-	attackorders = NULL;
 	evictorders = NULL;
 	stealorders = NULL;
 	monthorders = NULL;
@@ -122,7 +120,6 @@ Unit::Unit(int seq, Faction * f, int a) {
 Unit::~Unit() {
 	if (monthorders) delete monthorders;
 	if (presentMonthOrders) delete presentMonthOrders;
-	if (attackorders) delete attackorders;
 	if (stealorders) delete stealorders;
 	if (name) delete name;
 	if (describe) delete describe;
@@ -570,8 +567,6 @@ void Unit::ClearOrders() {
 	build = NULL;
 	leftShip = 0;
 	destroy = 0;
-	if (attackorders) delete attackorders;
-	attackorders = 0;
 	if (evictorders) delete evictorders;
 	evictorders = 0;
 	if (stealorders) delete stealorders;

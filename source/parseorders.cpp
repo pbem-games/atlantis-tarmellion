@@ -1489,12 +1489,16 @@ void Game::ProcessBuildOrder(Unit *unit, AString *o, OrdersCheck *pCheck) {
 
 void Game::ProcessAttackOrder(Unit * u,AString * o, OrdersCheck *pCheck) {
 	UnitId * id = ParseUnit(o);
+	if (!id || id->unitnum == -1) return;
+	AttackOrder * ord = new AttackOrder;
 	while (id && id->unitnum != -1) {
 		if (!pCheck) {
-			if (!u->attackorders) u->attackorders = new AttackOrder;
-			u->attackorders->targets.Add(id);
+			ord->targets.Add(id);
 		}
 		id = ParseUnit(o);
+	}
+	if (!pCheck) {
+		u->attackorders.Add( ord );
 	}
 }
 

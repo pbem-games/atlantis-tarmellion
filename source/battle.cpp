@@ -29,6 +29,9 @@
 #include "gamedata.h"
 #include "items.h"
 
+#define ADD_ATTACK 1
+#define ADD_DEFENSE 2
+
 Battle::Battle() {
 	asstext = 0;
 }
@@ -376,17 +379,14 @@ void Battle::GetSpoils(AList * losers, ItemList *spoils, int ass) {
 	}
 }
 
-int Battle::Run(ARegion * region,
-		  Unit * att,
-		  AList * atts,
-		  Unit * tar,
-		  AList * defs,
-		  int ass,
-		  ARegionList *pRegs) {
+int Battle::Run( ARegion * region, Unit * att, AList * atts, AList * targets,
+		         AList * defs, int ass, ARegionList *pRegs)
+{
 	Army * armies[2];
 	AString temp;
 	assassination = ASS_NONE;
 	attacker = att->faction;
+	Unit * tar = (Unit *)((UnitPtr *)targets->First())->ptr;
 
 	armies[0] = new Army(att,atts,region->type,ass);
 	armies[1] = new Army(tar,defs,region->type,ass);
@@ -480,13 +480,11 @@ int Battle::Run(ARegion * region,
 	return BATTLE_DRAW;
 }
 
-void Battle::WriteSides(ARegion * r,
-			Unit * att,
-			Unit * tar,
-			AList * atts,
-			AList * defs,
-			int ass,
-			ARegionList *pRegs) {
+void Battle::WriteSides( ARegion * r, Unit * att, AList * targets,
+			             AList * atts, AList * defs, int ass,
+			             ARegionList *pRegs )
+{
+	Unit * tar = (Unit *)((UnitPtr *) targets->First())->ptr;
 	if (ass) {
 		AddLine(*att->name + " attempts to assassinate " + *tar->name
 			+ " in " + r->ShortPrint(pRegs) + "!");
@@ -544,76 +542,160 @@ void Battle::AddLine(const AString & s) {
 	text.Add(temp);
 }
 
-void Game::GetDFacs(ARegion * r,Unit * t,AList & facs) {
-	forlist((&r->objects)) {
+void Game::GetDFacs( ARegion * r, Unit * attacker, AList * targets,
+					 AList & defs, AList & dfacs )
+{
+	// Cycle through units in the region to see if they will defend against the attack
+	forlist( &r->objects ) {
 		Object * obj = (Object *) elem;
-		forlist((&obj->units)) {
+		forlist( &obj->units ) {
 			Unit * u = (Unit *) elem;
-			if (u->IsAlive()) {
-				if (u->faction == t->faction ||
-					(u->guard != GUARD_AVOID &&
-					 u->GetAttitude(r,t) == A_ALLY)) {
-					if (!GetFaction2(&facs,u->faction->num)) {
-						FactionPtr * p = new FactionPtr;
-						p->ptr = u->faction;
-						facs.Add(p);
+			int add = 0;
+
+			if( !u->IsAlive() ) continue;
+//			if( attacker->GetAttitude( r, u ) == A_HOSTILE ) add = 1;
+//			if( u->type == U_GUARD || u->type == U_GUARDMAGE ) add = 1;
+
+			// check if unit has been attacked, or if it can help a
+			// unit that has been attacked
+			forlist( targets ) {
+				UnitPtr * up = (UnitPtr *) elem;
+				Unit * t = (Unit *) up->ptr;
+				if( u == t ) {
+					// unit has been attacked, so add unit as a defender
+					add = 1;
+					break;
+				}
+				if( t->GetFlag( FLAG_NOAID ) ) {
+					// this target wants no aid from anyone else, so no
+					// need to check if current unit can help this target
+					continue;
+				}
+
+				if( u->faction == t->faction || u->GetAttitude( r, t ) == A_ALLY ) {
+					// unit may be able to help the target, check flags first
+					if( u->guard != GUARD_AVOID ) {
+						// flags OK, add unit as a defender
+						add = 1;
+						break;
 					}
+				}
+			}
+
+			if( add ) {
+				// Add this unit as a defender
+				Location * l = new Location;
+				l->unit = u;
+				l->obj = u->object;
+				l->region = r;
+				defs.Add( l );
+
+				// Add faction to defenders
+				if( !GetFaction2( &dfacs, u->faction->num ) ) {
+					FactionPtr * fp = new FactionPtr;
+					fp->ptr = u->faction;
+					dfacs.Add(fp);
 				}
 			}
 		}
 	}
 }
 
-void Game::GetAFacs(ARegion *r, Unit *att, Unit *tar, AList &dfacs,
-		AList &afacs, AList &atts) {
-	forlist((&r->objects)) {
+void Game::GetAFacs( ARegion * r, Unit * att, AList * targets,
+					 AList & atts, AList & dfacs, AList & afacs )
+{
+	// If attacker is noaid, it will not draw in any helpers
+	if( att->GetFlag( FLAG_NOAID ) ) {
+		// Add this unit as an attacker
+		Location * l = new Location;
+		l->unit = att;
+		l->obj = r->GetDummy();
+		l->region = r;
+		atts.Add( l );
+
+		// Add faction to attackers
+		FactionPtr * fp = new FactionPtr;
+		fp->ptr = att->faction;
+		afacs.Add(fp);
+	}
+
+	// Cycle through units in the region to see if they will join in the attack
+	forlist( &r->objects ) {
 		Object * obj = (Object *) elem;
-		forlist((&obj->units)) {
+		forlist( &obj->units ) {
 			Unit * u = (Unit *) elem;
-			if (u->IsAlive() && u->canattack) {
-				int add = 0;
-				if ((u->faction == att->faction ||
-							u->GetAttitude(r,tar) == A_HOSTILE) &&
-						(u->guard != GUARD_AVOID || u == att)) {
-					add = 1;
-				} else {
-					if (u->guard == GUARD_ADVANCE &&
-							u->GetAttitude(r,tar) != A_ALLY) {
+
+			if( !u->IsAlive() ) continue;
+			if( !u->canattack ) continue;
+
+			int add = 0;
+				
+			if( u->faction == att->faction && ( u->guard != GUARD_AVOID || u == att ) ) {
+				// unit is from same faction and not avoiding, add unit to attackers
+				add = 1;
+			} else if( GetFaction2( &dfacs, u->faction->num ) ) {
+				// unit's faction is already on the defending side!
+				add = 0;
+				continue;
+			} else {
+				forlist( targets ) {
+					UnitPtr * up = (UnitPtr *) elem;
+					Unit * tar = (Unit *) up->ptr;
+
+					if( add ) continue;
+
+					if( u->GetAttitude( r, tar ) == A_HOSTILE && u->guard != GUARD_AVOID ) {
+						// unit is hostile to target, add unit to attackers
 						add = 1;
-					} else {
-						if (u->attackorders) {
-							forlist(&(u->attackorders->targets)) {
-								UnitId * id = (UnitId *) elem;
-								Unit *t = r->GetUnitId(id, u->faction->num);
-								if (!t) continue;
-								if (t == tar) {
-									u->attackorders->targets.Remove(id);
-									delete id;
-								}
-								if (t->faction == tar->faction) add = 1;
+						continue;
+					}
+
+					if( u->guard == GUARD_ADVANCE && tar->Forbids( r, u ) ) {
+						// unit has advanced against this target, add unit to attackers
+						add = 1;
+						continue;
+					}
+
+					// cycle through unit's attack orders
+					forlist( &u->attackorders ) {
+						AttackOrder * order = (AttackOrder *) elem;
+						forlist( &order->targets ) {
+							UnitId * id = (UnitId *) elem;
+							Unit * t = r->GetUnitId( id, u->faction->num );
+							if( !t ) continue;
+							if( t == tar ) {
+								// Found target in attack orders, add unit to attackers
+								// and remove target from orders
+								order->targets.Remove( id );
+								delete id;
+								add = 1;
+								break;
 							}
 						}
+						if( add ) break;
 					}
 				}
+			}
 
-				if (add) {
-					if (!GetFaction2(&dfacs,u->faction->num)) {
-						Location * l = new Location;
-						l->unit = u;
-						l->obj = obj;
-						l->region = r;
-						atts.Add(l);
-						if (!GetFaction2(&afacs,u->faction->num)) {
-							FactionPtr * p = new FactionPtr;
-							p->ptr = u->faction;
-							afacs.Add(p);
-						}
-					}
+			if( add ) {
+				// Add this unit as an attacker
+				Location * l = new Location;
+				l->unit = u;
+				l->obj = r->GetDummy();
+				l->region = r;
+				atts.Add( l );
+
+				// Add faction to attackers
+				if( !GetFaction2( &dfacs, u->faction->num ) ) {
+					FactionPtr * fp = new FactionPtr;
+					fp->ptr = u->faction;
+					afacs.Add(fp);
 				}
 			}
 		}
 	}
 }
+
 
 int Game::CanAttack(ARegion * r,AList * afacs,Unit * u) {
 	int see = 0;
@@ -632,12 +714,16 @@ int Game::CanAttack(ARegion * r,AList * afacs,Unit * u) {
 	return 0;
 }
 
-void Game::GetSides(ARegion *r, AList &afacs, AList &dfacs, AList &atts,
-		AList &defs, Unit *att, Unit *tar, int ass, int adv) {
+void Game::GetSides( ARegion *r, AList & afacs, AList & dfacs, AList & atts,
+		             AList & defs, Unit * attacker, AList * targets, int ass,
+					 int adv )
+{
 	if (ass) {
+		Unit * tar = (Unit *)((UnitPtr *)targets->First())->ptr;
+
 		/* Assassination attempt */
 		Location * l = new Location;
-		l->unit = att;
+		l->unit = attacker;
 		l->obj = r->GetDummy();
 		l->region = r;
 		atts.Add(l);
@@ -677,70 +763,83 @@ void Game::GetSides(ARegion *r, AList &afacs, AList &dfacs, AList &atts,
 				Unit * u = (Unit *) elem;
 				int add = 0;
 
-#define ADD_ATTACK 1
-#define ADD_DEFENSE 2
-				/* First, can the unit be involved in the battle at all? */
-				if (u->IsAlive() && (i==-1 || u->GetFlag(FLAG_HOLDING) == 0)) {
-					if (GetFaction2(&afacs,u->faction->num)) {
-						/*
-						 * The unit is on the attacking side, check if the
-						 * unit should be in the battle
-						 */
-						if (i == -1 || (!noaida)) {
-							if (u->canattack &&
-									(u->guard != GUARD_AVOID || u==att) &&
-									u->CanMoveTo(r2,r) &&
-									!::GetUnit(&atts,u->num)) {
-								add = ADD_ATTACK;
-							}
-						}
-					} else {
-						/* The unit is not on the attacking side */
-						/*
-						 * First, check for the noaid flag; if it is set,
-						 * only units from this region will join on the
-						 * defensive side
-						 */
-						if (!(i != -1 && noaidd)) {
-							if (u->type == U_GUARD) {
-								/* The unit is a city guardsman */
-								if (i == -1 && adv == 0)
-									add = ADD_DEFENSE;
-							} else if (u->type == U_GUARDMAGE) {
-								/* the unit is a city guard support mage */
-								if (i == -1 && adv == 0)
-									add = ADD_DEFENSE;
-							} else {
-								/*
-								 * The unit is not a city guardsman, check if
-								 * the unit is on the defensive side
-								 */
-								if (GetFaction2(&dfacs,u->faction->num)) {
-									if (u->guard == GUARD_AVOID) {
-										/*
-										 * The unit is avoiding, and doesn't
-										 * want to be in the battle if he can
-										 * avoid it
-										 */
-										if (u == tar ||
-												(u->faction == tar->faction &&
-												 i==-1 &&
-												 CanAttack(r,&afacs,u))) {
-											add = ADD_DEFENSE;
-										}
-									} else {
-										/*
-										 * The unit is not avoiding, and wants
-										 * to defend, if it can
-										 */
-										if (u->CanMoveTo(r2,r)) {
-											add = ADD_DEFENSE;
-										}
-									}
-								}
-							}
-						}
+				// First, can the unit be involved in the battle at all?
+				if( !u->IsAlive() ) continue;
+				if( i != -1 && u->GetFlag( FLAG_HOLDING ) ) continue;
+				// check avoid flag?
+
+				if( GetFaction2(&afacs,u->faction->num) ) {
+					// The unit is on the attacking side, check if the
+					// unit should be in the battle
+					if( !u->canattack ) continue;
+					if( u->guard == GUARD_AVOID ) {
+						// unit is avoiding, and will only attack if it has issued
+						// a specific attack order, in which case it has already been added
+						// to the attacker list
+						continue;
 					}
+					if( noaida ) {
+						// Attacker has set no aid, so *no-one* should aid the attacker
+						continue;
+					}
+
+					if( i != -1 && !u->CanMoveTo(r2,r) ) {
+						// Unit is in a neighbouring region, but cannot reach the battle
+						continue;
+					}
+					
+					if( ::GetUnit(&atts,u->num) ) {
+						// Unit is already in the attacker list!
+						continue;
+					}
+					add = ADD_ATTACK;
+
+				} else {
+					// The unit is not on the attacking side
+
+					// First, check for the noaid flag; if it is set,
+					// only units from this region will join on the
+					// defensive side
+					
+					if( i != -1 && noaidd ) {
+						// Unit is in neighbouring region, but defenders no not
+						// want aid
+						continue;
+					}
+
+					if( GetFaction2(&dfacs,u->faction->num) ) {
+						// Unit is on the defending side
+						if( u->guard == GUARD_AVOID ) {
+							// The unit is avoiding, and doesn't
+							// want to be in the battle if he can
+							// avoid it
+							continue;
+						}
+
+
+//									if (u == tar ||
+//											(u->faction == tar->faction &&
+//											 i==-1 &&
+//											 CanAttack(r,&afacs,u))) {
+//										add = ADD_DEFENSE;
+//									}
+							// The unit is not avoiding, and wants
+							// to defend, if it can
+						if( !u->CanMoveTo(r2,r) ) {
+							// Unit can't reach battle
+							continue;
+						}
+						if( ::GetUnit(&defs,u->num) ) {
+							// Unit is already in the defender list!
+							continue;
+						}
+						add = ADD_DEFENSE;
+					} else if( u->type == U_GUARD || u->type == U_GUARDMAGE) {
+						// The unit is a city guardsman
+						if (i == -1 && adv == 0)
+							add = ADD_DEFENSE;
+					}
+
 				}
 
 				if (add == ADD_ATTACK) {
@@ -750,36 +849,36 @@ void Game::GetSides(ARegion *r, AList &afacs, AList &dfacs, AList &atts,
 					l->region = r2;
 					atts.Add(l);
 				} else if (add == ADD_DEFENSE) {
-						Location * l = new Location;
-						l->unit = u;
-						l->obj = o;
-						l->region = r2;
-						defs.Add(l);
-				}
-			}
-		}
-		//
-		// If we are in the original region, check for the noaid status of
-		// the units involved
-		//
-		if (i == -1) {
-			noaida = 1;
-			forlist (&atts) {
-				Location *l = (Location *) elem;
-				if (!l->unit->GetFlag(FLAG_NOAID)) {
-					noaida = 0;
-					break;
+					Location * l = new Location;
+					l->unit = u;
+					l->obj = o;
+					l->region = r2;
+					defs.Add(l);
 				}
 			}
 		}
 
-		noaidd = 1;
-		{
-			forlist (&defs) {
+		// If we are in the original region, check for the noaid status of
+		// the units involved
+		//
+		if( i == -1 ) {
+			noaida = 1;
+			forlist( &atts ) {
 				Location *l = (Location *) elem;
-				if (!l->unit->GetFlag(FLAG_NOAID)) {
-					noaidd = 0;
+				if( !l->unit->GetFlag(FLAG_NOAID) ) {
+					noaida = 0;
 					break;
+				}
+			}
+
+			noaidd = 1;
+			{
+				forlist (&defs) {
+					Location *l = (Location *) elem;
+					if (!l->unit->GetFlag(FLAG_NOAID)) {
+						noaidd = 0;
+						break;
+					}
 				}
 			}
 		}
@@ -796,43 +895,61 @@ void Game::KillDead(Location * l) {
 	}
 }
 
-int Game::RunBattle(ARegion * r,Unit * attacker,Unit * target,int ass,
-					 int adv) {
+int Game::RunBattle( ARegion * r, Unit * attacker, AList * targets, int ass,
+					 int adv )
+{
 	AList afacs,dfacs;
 	AList atts,defs;
-	FactionPtr * p;
+	FactionPtr * fp;
 	int result;
 
-	if (ass) {
-		if (attacker->GetAttitude(r,target) == A_ALLY) {
-			attacker->Error("ASSASSINATE: Can't assassinate an ally.");
-			return BATTLE_IMPOSSIBLE;
-		}
-		/* Assassination attempt */
-		p = new FactionPtr;
-		p->ptr = attacker->faction;
-		afacs.Add(p);
-		p = new FactionPtr;
-		p->ptr = target->faction;
-		dfacs.Add(p);
-	} else {
-		if (r->IsSafeRegion()) {
-			attacker->Error("ATTACK: No battles allowed in safe regions.");
-			return BATTLE_IMPOSSIBLE;
-		}
-		if (attacker->GetAttitude(r,target) == A_ALLY) {
-			attacker->Error("ATTACK: Can't attack an ally.");
-			return BATTLE_IMPOSSIBLE;
-		}
-		GetDFacs(r,target,dfacs);
-		if (GetFaction2(&dfacs,attacker->faction->num)) {
-			attacker->Error("ATTACK: Can't attack an ally.");
-			return BATTLE_IMPOSSIBLE;
-		}
-		GetAFacs(r,attacker,target,dfacs,afacs,atts);
+	AString atype = (ass ? "ASSASSINATE":"ATTACK" );
+
+	// No battles in a safe region
+	if( r->IsSafeRegion() ) {
+		AString temp = atype + ": No battles allowed in safe regions.";
+		attacker->Error( temp );
+		return BATTLE_IMPOSSIBLE;
 	}
 
-	GetSides(r,afacs,dfacs,atts,defs,attacker,target,ass,adv);
+	// Make sure target is valid
+	forlist( targets ) {
+		UnitPtr * p = (UnitPtr *) elem;
+		Unit * t = (Unit *) p->ptr;
+
+		if( attacker->GetAttitude( r, t ) == A_ALLY) {
+			// Cannot attack/assinate ally
+			AString temp = atype + ": Can't attack an ally.";
+			attacker->Error( temp );
+			return BATTLE_IMPOSSIBLE;
+		}
+
+		if( ass ) {
+			// Assassination attempt
+			Unit * target = (Unit *)((UnitPtr *)targets->First())->ptr;
+
+			fp = new FactionPtr;
+			fp->ptr = attacker->faction;
+			afacs.Add(fp);
+			fp = new FactionPtr;
+			fp->ptr = target->faction;
+			dfacs.Add(fp);
+			break;
+		}
+	}
+
+	if( !ass ) {
+		GetDFacs( r, attacker, targets, defs, dfacs );
+		if( GetFaction2(&dfacs,attacker->faction->num) ) {
+			// This unit's faction is on the defender's side!
+			// It must be allied to one of the targets
+			attacker->Error("ATTACK: Can't attack an ally.");
+			return BATTLE_IMPOSSIBLE;
+		}
+		GetAFacs( r, attacker, targets, atts, dfacs, afacs );
+	}
+
+	GetSides( r, afacs, dfacs, atts, defs, attacker, targets, ass, adv );
 
 	if (atts.Num() <= 0) {
 		// This shouldn't happen, but just in case
@@ -846,19 +963,21 @@ int Game::RunBattle(ARegion * r,Unit * attacker,Unit * target,int ass,
 	}
 
 	Battle * b = new Battle;
-	b->WriteSides(r,attacker,target,&atts,&defs,ass, &regions);
+	b->WriteSides(r,attacker,targets,&atts,&defs,ass, &regions);
 
 	battles.Add(b);
-	forlist(&factions) {
-		Faction * f = (Faction *) elem;
-		if (GetFaction2(&afacs,f->num) || GetFaction2(&dfacs,f->num) ||
-				r->Present(f)) {
-			BattlePtr * p = new BattlePtr;
-			p->ptr = b;
-			f->battles.Add(p);
+	{
+		forlist(&factions) {
+			Faction * f = (Faction *) elem;
+			if (GetFaction2(&afacs,f->num) || GetFaction2(&dfacs,f->num) ||
+					r->Present(f)) {
+				BattlePtr * p = new BattlePtr;
+				p->ptr = b;
+				f->battles.Add(p);
+			}
 		}
 	}
-	result = b->Run(r,attacker,&atts,target,&defs,ass, &regions);
+	result = b->Run(r,attacker,&atts,targets,&defs,ass, &regions);
 
 	/* Remove all dead units */
 	{

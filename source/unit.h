@@ -258,7 +258,7 @@ class Unit : public AListElem {
 		TeleportOrder *teleportorders;
 		Order *stealorders;
 		Order *monthorders;
-		AttackOrder *attackorders;
+		AList attackorders;
 		EvictOrder *evictorders;
 		ARegion *advancefrom;
 

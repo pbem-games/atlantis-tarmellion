@@ -1174,11 +1174,20 @@ void Game::DoMoveEnter(Unit * unit,ARegion * region,Object **obj) {
 			}
 
 			int done = 0;
-			while (forbid) {
-				int result = RunBattle(region, unit, forbid, 0, 0);
+
+			AList targets;
+			forlist( &to->units ) {
+				Unit * u2 = (Unit * ) elem;
+				if( u2->Forbids( to->region, unit ) ) {
+					UnitPtr * p = new UnitPtr;
+					p->ptr = u2;
+					targets.Add( p );
+				}
+			}
+			if( targets.Num() ) {
+				int result = RunBattle(region, unit, &targets, 0, 0);
 				if (result == BATTLE_IMPOSSIBLE) {
-					unit->Error(AString("ENTER: Unable to attack ")+
-							*(forbid->name));
+					unit->Error(AString("ENTER: Unable to attack guards."));
 					done = 1;
 					break;
 				}
@@ -1186,7 +1195,6 @@ void Game::DoMoveEnter(Unit * unit,ARegion * region,Object **obj) {
 				  done = 1;
 				  break;
 				}
-				forbid = to->ForbiddenBy(region, unit);
 			}
 			if (done) continue;
 

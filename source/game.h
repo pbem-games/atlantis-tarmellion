@@ -471,7 +471,7 @@ public:
     void CheckWMonAttack(ARegion *,Unit *);
     Unit *GetWMonTar(ARegion *,int,Unit *);
     int CountWMonTars(ARegion *,Unit *);
-    void AttemptAttack(ARegion *,Unit *,Unit *,int,int=0);
+    void AttemptAttack(ARegion *,Unit *,AList &,int,int=0);
     void DoAutoAttacks();
     void DoAutoAttacksRegion(ARegion *);
     void DoAdvanceAttack(ARegion *,Unit *);
@@ -548,12 +548,13 @@ public:
     // Battle function
     //
     void KillDead(Location *);
-    int RunBattle(ARegion *,Unit *,Unit *,int = 0,int = 0);
-    void GetSides(ARegion *,AList &,AList &,AList &,AList &,Unit *,Unit *,
+    int RunBattle(ARegion *,Unit *,AList *,int = 0,int = 0);
+    void GetSides(ARegion *,AList &,AList &,AList &,AList &,Unit *,AList *,
                   int = 0,int = 0);
     int CanAttack(ARegion *,AList *,Unit *);
-    void GetAFacs(ARegion *,Unit *,Unit *,AList &,AList &,AList &);
-    void GetDFacs(ARegion *,Unit *,AList &);
+    void GetAFacs(ARegion *,Unit *,AList *,AList &, AList &, AList &);
+    void GetDFacs(ARegion *,Unit *,AList *,AList &, AList &);
+	
 };
 
 #endif
