@@ -918,6 +918,11 @@ AString *ItemDescription(int item, int full) {
 	if (ItemDefs[item].attributes & ItemType::CAN_HEAL) {
 	  *temp += AString(" Can be used to heal with a ") +
 	    ItemDefs[item].pValue + AString("% chance.");
+	  if (item == I_HEALINGPOTION) {
+		  *temp += AString(" This item can heal up to 10 men without the healing skill.");
+	  } else {
+		  *temp += AString(" This item requires the healing skill to be used for healing.");
+	  }
 	}
 	if (ItemDefs[item].attributes & ItemType::STOP_THEFT) {
 	  *temp += AString(" Stops attempts of theft.");

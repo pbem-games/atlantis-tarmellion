@@ -166,8 +166,9 @@ AString *ShowSkill::Report(Faction *f) {
 			break;
 		case S_HEALING:
 			if (level > 1) break;
-			*str += "A unit with this skill is able to heal units hurt in "
-				"battle.";
+			*str += "A unit with this skill is able to heal ";
+			*str += Globals->HEALS_PER_MAN;
+			*str += " times skill level units hurt in battle.";
 			break;
 		case S_SAILING:
 			if (level > 1) break;

@@ -1476,7 +1476,7 @@ ItemType id[] =
 	 I_PRESS,1,-1,{-1,-1,-1},-1,0},
 	{"healing potion","healing potions","HPOT",
 	 ItemType::HIDDEN,
-	 0,0,
+	 ItemType::CAN_HEAL,100,
 	 S_HEALING,5,1,1,{{I_MEDICINE,1},{I_HEALINGDRAFT,1},{-1,0},{-1,0}},
 	 -1,0,0,{{-1,0},{-1,0},{-1,0},{-1,0}},
 	 0, IT_TRADE, 400,0,0, 0,
