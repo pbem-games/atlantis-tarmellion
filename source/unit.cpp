@@ -1451,6 +1451,7 @@ int Unit::ItemsWithAttribute(int att) {
 }
 
 int Unit::GetAttitude(ARegion * r,Unit * u) {
+
 	if (faction == u->faction) return A_ALLY;
 	int att = faction->GetAttitude(u->faction->num);
 	if (att >= A_FRIENDLY && att >= faction->defaultattitude) return att;

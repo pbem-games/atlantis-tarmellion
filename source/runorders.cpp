@@ -1306,10 +1306,10 @@ void Game::DoAttackOrders() {
 					if (u->canattack && u->IsAlive()) CheckWMonAttack(r,u);
 				} else {
 					if (u->IsAlive()) {
-						AList targets;
 						forlist( &u->attackorders ) {
 							AttackOrder * ord = (AttackOrder *) elem;
-							while (ord->targets.Num()) {
+							AList targets;
+							while (ord->targets.Num() && u->canattack && u->IsAlive() ) {
 								UnitId * id = (UnitId *) ord->targets.First();
 								ord->targets.Remove(id);
 								Unit * t = r->GetUnitId(id,u->faction->num);
@@ -1324,14 +1324,14 @@ void Game::DoAttackOrders() {
 //									else u->Error(AString("ATTACK: Non-existent unit (")+AString(id->unitnum)+").");
 //								}
 							}
-							u->attackorders.Remove(ord);
-							delete ord;
 							if( targets.Num() )
 								AttemptAttack( r, u, targets, 0 );
 							else
 								u->Error(AString("ATTACK: Non-existent unit."));
+							delete ord;
+							u->attackorders.Remove(ord);
+							targets.DeleteAll();
 						}
-						targets.DeleteAll();
 					}
 				}
 			}

@@ -545,6 +545,8 @@ void Battle::AddLine(const AString & s) {
 void Game::GetDFacs( ARegion * r, Unit * attacker, AList * targets,
 					 AList & defs, AList & dfacs )
 {
+	int debug = 0;
+
 	// Cycle through units in the region to see if they will defend against the attack
 	forlist( &r->objects ) {
 		Object * obj = (Object *) elem;
@@ -563,6 +565,9 @@ void Game::GetDFacs( ARegion * r, Unit * attacker, AList * targets,
 				Unit * t = (Unit *) up->ptr;
 				if( u == t ) {
 					// unit has been attacked, so add unit as a defender
+					if( debug ) {
+						Awrite( AString("-- Unit targetted: ") + *u->name );
+					}
 					add = 1;
 					break;
 				}
@@ -572,11 +577,14 @@ void Game::GetDFacs( ARegion * r, Unit * attacker, AList * targets,
 					continue;
 				}
 
-				if( u->faction == t->faction || u->GetAttitude( r, t ) == A_ALLY ) {
+				if( u->GetAttitude( r, t ) == A_ALLY ) {
 					// unit may be able to help the target, check flags first
 					if( u->guard != GUARD_AVOID ) {
 						// flags OK, add unit as a defender
 						add = 1;
+						if( debug ) {
+							Awrite( AString("-- Unit ") + *u->name + " allied to target " + *t->name );
+						}
 						break;
 					}
 				}
@@ -597,16 +605,19 @@ void Game::GetDFacs( ARegion * r, Unit * attacker, AList * targets,
 					dfacs.Add(fp);
 				}
 			}
-		}
+		} 
 	}
 }
 
 void Game::GetAFacs( ARegion * r, Unit * att, AList * targets,
 					 AList & atts, AList & dfacs, AList & afacs )
 {
+	int debug = 0;
+
 	// If attacker is noaid, it will not draw in any helpers
 	if( att->GetFlag( FLAG_NOAID ) ) {
 		// Add this unit as an attacker
+		if( debug ) Awrite( "- Attacker is NOAID!" );
 		Location * l = new Location;
 		l->unit = att;
 		l->obj = r->GetDummy();
@@ -625,19 +636,33 @@ void Game::GetAFacs( ARegion * r, Unit * att, AList * targets,
 		forlist( &obj->units ) {
 			Unit * u = (Unit *) elem;
 
-			if( !u->IsAlive() ) continue;
-			if( !u->canattack ) continue;
+			if( debug )  Awrite( AString( "- Checking if unit " ) + u->num + " can attack..." );
+
+			if( !u->IsAlive() ) {
+				if( debug ) Awrite( "-- Unit is not alive!" );
+				continue;
+
+			}
+
+			if( !u->canattack ) {
+				if( debug ) Awrite( "-- Unit cannot attack!" );
+				continue;
+			}
 
 			int add = 0;
 				
 			if( u->faction == att->faction && ( u->guard != GUARD_AVOID || u == att ) ) {
 				// unit is from same faction and not avoiding, add unit to attackers
 				add = 1;
+				if( debug ) Awrite( "-- Unit is from same faction and not avoiding, add unit to attackers" );
 			} else if( GetFaction2( &dfacs, u->faction->num ) ) {
 				// unit's faction is already on the defending side!
+				if( debug ) Awrite( "-- Unit's faction is already on the defending side! Skip" );
 				add = 0;
 				continue;
 			} else {
+				if( debug ) Awrite( "--- Checking if unit's target matches this one." );
+
 				forlist( targets ) {
 					UnitPtr * up = (UnitPtr *) elem;
 					Unit * tar = (Unit *) up->ptr;
@@ -905,22 +930,41 @@ int Game::RunBattle( ARegion * r, Unit * attacker, AList * targets, int ass,
 
 	AString atype = (ass ? "ASSASSINATE":"ATTACK" );
 
+	int debug = 0;
+
+	if( debug ) {
+		Awrite(AString("Attacking unit = ") + *attacker->name);
+		AString temp;
+		if( targets ) {
+			forlist( targets ) {
+				UnitPtr * up = ( UnitPtr * ) elem;
+				Unit * u = up->ptr;
+				temp += *u->name + " ";
+			}
+			Awrite(AString(" Targets = ") + temp);
+		} else {
+			Awrite(" No Targets!!!");
+		}
+	}
+
 	// No battles in a safe region
 	if( r->IsSafeRegion() ) {
 		AString temp = atype + ": No battles allowed in safe regions.";
 		attacker->Error( temp );
+		if( debug ) Awrite( temp );
 		return BATTLE_IMPOSSIBLE;
 	}
 
 	// Make sure target is valid
 	forlist( targets ) {
 		UnitPtr * p = (UnitPtr *) elem;
-		Unit * t = (Unit *) p->ptr;
+		Unit * t = p->ptr;
 
 		if( attacker->GetAttitude( r, t ) == A_ALLY) {
 			// Cannot attack/assinate ally
 			AString temp = atype + ": Can't attack an ally.";
 			attacker->Error( temp );
+			if( debug ) Awrite( temp );
 			return BATTLE_IMPOSSIBLE;
 		}
 
@@ -939,6 +983,7 @@ int Game::RunBattle( ARegion * r, Unit * attacker, AList * targets, int ass,
 	}
 
 	if( !ass ) {
+		if( debug ) Awrite( "Getting defending factions" );
 		GetDFacs( r, attacker, targets, defs, dfacs );
 		if( GetFaction2(&dfacs,attacker->faction->num) ) {
 			// This unit's faction is on the defender's side!
@@ -946,15 +991,108 @@ int Game::RunBattle( ARegion * r, Unit * attacker, AList * targets, int ass,
 			attacker->Error("ATTACK: Can't attack an ally.");
 			return BATTLE_IMPOSSIBLE;
 		}
-		GetAFacs( r, attacker, targets, atts, dfacs, afacs );
-	}
+		if( debug ) {
+			AString temp;
+			forlist( &dfacs ) {
+				FactionPtr * fp = ( FactionPtr * ) elem;
+				Faction * f = fp->ptr;
+				temp += *f->name + " ";
+			}
+			Awrite( AString("- Defending Facs = ") + temp );
+			temp = "";
+			{forlist( &defs ) {
+				UnitPtr * up = ( UnitPtr * ) elem;
+				Unit * u = up->ptr;
+				temp += *u->name + " ";
+			}}
+			Awrite( AString("- Defending Units = ") + temp );
+			temp = "";
+			{forlist( &afacs ) {
+				FactionPtr * fp = ( FactionPtr * ) elem;
+				Faction * f = fp->ptr;
+				temp += *f->name + " ";
+			}}
+			Awrite( AString("- Attacking Facs = ") + temp );
+			temp = "";
+			{forlist( &atts ) {
+				UnitPtr * up = ( UnitPtr * ) elem;
+				Unit * u = up->ptr;
+				temp += *u->name + " ";
+			}}
+			Awrite( AString("- Attacking Units = ") + temp );
 
+		}
+		if( debug ) Awrite( "Getting attacking factions..." );
+		GetAFacs( r, attacker, targets, atts, dfacs, afacs );
+		if( debug ) {
+			AString temp;
+			forlist( &dfacs ) {
+				FactionPtr * fp = ( FactionPtr * ) elem;
+				Faction * f = fp->ptr;
+				temp += *f->name + " ";
+			}
+			Awrite( AString("- Defending Facs = ") + temp );
+			temp = "";
+			{forlist( &defs ) {
+				UnitPtr * up = ( UnitPtr * ) elem;
+				Unit * u = up->ptr;
+				temp += *u->name + " ";
+			}}
+			Awrite( AString("- Defending Units = ") + temp );
+			temp = "";
+			{forlist( &afacs ) {
+				FactionPtr * fp = ( FactionPtr * ) elem;
+				Faction * f = fp->ptr;
+				temp += *f->name + " ";
+			}}
+			Awrite( AString("- Attacking Facs = ") + temp );
+			temp = "";
+			{forlist( &atts ) {
+				UnitPtr * up = ( UnitPtr * ) elem;
+				Unit * u = up->ptr;
+				temp += *u->name + " ";
+			}}
+			Awrite( AString("- Attacking Units = ") + temp );
+
+		}
+	}
+	if( debug ) Awrite( "Getting sides");
 	GetSides( r, afacs, dfacs, atts, defs, attacker, targets, ass, adv );
+		if( debug ) {
+			AString temp;
+			forlist( &dfacs ) {
+				FactionPtr * fp = ( FactionPtr * ) elem;
+				Faction * f = fp->ptr;
+				temp += *f->name + " ";
+			}
+			Awrite( AString("- Defending Facs = ") + temp );
+			temp = "";
+			{forlist( &defs ) {
+				UnitPtr * up = ( UnitPtr * ) elem;
+				Unit * u = up->ptr;
+				temp += *u->name + " ";
+			}}
+			temp = "";
+			Awrite( AString("- Defending Units = ") + temp );
+			{forlist( &afacs ) {
+				FactionPtr * fp = ( FactionPtr * ) elem;
+				Faction * f = fp->ptr;
+				temp += *f->name + " ";
+			}}
+			Awrite( AString("- Attacking Facs = ") + temp );
+			temp = "";
+			{forlist( &atts ) {
+				UnitPtr * up = ( UnitPtr * ) elem;
+				Unit * u = up->ptr;
+				temp += *u->name + " ";
+			}}
+			Awrite( AString("- Attacking Units = ") + temp );
+
+		}
 
 	if (atts.Num() <= 0) {
 		// This shouldn't happen, but just in case
 		Awrite(AString("Cannot find any attackers!"));
-		return BATTLE_IMPOSSIBLE;
 	}
 	if (defs.Num() <= 0) {
 		// This shouldn't happen, but just in case
