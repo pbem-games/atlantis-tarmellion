@@ -25,7 +25,7 @@
 #include "object.h"
 #include "items.h"
 #include "skills.h"
-#include "gamedata.h"
+#include <gamedata.h>
 #include "unit.h"
 
 int ParseObject(AString * token) {

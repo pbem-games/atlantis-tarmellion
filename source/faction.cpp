@@ -23,7 +23,7 @@
 //
 // END A3HEADER
 //
-#include "gamedata.h"
+#include <gamedata.h>
 #include "game.h"
 
 char *as[] = {

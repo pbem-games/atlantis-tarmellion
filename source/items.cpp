@@ -27,7 +27,7 @@
 #include "items.h"
 #include "skills.h"
 #include "object.h"
-#include "gamedata.h"
+#include <gamedata.h>
 
 AString AttType(int atype) {
 	switch(atype) {

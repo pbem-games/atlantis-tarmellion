@@ -23,7 +23,7 @@
 //
 // END A3HEADER
 #include "game.h"
-#include "gamedata.h"
+#include <gamedata.h>
 
 void Game::RunSailOrders() {
 	// ALT 28-Jul-2000
@@ -1515,7 +1515,8 @@ void Game::Do1TunnelOrder(ARegion * pRegion, Unit * pUnit)
 }
 
 
-void Game::RunSettleOrders(ARegion * pRegion) {
+void Game::RunSettleOrders(ARegion * pRegion)
+{
 	forlist(&pRegion->objects) {
 		Object * obj = (Object *) elem;
 		forlist(&obj->units) {
@@ -1531,7 +1532,8 @@ void Game::RunSettleOrders(ARegion * pRegion) {
 	}
 }
 
-void Game::Do1SettleOrder(ARegion * pRegion, Unit * pUnit) {
+void Game::Do1SettleOrder(ARegion * pRegion, Unit * pUnit)
+{
 	// Can't settle region if it is guarded by another faction
 	if( !pRegion->CanPillage( pUnit ) ) {
 		pUnit->Error("SETTLE: A unit is on guard.");
@@ -1548,26 +1550,13 @@ void Game::Do1SettleOrder(ARegion * pRegion, Unit * pUnit) {
 	// Can only change population to one that the same alignment
 	// as that of the settling unit's faction
 	int rand = getrandom(100);
-	int newRace = -1;
-	
-	if (ManDefs[ItemDefs[pRegion->race].index].alternaterace[0] == -1) {
-		pUnit->Error("SETTLE: Can't settle this race");
-		return;
-	} else if (ManDefs[ItemDefs[pRegion->race].index].alternaterace[1] == -1)
+	int newRace;
+	if (rand<50) 
 		newRace = ManDefs[ItemDefs[pRegion->race].index].alternaterace[0];
-	else if (ManDefs[ItemDefs[pRegion->race].index].alternaterace[2] == -1) {
-		if (rand<62)
-			newRace = ManDefs[ItemDefs[pRegion->race].index].alternaterace[0];
-		else
-			newRace = ManDefs[ItemDefs[pRegion->race].index].alternaterace[1];
-	} else {
-		if (rand<50)
-			newRace = ManDefs[ItemDefs[pRegion->race].index].alternaterace[0];
-		else if (rand<80)
-			newRace = ManDefs[ItemDefs[pRegion->race].index].alternaterace[1];
-		else
-			newRace = ManDefs[ItemDefs[pRegion->race].index].alternaterace[2];
-	}
+	else if (rand<80)
+		newRace = ManDefs[ItemDefs[pRegion->race].index].alternaterace[1];
+	else
+		newRace = ManDefs[ItemDefs[pRegion->race].index].alternaterace[2];
 
 	if( ( ItemDefs[newRace].flags & ItemType::EVIL &&
 		  !(ItemDefs[pUnit->faction->race].flags & ItemType::EVIL) ) ||

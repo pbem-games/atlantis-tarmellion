@@ -34,7 +34,7 @@
 #include "unit.h"
 #include "fileio.h"
 #include "astring.h"
-#include "gamedata.h"
+#include <gamedata.h>
 #include "items.h"
 
 Game *thisgame;

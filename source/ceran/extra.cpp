@@ -26,7 +26,7 @@
 // This file contains extra game-specific functions
 //
 #include "game.h"
-#include "gamedata.h"
+#include <gamedata.h>
 
 int Game::SetupFaction(Faction *pFac) {
 	pFac->unclaimed = Globals->START_MONEY + TurnNumber() * 50;
@@ -162,10 +162,6 @@ void Game::ModifyTablesPerRuleset(void) {
 
 	DisableItem(I_MAN);
 	DisableItem(I_MERCENARY);
-	DisableItem(I_LICEDWARF);
-	DisableItem(I_ICEDWARF);
-	DisableItem(I_LDESERTDWARF);
-	DisableItem(I_DESERTDWARF);
 	DisableItem(I_LFAIRY);
 	DisableItem(I_FAIRY);
 	DisableItem(I_TLHUMAN);

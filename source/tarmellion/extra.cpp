@@ -26,7 +26,7 @@
 // This file contains extra game-specific functions
 //
 #include "game.h"
-#include "gamedata.h"
+#include <gamedata.h>
 
 int Game::SetupFaction( Faction *pFac )
 {

@@ -32,7 +32,7 @@
 //								Conquest
 #include "army.h"
 #include "gameio.h"
-#include "gamedata.h"
+#include <gamedata.h>
 
 enum {
 	WIN_NO_DEAD,

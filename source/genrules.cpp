@@ -26,7 +26,7 @@
 #include <time.h>
 
 #include "game.h"
-#include "gamedata.h"
+#include <gamedata.h>
 #include "fileio.h"
 
 AString NumToWord(int n) {

@@ -25,7 +25,7 @@
 //
 #include <string.h>
 #include "game.h"
-#include "gamedata.h"
+#include <gamedata.h>
 
 void Game::EnableSkill(int sk) {
 	if (sk < 0 || sk > (NSKILLS-1)) return;

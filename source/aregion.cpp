@@ -28,7 +28,7 @@
 #include <string.h>
 #include "game.h"
 #include "faction.h"
-#include "gamedata.h"
+#include <gamedata.h>
 
 extern Game *thisgame;
 

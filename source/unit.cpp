@@ -24,7 +24,7 @@
 // END A3HEADER
 
 #include "unit.h"
-#include "gamedata.h"
+#include <gamedata.h>
 
 UnitId::UnitId() {
 }
@@ -2039,10 +2039,11 @@ void Unit::SkillStarvation() {
 }
 
 int Unit::CanUseWeapon(WeaponType *pWep, int riding) {
-	if (riding == -1)
+	if (riding == -1){
 		if (pWep->flags & WeaponType::NOFOOT) return -1;
-	else
+	} else {
 		if (pWep->flags & WeaponType::NOMOUNT) return -1;
+	}
 	return CanUseWeapon(pWep);
 }
 

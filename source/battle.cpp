@@ -26,7 +26,7 @@
 #include "battle.h"
 #include "army.h"
 #include "gamedefs.h"
-#include "gamedata.h"
+#include <gamedata.h>
 #include "items.h"
 
 #define ADD_ATTACK 1

@@ -24,7 +24,7 @@
 // END A3HEADER
 #include "skills.h"
 #include "items.h"
-#include "gamedata.h"
+#include <gamedata.h>
 
 int ParseSkill(AString * token) {
 	int r = -1;

@@ -25,7 +25,7 @@
 #include "production.h"
 #include "gameio.h"
 #include "items.h"
-#include "gamedata.h"
+#include <gamedata.h>
 
 Production::Production() {
 	itemtype = -1;

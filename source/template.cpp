@@ -23,7 +23,7 @@
 //
 // END A3HEADER
 #include "game.h"
-#include "gamedata.h"
+#include <gamedata.h>
 #include <stdio.h>
 #ifdef WIN32
 #include <memory.h>

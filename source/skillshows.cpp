@@ -25,7 +25,7 @@
 #include "skills.h"
 #include "items.h"
 #include "object.h"
-#include "gamedata.h"
+#include <gamedata.h>
 #include "astring.h"
 
 #define SKILL_ENABLED(X) (!(SkillDefs[(X)].flags & SkillType::DISABLED))

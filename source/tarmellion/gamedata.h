@@ -1817,6 +1817,7 @@ enum {
 	R_CE_NMOUNTAIN,				//190
 	R_CE_NHILLS,				//191
 	R_CE_NGRASSLAND,			//192
+	R_COASTAL,
 	R_NUM
 };
 

@@ -25,7 +25,7 @@
 #include "market.h"
 #include "items.h"
 #include "gameio.h"
-#include "gamedata.h"
+#include <gamedata.h>
 
 Market::Market() {
 	activity = 0;

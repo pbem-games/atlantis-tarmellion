@@ -26,7 +26,7 @@
 #include "gameio.h"
 #include "orders.h"
 #include "skills.h"
-#include "gamedata.h"
+#include <gamedata.h>
 
 OrdersCheck::OrdersCheck() {
 	pCheckFile = 0;

@@ -28,7 +28,7 @@
 // 2001/Feb/22	Joseph Traub	Moved the Item and such definitions out
 //								into gamedata.cpp
 //
-#include "gamedata.h"
+#include <gamedata.h>
 #include "gamedefs.h"
 
 //

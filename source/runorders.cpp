@@ -23,7 +23,7 @@
 //
 // END A3HEADER
 #include "game.h"
-#include "gamedata.h"
+#include <gamedata.h>
 
 void Game::RunOrders() {
 	//

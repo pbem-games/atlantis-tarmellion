@@ -28,7 +28,7 @@
 // 2000/SEP/06 Joseph Traub      Added base man cost to allow races to have
 //                               different base costs
 #include "game.h"
-#include "gamedata.h"
+#include <gamedata.h>
 #include "aregion.h"
 
 // Make sure this is correct.   The default is 1000 towns and 1000 regions.
@@ -2298,6 +2298,7 @@ int ARegionList::GetRegType(ARegion *pReg, const int odd) {
 				else if ((r < 220) && (lass > 3)) newterrain=R_CE_EVTUNDRA1;
 				else if ((r < 220) && (lass < 4)) newterrain=R_CE_GDTUNDRA1;
 				else newterrain=R_VOLCANO;
+				break;
 			case 1: /* Arctic regions */
 				if ((r < 30) && (lass > 3)) newterrain=R_CE_EVTUNDRA;
 				else if ((r < 30) && (lass < 4)) newterrain=R_CE_GDTUNDRA;

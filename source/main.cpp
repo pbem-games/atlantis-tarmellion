@@ -26,7 +26,7 @@
 #include "game.h"
 #include "items.h"
 #include "skills.h"
-#include "gamedata.h"
+#include <gamedata.h>
 
 void usage() {
 	Awrite("atlantis new");

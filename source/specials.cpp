@@ -23,7 +23,7 @@
 //
 // END A3HEADER
 #include "battle.h"
-#include "gamedata.h"
+#include <gamedata.h>
 
 void Soldier::SetupHealing() {
 	if (unit->type == U_MAGE) {

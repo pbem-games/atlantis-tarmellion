@@ -28,7 +28,7 @@
 // 2001/Feb/22	Joseph Traub	Moved the Item and such definitions out
 //								into gamedata.cpp
 //
-#include "gamedata.h"
+#include <gamedata.h>
 #include "gamedefs.h"
 
 //
@@ -168,10 +168,8 @@ static GameDefs g = {
 	1000,	// CITY_RENAME_COST
 	0,	// TAX_PILLAGE_MONTH_LONG
 	0,	// MULTI_HEX_NEXUS
-	1,	// UNDERWORLD_LEVELS
-	1,	// UNDERDEEP_LEVELS
-//	4,	// UNDERWORLD_LEVELS
-//	4,	// UNDERDEEP_LEVELS
+	4,	// UNDERWORLD_LEVELS
+	4,	// UNDERDEEP_LEVELS
 	1,	// ABYSS_LEVEL
 	120,	// TOWN_PROBABILITY
 	20,	// TOWN_SPREAD
@@ -223,7 +221,7 @@ static GameDefs g = {
 	GameDefs::FP_EQU,	// FP_DISTRIBUTION
 	1,	// FP_FACTOR
 	1,	// ACN_IS_STARTING_CITY
-	0,	// TARMELLION_SUMMONING
+	1,	// TARMELLION_SUMMONING
 	1,  // AGGREGATE_BATTLE_REPORTS
 	0,	// MULTIPLE_MAGES_PER_UNIT
 	1,	// DISABLE_RESTART
