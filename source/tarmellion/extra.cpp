@@ -361,8 +361,8 @@ void Game::ModifyTablesPerRuleset(void)
 	DisableObject(O_RANCHHOUSE);
 	DisableObject(O_CHANDLER);
 	DisableObject(O_RUNEMASTER);
-	DisableObject(O_WYRMLAIR);
-	DisableObject(O_DRAGONCLIFF);
+	DisableObject(O_EDCLIFFS);
+	DisableObject(O_GDCLIFFS);
 
 	// Make skills take twice as long to study.
 	//ModifySkillFlags(S_GATE_LORE, SkillType::MAGIC | SkillType::CAST | SkillType::SLOWSTUDY);
