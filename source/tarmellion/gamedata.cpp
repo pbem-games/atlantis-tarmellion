@@ -8957,7 +8957,7 @@ WeaponType wepd[] = {
 	{WeaponType::NOMOUNT | WeaponType::LONG | WeaponType::TWOHANDED,
 	 -1, -1,
 	 PIERCING, ATTACK_COMBAT, 1,
-	 5, 6, 5},
+	 5, 6, 3},
 	// WEAPON_WARAXE
 	{WeaponType::RIDINGBONUS,
 	 -1, -1,
@@ -9028,7 +9028,7 @@ WeaponType wepd[] = {
 	{WeaponType::NOMOUNT | WeaponType::LONG,
 	 -1, -1,
 	 PIERCING, ATTACK_COMBAT, -2,
-	 5, 5, 5},
+	 5, 5, 3},
 	// WEAPON_ADDAGGER
 	{WeaponType::SHORT  | WeaponType::USEINASSASSINATE,
 	 -1, -1,
@@ -9195,7 +9195,7 @@ WeaponType wepd[] = {
 	{WeaponType::NOMOUNT | WeaponType::LONG | WeaponType::TWOHANDED,
 	 -1, -1,
 	 PIERCING, ATTACK_COMBAT, -2,
-	 3, 3, 4},
+	 3, 3, 2},
 	// WEAPON_SWORD
 	{WeaponType::RIDINGBONUS,
 	 -1, -1,
