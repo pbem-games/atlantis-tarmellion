@@ -31,10 +31,6 @@ void Game::RunOrders() {
 	//
 	Awrite("Running FIND Orders...");
 	RunFindOrders();
-	Awrite("Running ENTER/LEAVE Orders...");
-	RunEnterOrders();
-	Awrite("Running PROMOTE/EVICT Orders...");
-	RunPromoteOrders();
 	Awrite("Running Combat...");
 	DoAttackOrders();
 	DoAutoAttacks();
@@ -46,6 +42,10 @@ void Game::RunOrders() {
 	DoExchangeOrders();
 	Awrite("Running DESTROY Orders...");
 	RunDestroyOrders();
+	Awrite("Running ENTER/LEAVE Orders...");
+	RunEnterOrders();
+	Awrite("Running PROMOTE/EVICT Orders...");
+	RunPromoteOrders();
 	Awrite("Running PILLAGE Orders...");
 	RunPillageOrders();
 	Awrite("Running TAX Orders...");
