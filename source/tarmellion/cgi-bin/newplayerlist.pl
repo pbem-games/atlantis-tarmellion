@@ -240,32 +240,31 @@ while (<NPIN>) {
 	}
     }
     #find its starting city
-    if (/^Location:\s/){
-	($dummy,$coor1, $coor2, $coor3) = split(/\s/,$_);
-	$loc = $coor1." ".$coor2." ".$coor3;
-	if ($loc eq "23 61 1"){
+    if (/^StartingPlace:\s(.*)/){
+	($dummy, $startplace) = split(/ /,$_);
+	if ($startplace eq "3"){
 	    $blackkeepcity++;
-	} elsif ($loc eq "104 16 1"){
+	} elsif ($startplace eq "4"){
 	    $ramishempire++;
-	} elsif ($loc eq "28 16 1"){
+	} elsif ($startplace eq "5"){
 	    $amazonnation++;
-	} elsif ($loc eq "86 62 1"){
+	} elsif ($startplace eq "6"){
 	    $silsalon++;
-	} elsif ($loc eq "34 38 1"){
+	} elsif ($startplace eq "7"){
 	    $republicofpelisham++;
-	} elsif ($loc eq "110 60 1"){
+	} elsif ($startplace eq "8"){
 	    $halfingdemocracy++;
-	} elsif ($loc eq "52 66 1"){
+	} elsif ($startplace eq "9"){
 	    $buccaneerfellowship++;
-	} elsif ($loc eq "63 13 1"){
+	} elsif ($startplace eq "10"){
 	    $vikingconfederacy++;
-	} elsif ($loc eq "13 25 5"){
+	} elsif ($startplace eq "11"){
 	    $duergarkingdom++;
-	} elsif ($loc eq "6 10 2"){
+	} elsif ($startplace eq "12"){
 	    $dwarvenkingdom++;
-	} elsif ($loc eq "51 9 5"){
+	} elsif ($startplace eq "13"){
 	    $drowmatriarchy++;
-	} elsif ($loc eq "42 28 2"){
+	} elsif ($startplace eq "14"){
 	    $darkmankingdom++;
 	}
     }
@@ -310,7 +309,7 @@ while (<PIN>) {
 	} elsif ($race eq "clansman") {
 	    $clansman++;
 	    $good++;
-	} elsif ($race eq "lowlanders") {
+	} elsif ($race eq "lowlander") {
 	    $lowlander++;
 	    $good++;
 	} elsif ($race eq "darkman") {
@@ -451,46 +450,32 @@ foreach $Faction (@factions){
 print "</table>";
 
     print "<p><table border=0>\n";
-    print "<tr><td rowspan=3 valign=top>\n";
-#printing race quota
-$total = $viking + $barbarian + $tribesman + $highlander + $clansman + $ffolk + $dervish + $nomad + $cajunman + $lizardman + $lowlander + $halfing + $imperial + $elf + $halfelf + $human + $gnome + $dwarf + $darkman + $buccaneer + $republican + $headhunter + $sandling + $serpentpeople + $blackkeep + $amazon + $hobgoblin + $goblin + $troll + $gnoll + $ogre + $uruk + $orc + $minotaur + $drow + $duergar;
-print "<p>Here you can see how many factions of each race are playing currently (including the new signups):\n";
+    print "<tr><td rowspan=2 valign=top>\n";
+
+#starting cities
+
+print "<p>Here you can see how many faction are citizens of each starting city (including the new signups):\n";
 print "<p><table border=1>\n";
-print "<tr><td>race</td><td>number of factions</td></tr>\n";
-print "<tr><td>viking</td><td>".$viking."</td></tr>\n";
-print "<tr><td>barbarian</td><td>".$barbarian."</td></tr>\n";
-print "<tr><td>tribesman</td><td>".$tribesman."</td></tr>\n";
-print "<tr><td>highlander and clansman</td><td>".($highlander + $clansman)."</td></tr>\n";
-print "<tr><td>ffolk</td><td>".$ffolk."</td></tr>\n";
-print "<tr><td>dervish and nomad</td><td>".($dervish + $nomad)."</td></tr>\n";
-print "<tr><td>cajun man and lizardman</td><td>".($cajunman + $lizardman)."</td></tr>\n";
-print "<tr><td>lowlander and halfing</td><td>".($lowlander + $halfing)."</td></tr>\n";
-print "<tr><td>imperial</td><td>".$imperial."</td></tr>\n";
-print "<tr><td>elf and halfelf</td><td>".($elf + $halfelf)."</td></tr>\n";
-print "<tr><td>human</td><td>".$human."</td></tr>\n";
-print "<tr><td>gnome</td><td>".$gnome."</td></tr>\n";
-print "<tr><td>dwarf</td><td>".$dwarf."</td></tr>\n";
-print "<tr><td>darkman</td><td>".$darkman."</td></tr>\n";
-print "<tr><td>buccaneer</td><td>".$buccaneer."</td></tr>\n";
-print "<tr><td>republican</td><td>".$republican."</td></tr>\n";
-print "<tr><td>headhunter</td><td>".$headhunter."</td></tr>\n";
-print "<tr><td>sandling</td><td>".$sandling."</td></tr>\n";
-print "<tr><td>serpent people</td><td>".$serpentpeople."</td></tr>\n";
-print "<tr><td>black keep</td><td>".$blackkeep."</td></tr>\n";
-print "<tr><td>amazon</td><td>".$amazon."</td></tr>\n";
-print "<tr><td>hobgoblin and goblin</td><td>".($hobgoblin + $goblin)."</td></tr>\n";
-print "<tr><td>troll and gnoll</td><td>".($troll + $gnoll)."</td></tr>\n";
-print "<tr><td>uruk and orc</td><td>".($uruk + $orc)."</td></tr>\n";
-print "<tr><td>ogre</td><td>".$ogre."</td></tr>\n";
-print "<tr><td>minotaur</td><td>".$minotaur."</td></tr>\n";
-print "<tr><td>drow</td><td>".$drow."</td></tr>\n";
-print "<tr><td>duergar</td><td>".$duergar."</td></tr>\n";
-print "<tr><td>total</td><td>".$total."</td></tr>\n";
+print "<tr><td>starting city</td><td>number of factions</td></tr>\n";
+print "<tr><td>Black Keep</td><td>".$blackkeepcity."</td></tr>\n";
+print "<tr><td>Ram</td><td>".$ramishempire."</td></tr>\n";
+print "<tr><td>Xanthara</td><td>".$amazonnation."</td></tr>\n";
+print "<tr><td>Silsalon</td><td>".$silsalon."</td></tr>\n";
+print "<tr><td>Pel'Hash</td><td>".$republicofpelisham."</td></tr>\n";
+print "<tr><td>Ashhaim</td><td>".$halfingdemocracy."</td></tr>\n";
+print "<tr><td>Bucc Den</td><td>".$buccaneerfellowship."</td></tr>\n";
+print "<tr><td>Port Sass</td><td>".$vikingconfederacy."</td></tr>\n";
+print "<tr><td>Vaulthall</td><td>".$duergarkingdom."</td></tr>\n";
+print "<tr><td>Minehome</td><td>".$dwarvenkingdom."</td></tr>\n";
+print "<tr><td>Parth'Tir'Dallon</td><td>".$drowmatriarchy."</td></tr>\n";
+print "<tr><td>Char'ar'ton</td><td>".$darkmankingdom."</td></tr>\n";
+print "<tr><td>total:</td><td>".($blackkeepcity + $ramishempire + $amazonnation + $silsalon + $republicofpelisham + $halfingdemocracy + $buccaneerfellowship + $vikingconfederacy + $duergarkingdom + $dwarvenkingdom + $drowmatriarchy + $darkmankingdom)."</td></tr>\n";
 print "</table>\n";
 
     print "</td><td valign=top>\n";
 
-#printing race quota
+#printing profession quota
+
 print "<p>Here you can see aproximately how many of each profession are playing currently (including the new signups):\n";
 print "<p><table border=1>\n";
 print "<tr><td>profession</td><td>number of factions</td></tr>\n";
@@ -647,38 +632,32 @@ if ($assassin == 0){
 }
 print "</td></tr>\n";
 print "</table>\n";
-
-    print "</td></tr><tr><td valign=top>\n";
-
-#starting cities
-print "<p>Here you can see how many faction are citizens of each starting city (including the new signups):\n";
-print "<p><table border=1>\n";
-print "<tr><td>starting city</td><td>number of factions</td></tr>\n";
-print "<tr><td>Black Keep</td><td>".$blackkeepcity."</td></tr>\n";
-print "<tr><td>Ram</td><td>".$ramishempire."</td></tr>\n";
-print "<tr><td>Xanthara</td><td>".$amazonnation."</td></tr>\n";
-print "<tr><td>Silsalon</td><td>".$silsalon."</td></tr>\n";
-print "<tr><td>Pel'Hash</td><td>".$republicofpelisham."</td></tr>\n";
-print "<tr><td>Ashhaim</td><td>".$halfingdemocracy."</td></tr>\n";
-print "<tr><td>Bucc Den</td><td>".$buccaneerfellowship."</td></tr>\n";
-print "<tr><td>Port Sass</td><td>".$vikingconfederacy."</td></tr>\n";
-print "<tr><td>Vaulthall</td><td>".$duergarkingdom."</td></tr>\n";
-print "<tr><td>Minehome</td><td>".$dwarvenkingdom."</td></tr>\n";
-print "<tr><td>Parth'Tir'Dallon</td><td>".$drowmatriarchy."</td></tr>\n";
-print "<tr><td>Char'ar'ton</td><td>".$darkmankingdom."</td></tr>\n";
-print "<tr><td>total:</td><td>".($blackkeepcity + $ramishempire + $amazonnation + $silsalon + $republicofpelisham + $halfingdemocracy + $buccaneerfellowship + $vikingconfederacy + $duergarkingdom + $dwarvenkingdom + $drowmatriarchy + $darkmankingdom)."</td></tr>\n";
-print "</table>\n";
-
-    print "</td></tr><tr><td valign=top>\n";
-#good and evil
-print "<p>Here you can see how the balance between good and evil is currently (including the new signups):\n";
-print "<p><table border=1>\n";
-print "<tr><td>alignment</td><td>number of factions</td></tr>\n";
-print "<tr><td>evil</td><td>".$evil."</td></tr>\n";
-print "<tr><td>good</td><td>".$good."</td></tr>\n";
-print "</table>\n";
+print "<p>none < few < half a dozen < some < a dozen < many < lots < dozens\n";
 
     print "</td></tr></table>\n";
+
+#printing race quota
+$total = $viking + $barbarian + $tribesman + $highlander + $clansman + $ffolk + $dervish + $nomad + $cajunman + $lizardman + $lowlander + $halfing + $imperial + $elf + $halfelf + $human + $gnome + $dwarf + $darkman + $buccaneer + $republican + $headhunter + $sandling + $serpentpeople + $blackkeep + $amazon + $hobgoblin + $goblin + $troll + $gnoll + $ogre + $uruk + $orc + $minotaur + $drow + $duergar;
+print "<p>Here you can see how many factions of each race are playing currently (including the new signups):\n";
+print "<p><table border=1>\n";
+print "<tr><td>good race</td><td>number of factions</td><td>evil race</td><td>number of factions</td></tr>\n";
+print "<tr><td>human</td><td>".$human."</td><td>hobgoblin and goblin</td><td>".($hobgoblin + $goblin)."</td></tr>\n";
+print "<tr><td>viking</td><td>".$viking."</td><td>buccaneer</td><td>".$buccaneer."</td></tr>\n";
+print "<tr><td>barbarian</td><td>".$barbarian."</td><td>troll and gnoll</td><td>".($troll + $gnoll)."</td></tr>\n";
+print "<tr><td>tribesman</td><td>".$tribesman."</td><td>headhunter</td><td>".$headhunter."</td></tr>\n";
+print "<tr><td>highlander and clansman</td><td>".($highlander + $clansman)."</td><td>uruk and orc</td><td>".($uruk + $orc)."</td></tr>\n";
+print "<tr><td>ffolk</td><td>".$ffolk."</td><td>ogre</td><td>".$ogre."</td></tr>\n";
+print "<tr><td>dervish and nomad</td><td>".($dervish + $nomad)."</td><td>sandling</td><td>".$sandling."</td></tr>\n";
+print "<tr><td>cajun man and lizardman</td><td>".($cajunman + $lizardman)."</td><td>serpent people</td><td>".$serpentpeople."</td></tr>\n";
+print "<tr><td>lowlander and halfing</td><td>".($lowlander + $halfing)."</td><td>republican</td><td>".$republican."</td></tr>\n";
+print "<tr><td>imperial</td><td>".$imperial."</td><td>black keep</td><td>".$blackkeep."</td></tr>\n";
+print "<tr><td>elf and halfelf</td><td>".($elf + $halfelf)."</td><td>amazon</td><td>".$amazon."</td></tr>\n";
+print "<tr><td>gnome</td><td>".$gnome."</td><td>drow</td><td>".$drow."</td></tr>\n";
+print "<tr><td>dwarf</td><td>".$dwarf."</td><td>duergar</td><td>".$duergar."</td></tr>\n";
+print "<tr><td>darkman</td><td>".$darkman."</td><td>minotaur</td><td>".$minotaur."</td></tr>\n";
+print "<tr><td>good</td><td>".$good."</td><td>evil</td><td>".$evil."</td></tr>\n";
+print "<tr><td colspan=2>total</td><td colspan=2>".$total."</td></tr>\n";
+print "</table>\n";
 
 
 #completing everything
