@@ -2875,7 +2875,7 @@ ItemType id[] =
 	 200,0,0,200,
 	 -1,0,
 	 -1,0,-1,{-1,-1,-1},-1,0},
-	{"bugbear","nugbears","BBEA",
+	{"bugbear","bugbears","BBEA",
 	 ItemType::CANTGIVE,
 	 0,0,
 	 -1,0,0,0,{{-1,0},{-1,0},{-1,0},{-1,0}},
