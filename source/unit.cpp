@@ -869,45 +869,17 @@ int Unit::GetEntertainment() {
 
 int Unit::GetSkill(int sk)
 {
-	int baseSkill = 0;
-	if (sk == S_TACTICS)
+	if (sk == S_TACTICS) {
 		return GetTactics();
-	else if (sk == S_STEALTH)
+	} else if (sk == S_STEALTH) {
 		return GetStealth();
-	else if (sk == S_OBSERVATION)
+	} else if (sk == S_OBSERVATION) {
 		return GetObservation();
-	else if (sk == S_ENTERTAINMENT)
+	} else if (sk == S_ENTERTAINMENT) {
 		return GetEntertainment();
-	else 
-		baseSkill = GetRealSkill(sk);
-
-	// Only add bonus if the units currently has *some* ability in this skill
-	if( baseSkill == 0 ) return 0;
-
-	// find max bonus
-	int itemBonus = 0;
-	forlist( &items ) {
-		Item * it = ( Item * ) elem;
-		if( ItemDefs[it->type].bonusskill != sk ) continue;
-		if( itemBonus < ItemDefs[it->type].bonusskillamount )
-			itemBonus = ItemDefs[it->type].bonusskillamount;
+	} else { 	
+		return GetRealSkill(sk);
 	}
-	// find max effective bonus
-	int numItems = 0;
-	int numMen = GetMen();
-	while( itemBonus > 0 ) {
-		forlist( &items ) {
-			Item * it = ( Item * ) elem;
-			if( ItemDefs[it->type].bonusskill != sk ) continue;
-			if( ItemDefs[it->type].bonusskillamount >= itemBonus ) {
-				numItems += it->num;
-			}
-		}
-		if( numItems >= numMen ) break;
-		itemBonus--;
-	}
-	
-	return baseSkill + itemBonus;
 }
 
 void Unit::SetSkill(int sk,int level) {
@@ -916,7 +888,34 @@ void Unit::SetSkill(int sk,int level) {
 
 int Unit::GetRealSkill(int sk) {
 	if (GetMen()) {
-		return GetLevelByDays(skills.GetDays(sk)/GetMen());
+	  int baseSkill = GetLevelByDays(skills.GetDays(sk)/GetMen());
+	  
+	  // Only add bonus if the units currently has *some* ability in this skill
+	  if( baseSkill == 0 ) return 0;
+
+	  // find max bonus
+	  int itemBonus = 0;
+	  forlist( &items ) {
+	    Item * it = ( Item * ) elem;
+	    if( ItemDefs[it->type].bonusskill != sk ) continue;
+	    if( itemBonus < ItemDefs[it->type].bonusskillamount )
+	      itemBonus = ItemDefs[it->type].bonusskillamount;
+	  }
+	  // find max effective bonus
+	  int numItems = 0;
+	  int numMen = GetMen();
+	  while( itemBonus > 0 ) {
+	    forlist( &items ) {
+	      Item * it = ( Item * ) elem;
+	      if( ItemDefs[it->type].bonusskill != sk ) continue;
+	      if( ItemDefs[it->type].bonusskillamount >= itemBonus ) {
+		numItems += it->num;
+	      }
+	    }
+	    if( numItems >= numMen ) break;
+	    itemBonus--;
+	  }
+	  return baseSkill + itemBonus; 
 	} else {
 		return 0;
 	}
