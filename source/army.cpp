@@ -1006,7 +1006,60 @@ void Army::Win(Battle * b,ItemList * spoils) {
 				}
 			}
 
-			int ns = units.Num();
+			int numReceivers = units.Num();
+			int numItems = i->num;
+			int forceDiscover = 1;
+
+			// Divide spoils equally
+			while( numReceivers > 0 && numItems >= numReceivers ) {
+				// Give each man in unit one item
+				forlist_safe(&units) {
+					up = (UnitPtr *)elem;
+					up->ptr->items.SetNum(i->type, up->ptr->items.GetNum(i->type)+1 );
+					if( forceDiscover )
+						up->ptr->faction->DiscoverItem(i->type, 0, 1);
+
+					// Remove unit from list if it can't take any more of this item
+					if( !( up->ptr->CanGetSpoil(i) ) ) units.Remove( up );
+
+				}
+
+				// Dont need to give item report to any more receivers
+				forceDiscover = 0;
+
+				// update counters
+				numItems -= numReceivers;
+				numReceivers = units.Num();
+			}
+
+			// Allocate remainder
+			if( numItems && units.Num() ) {
+				for( int x = 0; x < numItems; x++ ) {
+
+					// Choose a random receiver
+					int t = getrandom( units.Num() );
+					up = 0;
+					forlist( &units ) {
+						up = (UnitPtr *) elem;
+						if( t == 0 ) break;
+						t--;
+					}
+
+					// Give it an item
+					if( up ) {
+						up->ptr->items.SetNum(i->type,
+									up->ptr->items.GetNum(i->type)+1);
+						if( forceDiscover )
+							up->ptr->faction->DiscoverItem(i->type, 0, 1);
+					}
+
+					// Only one item each! Remove receiver from list.
+					units.Remove( up );
+				}
+			}
+			units.DeleteAll();
+
+/*			int ns = units.Num();
 			if (ns > 0) {
 				int n = i->num/ns; // Divide spoils equally
 				if (n >= 1) {
@@ -1038,6 +1091,8 @@ void Army::Win(Battle * b,ItemList * spoils) {
 				}
 			}
 			units.DeleteAll();
+*/
+		
 		}
 	}
 
