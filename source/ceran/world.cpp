@@ -2594,6 +2594,7 @@ int ARegionList::GetWeather(ARegion *pReg, int month) {
 int ARegion::CanBeStartingCity(ARegionArray *pRA) {
 	// no starting cities in oceans, lakes, volcanos, ice, glaciers and tunnels as there is no population.
 	if (TerrainDefs[type].similar_type == R_OCEAN) return 0;
+	if (TerrainDefs[type].pop == 0 ) continue;
 	if (type == R_LAKE) return 0;
 	if (type == R_VOLCANO) return 0;
 	if (type == R_CE_ICE) return 0;
@@ -2646,7 +2647,8 @@ int ARegion::CanBeStartingCity(ARegionArray *pRA) {
 		for (int i=0; i<NDIRS; i++) {
 			ARegion * r2 = reg->ptr->neighbors[i];
 			if (!r2) continue;
-			if (TerrainDefs[type].similar_type == R_OCEAN) continue;
+			if (TerrainDefs[r2->type].similar_type == R_OCEAN) continue;
+			if (TerrainDefs[r2->type].pop == 0 ) continue;
 			if (GetRegion(&inlist,r2->num)) continue;
 			if (GetRegion(&donelist,r2->num)) continue;
 			regs++;
@@ -2758,7 +2760,9 @@ ARegion *ARegionList::GetStartingCity(ARegion *AC, int i, int level, int maxX, i
 		int x = getrandom(maxX);
 		int y = 2 * getrandom(maxY / 2) + x % 2;
 		reg = pArr->GetRegion(x, y);
-		if (TerrainDefs[reg->type].similar_type == R_OCEAN) {
+		if (TerrainDefs[reg->type].similar_type == R_OCEAN ||
+			TerrainDefs[reg->type].pop == 0 )
+		{
 			tries++;
 			reg = 0;
 			continue;
