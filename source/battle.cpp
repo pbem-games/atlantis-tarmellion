@@ -907,12 +907,19 @@ void Game::GetSides( ARegion *r, AList & afacs, AList & dfacs, AList & atts,
 					// only units from this region will join on the
 					// defensive side
 					
-					if( i != -1 && !( GetFaction2( &defFactionsWantingAid, u->faction->num ) ) ) {
+					// Change: units not wanting aid will not draw defenders from own region either
+					if( !( GetFaction2( &defFactionsWantingAid, u->faction->num ) ) ) {
 						// Unit is in neighbouring region, but defenders do not
 						// want aid
 						continue;
 					}
 
+/*					if( i != -1 && !( GetFaction2( &defFactionsWantingAid, u->faction->num ) ) ) {
+						// Unit is in neighbouring region, but defenders do not
+						// want aid
+						continue;
+					}
+*/
 					if( GetFaction2(&dfacs,u->faction->num) ) {
 						// Unit is on the defending side
 						if( u->guard == GUARD_AVOID ) {
