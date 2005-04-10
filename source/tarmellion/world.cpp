@@ -2638,7 +2638,7 @@ int ARegionList::GetWeather( ARegion *pReg, int month )
 
 int ARegion::CanBeStartingCity(ARegionArray *pRA)
 {
-	if (type == R_T_OCEAN1) return 0;
+	if (TerrainDefs[type].similar_type == R_OCEAN) return 0;
 	if (!IsCoastal()) return 0;
 	if (town && town->pop == 5000) return 0;
 
@@ -2657,7 +2657,7 @@ int ARegion::CanBeStartingCity(ARegionArray *pRA)
 		{
 			ARegion * r2 = reg->ptr->neighbors[i];
 			if (!r2) continue;
-			if (r2->type == R_T_OCEAN1) continue;
+			if (TerrainDefs[type].similar_type == R_OCEAN) continue;
 			if (GetRegion(&inlist,r2->num)) continue;
 			if (GetRegion(&donelist,r2->num)) continue;
 			regs++;
@@ -2773,7 +2773,7 @@ ARegion *ARegionList::GetStartingCity( ARegion *AC,
 		int x = getrandom( maxX );
 		int y = 2 * getrandom( maxY / 2 ) + x % 2;
 		reg = pArr->GetRegion( x, y);
-		if(reg->type == R_OCEAN) {
+		if(TerrainDefs[reg->type].similar_type == R_OCEAN) {
 			tries++;
 			reg = 0;
 			continue;
