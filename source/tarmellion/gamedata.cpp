@@ -1325,7 +1325,7 @@ ItemType id[] =
 	{"jewelry","jewelry","JEWE",
 	 ItemType::HIDDEN,
 	 0,0,
-	 S_MINING,5,1,1,{{I_GEM,1},{I_GOLD,1},{-1,0},{-1,0}},
+	 S_MINING,5,1,1,{{I_GEM,1},{-1,0},{-1,0},{-1,0}},
 	 -1,0,0,{{-1,0},{-1,0},{-1,0},{-1,0}},
 	 1, IT_TRADE, 200,0,0, 0,
 	 0,0,0,0,
