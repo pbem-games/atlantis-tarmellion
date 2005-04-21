@@ -604,6 +604,8 @@ public:
 
 	int MULTIPLE_MAGES_PER_UNIT; // allow several mages per unit
 	int DISABLE_RESTART;	//disallows restart command if setups are done outside of the game.
+
+	int CODE_TEST;  // Test a new bit of code
 };
 
 extern GameDefs * Globals;

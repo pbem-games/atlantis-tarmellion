@@ -225,6 +225,7 @@ static GameDefs g = {
 	1,  // AGGREGATE_BATTLE_REPORTS
 	0,	// MULTIPLE_MAGES_PER_UNIT
 	1,	// DISABLE_RESTART
+	0,  // CODE_TEST
 
 };
 

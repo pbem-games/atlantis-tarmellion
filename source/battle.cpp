@@ -45,8 +45,6 @@ Battle::~Battle() {
 void Battle::FreeRound(Army * att,Army * def, int ass, bool attIsAttacker ) {
 	int debug = 0;
 
-//	if( att->leader->faction->num == 82 ) debug = 1;
-
 	if( debug ) Awrite( "Free round" );
 
 	/* Write header */
@@ -605,6 +603,7 @@ void Game::GetDFacs( ARegion * r, Unit * attacker, AList * targets,
 					 AList & defs, AList & dfacs )
 {
 	int debug = 0;
+//	if( attacker->num == 1 ) debug = 1;
 
 	// Cycle through units in the region to see if they will defend against the attack
 	forlist( &r->objects ) {
@@ -635,10 +634,10 @@ void Game::GetDFacs( ARegion * r, Unit * attacker, AList * targets,
 					// need to check if current unit can help this target
 					continue;
 				}
-
-				if( u->GetAttitude( r, t ) == A_ALLY ) {
+				if( ( u->GetAttitude( r, t ) == A_ALLY || u->faction == t->faction )  )
+				{
 					// unit may be able to help the target, check flags first
-					if( u->guard != GUARD_AVOID ) {
+					if( u->guard != GUARD_AVOID && !u->GetFlag( FLAG_NOAID ) ) {
 						// flags OK, add unit as a defender
 						add = 1;
 						if( debug ) {
@@ -672,6 +671,9 @@ void Game::GetAFacs( ARegion * r, Unit * att, AList * targets,
 					 AList & atts, AList & dfacs, AList & afacs )
 {
 	int debug = 0;
+//	if( att->num == 1 ) debug = 1;
+
+	if( debug ) Awrite( AString( " CodeTest = " ) + Globals->CODE_TEST + ".\n" );
 
 	// If attacker is noaid, it will not draw in any helpers
 	if( att->GetFlag( FLAG_NOAID ) ) {
@@ -696,12 +698,18 @@ void Game::GetAFacs( ARegion * r, Unit * att, AList * targets,
 		forlist( &obj->units ) {
 			Unit * u = (Unit *) elem;
 
-			if( debug )  Awrite( AString( "- Checking if unit " ) + u->num + " can attack..." );
+			if( debug )  Awrite( AString( "- Checking if unit " ) + u->num + " can join attack..." );
+
+			if( Globals->CODE_TEST ) {
+				if( u->GetFlag( FLAG_NOAID ) && u != att ) {
+					if( debug ) Awrite( "-- Unit will not aid others!" );
+					continue;
+				}
+			}
 
 			if( !u->IsAlive() ) {
 				if( debug ) Awrite( "-- Unit is not alive!" );
 				continue;
-
 			}
 
 			if( !u->canattack ) {
@@ -711,10 +719,11 @@ void Game::GetAFacs( ARegion * r, Unit * att, AList * targets,
 
 			int add = 0;
 				
-			if( u->faction == att->faction && ( u->guard != GUARD_AVOID || u == att ) ) {
-				// unit is from same faction and not avoiding, add unit to attackers
+			if( u->faction == att->faction && ( u->guard != GUARD_AVOID || u == att ) )
+			{
+				// unit is from same faction and not avoiding or noaid, add unit to attackers
 				add = 1;
-				if( debug ) Awrite( "-- Unit is from same faction and not avoiding, add unit to attackers" );
+				if( debug ) Awrite( "-- Unit is from same faction and not avoiding or noaid, add unit to attackers" );
 			} else if( GetFaction2( &dfacs, u->faction->num ) ) {
 				// unit's faction is already on the defending side!
 				if( debug ) Awrite( "-- Unit's faction is already on the defending side! Skip" );
@@ -722,33 +731,49 @@ void Game::GetAFacs( ARegion * r, Unit * att, AList * targets,
 				continue;
 			} else {
 				if( debug ) Awrite( "--- Checking if unit's target matches this one." );
+				if( debug ) Awrite( AString( "---- Number of targets = ") + targets->Num() + "." );
 
 				forlist( targets ) {
-					UnitPtr * up = (UnitPtr *) elem;
-					Unit * tar = (Unit *) up->ptr;
 
-					if( add ) continue;
+					if( add ) break;
+
+					Unit * tar;
+
+					if( Globals->CODE_TEST ) {
+						Location * l = ( Location * ) elem;
+						tar = l->unit;
+					} else {
+						UnitPtr * up = (UnitPtr *) elem;
+						tar = (Unit *) up->ptr;
+					}
+
+					if( debug ) Awrite( AString("---- Checking if unit wants to attack unit ") + tar->num + "..." );
 
 					if( u->GetAttitude( r, tar ) == A_HOSTILE && u->guard != GUARD_AVOID ) {
+						if( debug ) Awrite( "---- Unit is hostile to target, add unit to attackers." );
 						// unit is hostile to target, add unit to attackers
 						add = 1;
-						continue;
+						break;
 					}
 
 					if( u->guard == GUARD_ADVANCE && tar->Forbids( r, u ) ) {
+						if( debug ) Awrite( "---- Unit has advanced against this target, add unit to attackers." );
 						// unit has advanced against this target, add unit to attackers
 						add = 1;
-						continue;
+						break;
 					}
 
 					// cycle through unit's attack orders
+					if( debug ) Awrite( "----- Checking units attack orders..." );
 					forlist( &u->attackorders ) {
 						AttackOrder * order = (AttackOrder *) elem;
-						forlist( &order->targets ) {
+						forlist( &order->targets ) {						
 							UnitId * id = (UnitId *) elem;
 							Unit * t = r->GetUnitId( id, u->faction->num );
 							if( !t ) continue;
+							if( debug ) Awrite( AString( "------ Wants to attack unit ") + t->num + "." );
 							if( t == tar ) {
+								if( debug ) Awrite( "------ Found target in attack orders, add unit to attackers." );
 								// Found target in attack orders, add unit to attackers
 								// and remove target from orders
 								order->targets.Remove( id );
@@ -757,7 +782,10 @@ void Game::GetAFacs( ARegion * r, Unit * att, AList * targets,
 								break;
 							}
 						}
-						if( add ) break;
+						if( add ) {
+							if( debug ) Awrite( "----- Target found, stop looking." );
+							break;
+						}
 					}
 				}
 			}
@@ -804,7 +832,6 @@ void Game::GetSides( ARegion *r, AList & afacs, AList & dfacs, AList & atts,
 					 int adv )
 {
 	int debug = 0;
-//	if( attacker->num == 3745 ) debug = 1;
 
 	if( debug ) {
 		AString temp;
@@ -878,6 +905,12 @@ void Game::GetSides( ARegion *r, AList & afacs, AList & dfacs, AList & atts,
 					// The unit is on the attacking side, check if the
 					// unit should be in the battle
 					if( !u->canattack ) continue;
+					if( Globals->CODE_TEST ) {
+						if( u->GetFlag( FLAG_NOAID ) ) {
+							// unit is no aid, don't join any battles voluntarily
+							continue;
+						}
+					}
 					if( u->guard == GUARD_AVOID ) {
 						// unit is avoiding, and will only attack if it has issued
 						// a specific attack order, in which case it has already been added
@@ -927,6 +960,12 @@ void Game::GetSides( ARegion *r, AList & afacs, AList & dfacs, AList & atts,
 							// want to be in the battle if he can
 							// avoid it
 							continue;
+						}
+						if( Globals->CODE_TEST ) {
+							if( u->GetFlag( FLAG_NOAID ) ) {
+								// unit is no aid, don't join any battles voluntarily
+								continue;
+							}
 						}
 
 
@@ -1032,7 +1071,7 @@ int Game::RunBattle( ARegion * r, Unit * attacker, AList * targets, int ass,
 	AString atype = (ass ? "ASSASSINATE":"ATTACK" );
 
 	int debug = 0;
-//	if( attacker->num == 3745 ) debug = 1;
+//	if( attacker->num == 1 ) debug = 1;
 
 	if( debug ) {
 		Awrite(AString("Attacking unit = ") + *attacker->name);
@@ -1125,7 +1164,14 @@ int Game::RunBattle( ARegion * r, Unit * attacker, AList * targets, int ass,
 
 		}
 		if( debug ) Awrite( "Getting attacking factions..." );
-		GetAFacs( r, attacker, targets, atts, dfacs, afacs );
+
+		// Change for Tarmellion
+		if( Globals->CODE_TEST ) {
+			GetAFacs( r, attacker, &defs, atts, dfacs, afacs );
+		} else {
+			GetAFacs( r, attacker, targets, atts, dfacs, afacs );
+		}
+
 		if( debug ) {
 			AString temp;
 			forlist( &dfacs ) {

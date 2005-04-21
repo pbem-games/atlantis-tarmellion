@@ -212,6 +212,8 @@ static GameDefs g = {
 	1,	// MULTIPLE_MAGES_PER_UNIT
 	1,	// DISABLE_RESTART
 
+	1,  // CODE_TEST
+
 };
 
 GameDefs * Globals = &g;
