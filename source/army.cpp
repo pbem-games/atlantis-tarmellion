@@ -86,8 +86,7 @@ Soldier::Soldier(Unit * u,Object * o,int regtype,int r,int ass) {
 	effects = 0;
 
 	int debug=0;
-//	if( u->num == 1134 ) debug = 1;
-	
+//	if( u->num == 62 ) debug = 1;
 
 	/* Building bonus */
 	if (o->capacity) {
@@ -324,7 +323,7 @@ Soldier::Soldier(Unit * u,Object * o,int regtype,int r,int ass) {
 		MonType * mt = &MonDefs[ManDefs[ItemDefs[race].index].monster];
 
 		// Check minimum number of attacks and hits
-		if( attacks >= 0 && mt->numAttacks > 0 > attacks ) attacks = mt->numAttacks;
+		if( attacks >= 0 && mt->numAttacks > attacks ) attacks = mt->numAttacks;
         if( mt->hits > hits ) {
 			hits = mt->hits;
 			maxhits = hits;
@@ -363,6 +362,7 @@ Soldier::Soldier(Unit * u,Object * o,int regtype,int r,int ass) {
 //		Awrite( AString("- Mount: ") + riding );
 //		Awrite( AString("- Shield: ") + shield );
 	}
+
 
 }
 
@@ -1347,9 +1347,10 @@ int Army::DoAnAttack(int special, int numAttacks, int attackType,
 		if (tarnum == -1) continue;
 		Soldier * tar = GetTarget(tarnum);
 
-//		if( tar->unit->num == 121 || tar->unit->num == 3745) debug = 1;
+//		if( tar->unit->num == 62 && special ) debug = 1;
 		if( debug ) {
-			Awrite( AString( "Attack against " ) + tar->name + "; askill " + attackLevel + "; attackBehind " + attackbehind + "." );
+			Awrite( AString( "Attack against " ) + tar->name + "; askill " + attackLevel +
+				"; attackBehind " + attackbehind + "; attack type " + attackType + "." );
 		}
 		// 3.1  50% chance of attacking mount
 		if( tar->mount ) {
@@ -1373,6 +1374,17 @@ int Army::DoAnAttack(int special, int numAttacks, int attackType,
 					tar->building) {
 				tlev -= 2;
 			}
+		}
+
+		if( debug ) {
+			AString temp = "Defense array: [ ";
+			for( int i = 0; i < NUM_ATTACK_TYPES; i++ ) {
+				temp += tar->dskill[ i ];
+				temp += " ";
+			}
+			temp += " ]";
+			Awrite( temp );
+			Awrite( AString( "- Attacking: " ) + attackLevel + " vs " + tlev + " (first check)." );
 		}
 
 		/* 4.1 Check whether defense is allowed against this weapon */
