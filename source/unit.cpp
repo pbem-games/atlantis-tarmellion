@@ -1904,6 +1904,10 @@ int Unit::GetSkillBonus(int sk) {
 			if (men == 1 && Globals->FULL_INVIS_ON_SELF) {
 				bonus = GetSkill(S_INVISIBILITY);
 			}
+			if( GetFlag( FLAG_INVIS ) && bonus < 3 ) {
+				bonus = 3;
+			}
+
 			// find max STEA_BONUS
 			max_bonus = 0;
 			for(it=0;it<NITEMS;it++) {
