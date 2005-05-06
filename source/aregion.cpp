@@ -1326,9 +1326,9 @@ void ARegion::UpdateProducts() {
 		    Production *p = products.GetProd(item,skill);
 		    forlist (&objects) {
 		      Object *o = (Object *)elem;
-		      if (o->type == ot) {
-			p->amount += bonus;
-			bonus /= 2;
+		      if (o->type == ot && o->incomplete < 1) {
+		        p->amount += bonus;
+		        bonus /= 2;
 		      }
 		    }
 		  }
