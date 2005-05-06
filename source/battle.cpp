@@ -700,11 +700,9 @@ void Game::GetAFacs( ARegion * r, Unit * att, AList * targets,
 
 			if( debug )  Awrite( AString( "- Checking if unit " ) + u->num + " can join attack..." );
 
-			if( Globals->CODE_TEST ) {
-				if( u->GetFlag( FLAG_NOAID ) && u != att ) {
-					if( debug ) Awrite( "-- Unit will not aid others!" );
-					continue;
-				}
+			if( u->GetFlag( FLAG_NOAID ) && u != att ) {
+				if( debug ) Awrite( "-- Unit will not aid others!" );
+				continue;
 			}
 
 			if( !u->IsAlive() ) {
@@ -739,13 +737,14 @@ void Game::GetAFacs( ARegion * r, Unit * att, AList * targets,
 
 					Unit * tar;
 
-					if( Globals->CODE_TEST ) {
-						Location * l = ( Location * ) elem;
-						tar = l->unit;
-					} else {
+//	Change to make attack 1, attack 2 then attack 2 work for units from different factions
+//					if( Globals->CODE_TEST ) {
+//						Location * l = ( Location * ) elem;
+//						tar = l->unit;
+//					} else {
 						UnitPtr * up = (UnitPtr *) elem;
 						tar = (Unit *) up->ptr;
-					}
+//					}
 
 					if( debug ) Awrite( AString("---- Checking if unit wants to attack unit ") + tar->num + "..." );
 
@@ -905,11 +904,9 @@ void Game::GetSides( ARegion *r, AList & afacs, AList & dfacs, AList & atts,
 					// The unit is on the attacking side, check if the
 					// unit should be in the battle
 					if( !u->canattack ) continue;
-					if( Globals->CODE_TEST ) {
-						if( u->GetFlag( FLAG_NOAID ) ) {
-							// unit is no aid, don't join any battles voluntarily
-							continue;
-						}
+					if( u->GetFlag( FLAG_NOAID ) ) {
+						// unit is no aid, don't join any battles voluntarily
+						continue;
 					}
 					if( u->guard == GUARD_AVOID ) {
 						// unit is avoiding, and will only attack if it has issued
@@ -961,11 +958,9 @@ void Game::GetSides( ARegion *r, AList & afacs, AList & dfacs, AList & atts,
 							// avoid it
 							continue;
 						}
-						if( Globals->CODE_TEST ) {
-							if( u->GetFlag( FLAG_NOAID ) ) {
-								// unit is no aid, don't join any battles voluntarily
-								continue;
-							}
+						if( u->GetFlag( FLAG_NOAID ) ) {
+							// unit is no aid, don't join any battles voluntarily
+							continue;
 						}
 
 
@@ -1166,11 +1161,12 @@ int Game::RunBattle( ARegion * r, Unit * attacker, AList * targets, int ass,
 		if( debug ) Awrite( "Getting attacking factions..." );
 
 		// Change for Tarmellion
-		if( Globals->CODE_TEST ) {
-			GetAFacs( r, attacker, &defs, atts, dfacs, afacs );
-		} else {
+//	Change to make attack 1, attack 2 then attack 2 work for units from different factions
+//		if( Globals->CODE_TEST ) {
+//			GetAFacs( r, attacker, &defs, atts, dfacs, afacs );
+//		} else {
 			GetAFacs( r, attacker, targets, atts, dfacs, afacs );
-		}
+//		}
 
 		if( debug ) {
 			AString temp;
