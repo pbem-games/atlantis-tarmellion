@@ -637,7 +637,7 @@ void Game::GetDFacs( ARegion * r, Unit * attacker, AList * targets,
 				if( ( u->GetAttitude( r, t ) == A_ALLY || u->faction == t->faction )  )
 				{
 					// unit may be able to help the target, check flags first
-					if( u->guard != GUARD_AVOID && !u->GetFlag( FLAG_NOAID ) ) {
+					if( u->guard != GUARD_AVOID ) {
 						// flags OK, add unit as a defender
 						add = 1;
 						if( debug ) {
@@ -904,10 +904,6 @@ void Game::GetSides( ARegion *r, AList & afacs, AList & dfacs, AList & atts,
 					// The unit is on the attacking side, check if the
 					// unit should be in the battle
 					if( !u->canattack ) continue;
-					if( u->GetFlag( FLAG_NOAID ) ) {
-						// unit is no aid, don't join any battles voluntarily
-						continue;
-					}
 					if( u->guard == GUARD_AVOID ) {
 						// unit is avoiding, and will only attack if it has issued
 						// a specific attack order, in which case it has already been added
@@ -956,10 +952,6 @@ void Game::GetSides( ARegion *r, AList & afacs, AList & dfacs, AList & atts,
 							// The unit is avoiding, and doesn't
 							// want to be in the battle if he can
 							// avoid it
-							continue;
-						}
-						if( u->GetFlag( FLAG_NOAID ) ) {
-							// unit is no aid, don't join any battles voluntarily
 							continue;
 						}
 
@@ -1275,8 +1267,3 @@ int Game::RunBattle( ARegion * r, Unit * attacker, AList * targets, int ass,
 	return result;
 }
 
-int AttackTypeToWeaponClass( int attackType )
-{
-	if( attackType == ATTACK_ENERGY ) return MAGIC_ENERGY;
-	return SLASHING;
-}

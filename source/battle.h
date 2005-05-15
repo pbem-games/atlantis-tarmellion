@@ -86,5 +86,4 @@ class Battle : public AListElem {
 		void ClearRoundStats();
 };
 
-int AttackTypeToWeaponClass( int attackType );
 #endif
