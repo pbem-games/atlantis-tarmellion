@@ -1592,7 +1592,7 @@ ItemType id[] =
 	 5, IT_TRADE, 210,0,0, 0,
 	 0,0,20,0,
 	 -1,0,
-	 I_AXE,1,O_JOINER,{-1,-1,-1},-1,0},
+	 I_AXE,1,-1,{-1,-1,-1},-1,0},
 	{"net","nets","NET",
 	 ItemType::ORINPUTS,
 	 0,0,
