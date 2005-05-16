@@ -229,7 +229,7 @@ void Game::MakeLMon(Object *pObj) {
 							 getrandom(MonDefs[MONSTER_EVILWARRIORS].number) + 200) / 2);  
 					u->items.SetNum(I_EVILSORCERER,
 							(MonDefs[MONSTER_EVILSORCERERS].number +
-							 getrandom(MonDefs[MONSTER_EVILSORCERERS].number) + 100) / 2);  
+							 getrandom(MonDefs[MONSTER_EVILSORCERERS].number) + 1) / 2);  
 					break;
 	                }
 			break;
