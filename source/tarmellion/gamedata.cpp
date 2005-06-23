@@ -5450,7 +5450,7 @@ ItemType id[] =
 	 0, IT_TRADE, 200,0,0, 0,
 	 0,0,0,0,
 	 -1,0,
-	 I_HAMMER,1,O_JEWELER,{-1,-1,-1},-1,0},
+	 I_HAMMER,1,-1,{-1,-1,-1},-1,0},
 	{"desert drake","desert drakes","DDRA",
 	 ItemType::NOMARKET,
 	 0,0,
