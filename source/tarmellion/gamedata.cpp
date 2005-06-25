@@ -6154,7 +6154,7 @@ ItemType id[] =
 	 0,0,0,0,
 	 -1,0,
 	 -1,0,-1,{-1,-1,-1},S_LUMBERJACK,1},
-	{"rock charm","crock harms","ROCH",
+	{"rock charm","rock charms","ROCH",
 	 ItemType::NOMARKET,
 	 0,0,
 	 -1,0,0,0,{{-1,0},{-1,0},{-1,0},{-1,0}},
