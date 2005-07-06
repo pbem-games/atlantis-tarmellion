@@ -737,14 +737,8 @@ void Game::GetAFacs( ARegion * r, Unit * att, AList * targets,
 
 					Unit * tar;
 
-//	Change to make attack 1, attack 2 then attack 2 work for units from different factions
-//					if( Globals->CODE_TEST ) {
-//						Location * l = ( Location * ) elem;
-//						tar = l->unit;
-//					} else {
-						UnitPtr * up = (UnitPtr *) elem;
-						tar = (Unit *) up->ptr;
-//					}
+					UnitPtr * up = (UnitPtr *) elem;
+					tar = (Unit *) up->ptr;
 
 					if( debug ) Awrite( AString("---- Checking if unit wants to attack unit ") + tar->num + "..." );
 
@@ -1152,13 +1146,7 @@ int Game::RunBattle( ARegion * r, Unit * attacker, AList * targets, int ass,
 		}
 		if( debug ) Awrite( "Getting attacking factions..." );
 
-		// Change for Tarmellion
-//	Change to make attack 1, attack 2 then attack 2 work for units from different factions
-//		if( Globals->CODE_TEST ) {
-//			GetAFacs( r, attacker, &defs, atts, dfacs, afacs );
-//		} else {
-			GetAFacs( r, attacker, targets, atts, dfacs, afacs );
-//		}
+		GetAFacs( r, attacker, targets, atts, dfacs, afacs );
 
 		if( debug ) {
 			AString temp;

@@ -686,7 +686,12 @@ void Game::RunUnitProduce(ARegion *r, Object *obj, Unit *u) {
 				count += u->items.GetNum(i) / ItemDefs[o->item].pInput[c].amt;
 		}
 		if (ItemDefs[o->item].requiredstructure == obj->type) {
+			//Bugfix: this is wrong, converting to int too early
+			if( Globals->CODE_TEST ) {
+				maxproduced = (int) ( maxproduced * obj->productionratio );
+			} else {
 		  maxproduced *= (int)obj->productionratio;
+			}
 		}
 		if (maxproduced > count)
 			maxproduced = count;
@@ -717,6 +722,13 @@ void Game::RunUnitProduce(ARegion *r, Object *obj, Unit *u) {
 				if (amt/ItemDefs[o->item].pInput[c].amt < maxproduced) {
 					maxproduced = amt/ItemDefs[o->item].pInput[c].amt;
 				}
+			}
+		}
+
+		// Bugfix: was not checking object production ratio for overworked buildings
+		if( Globals->CODE_TEST ) {
+			if (ItemDefs[o->item].requiredstructure == obj->type) {
+				maxproduced = (int) ( maxproduced * obj->productionratio );
 			}
 		}
 
@@ -849,6 +861,12 @@ int Game::ValidProd(Unit * u, ARegion * r, Object *obj, Production * p) {
 		// LLS
 		int bonus = u->GetProductionBonus(p->itemtype);
 		po->productivity = u->GetMen() * level * p->productivity + bonus;
+
+		// Bugfix: was not taking into account production man-months
+		if( Globals->CODE_TEST ) {
+			po->productivity /= ItemDefs[p->itemtype].pMonths;
+		}
+
 		return po->productivity;
 	}
 	return 0;
@@ -865,10 +883,10 @@ int Game::FindAttemptedProd(ARegion * r,Production * p) {
 			if (u->monthorders) {
 				amt += ValidProd(u,r,obj,p);
 				men += u->GetMen();
-      			}
+      		}
    		}
 		int workers = ObjectDefs[obj->type].workersallowed;
-		if (workers != -1 || men <= workers || ItemDefs[p->itemtype].requiredstructure != obj->type) {
+		if (workers == -1 || men <= workers || ItemDefs[p->itemtype].requiredstructure != obj->type) {
 			attempted += amt;
 			obj->productionratio = 1.0;
 		} else if (men == 0) {
@@ -888,6 +906,7 @@ void Game::RunAProduction(ARegion * r,Production * p) {
 
 	/* First, see how many units are trying to work */
 	int attempted = FindAttemptedProd(r,p);
+
 	int amt = p->amount;
 	if (attempted < amt) attempted = amt;
 	forlist((&r->objects)) {
