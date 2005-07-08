@@ -863,7 +863,7 @@ int Game::ValidProd(Unit * u, ARegion * r, Object *obj, Production * p) {
 		po->productivity = u->GetMen() * level * p->productivity + bonus;
 
 		// Bugfix: was not taking into account production man-months
-		if( Globals->CODE_TEST ) {
+		if( ItemDefs[p->itemtype].pMonths > 0 && Globals->CODE_TEST ) {
 			po->productivity /= ItemDefs[p->itemtype].pMonths;
 		}
 
@@ -912,6 +912,7 @@ void Game::RunAProduction(ARegion * r,Production * p) {
 	forlist((&r->objects)) {
 		Object * obj = (Object *) elem;
 		forlist((&obj->units)) {
+
 			Unit * u = (Unit *) elem;
 			if (!u->monthorders || u->monthorders->type != O_PRODUCE) continue;
 
