@@ -159,6 +159,9 @@ ARegion * Game::Do1SailOrder(ARegion * reg,Object * ship,Unit * cap) {
 					if (newreg->weather != W_NORMAL) cost = 2;
 				}
 
+				//not valid for balloons
+				if (ship->type != O_BALLOON) {
+
 				if (ship->type != O_AIRSHIP && !newreg->IsCoastal()) {
 					cap->Error("SAIL: Can't sail inland.");
 					break;
@@ -213,6 +216,8 @@ ARegion * Game::Do1SailOrder(ARegion * reg,Object * ship,Unit * cap) {
 								". Cannot sail through land.");
 						break;
 					}
+				}
+				//end of not valid for balloons
 				}
 
 				if (movepoints < cost) {

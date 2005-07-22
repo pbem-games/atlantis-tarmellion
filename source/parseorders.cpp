@@ -1451,7 +1451,7 @@ void Game::ProcessBuildOrder(Unit *unit, AString *o, OrdersCheck *pCheck) {
 				return;
 			}
 
-			if (ObjectIsShip(ot) && ot != O_AIRSHIP) {
+			if (ObjectIsShip(ot) && ot != O_AIRSHIP && ot != O_BALLOON) {
 				if (!reg->IsCoastalOrLakeside()) {
 					unit->Error("BUILD: Can't build ship in "
 							"non-coastal or lakeside region.");
