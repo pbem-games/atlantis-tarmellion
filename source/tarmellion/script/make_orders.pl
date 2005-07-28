@@ -16,6 +16,7 @@ closedir(DIR);
 # ---------------------------------------------
 
 foreach $file (reverse sort @filelist) {
+    next if ($file =~ /zip/);
     $altdat="";
     open(FILE, "<$file") || skip;
     $keep=0;

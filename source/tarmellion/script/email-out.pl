@@ -1,36 +1,58 @@
 #!/usr/bin/perl
 
+use SendMail;
+
 $turn = $ARGV[0];
 
 $dir = "/home/tarmellion/code/tarmellion/";
 $dir2 = $dir."script/";
 $pin = $dir."players.in";
+$sender = "Tarmellion <tarmellion\@her0bane.de>";
+$replyto = "Tarmellion <tarmellion-orders\@herobane.de>"; 
+$host = "localhost";
 
 print "Sending reports for ";
 open(PIN, "<$pin");
 while (<PIN>) {
-chomp;
-if (/^Faction:\s(\d*)/){
-  $pfact = $1;
-  next if ($pfact < 15);
-}
-if (/^Email:\s(.*)/){
-  $pemail = $1;
-  next if ($pemail eq "NoAddress");
-	$cmd = 'Mail -s "report.'.$pfact.' for turn '.$turn.'" -a "Reply-To:tarmellion-orders@herobane.de" '.$pemail.' < '.$dir.'report.'.$pfact;
-    print "$pfact ";
-    system("$cmd 1>/dev/null");
-}
-#$email{$pfact} = $pemail;
+    chomp;
+    $body = "";
+    if (/^Faction:\s(\d*)/){
+	$pfact = $1;
+    }
+    if (/^ZippedReport:\s(.*)/){
+	$zipped = $1;
+	if ($zipped eq "yes"){
+	    $file = $dir."report.".$pfact.".zip";
+	} elsif ($zipped eq "none"){
+	    next;
+	} else {
+	    $file = "";
+	    $report = $dir."report.".$pfact;
+	    open(REP, "< $report");
+	    while(<REP>){
+		$body .= $_;
+	    }
+	    close(REP);
+	}
+    }
+    if (/^Email:\s(.*)/){
+	$pemail = $1;
+	next if ($pemail eq "NoAddress");
+	$subject = "report.$pfact for turn $turn";
+	$recipient = $pemail;
+	$obj = new SendMail($host);
+	$obj->From($sender);
+	$obj->Subject($subject);
+	$obj->To($recipient);
+	$obj->Attach($file);
+	$obj->setMailBody($body);
+	if ($obj->sendMail() != 0) {
+	    print $obj->{'error'}."\n";
+	}
+	$obj->reset();		
+	print "$pfact ";
+    }
 }
 print "\n";
-#$i = 3;
-#while ($i < 64) {
-#    $cmd = 'Mail -s "report.'.$i.'" '.$email{$i}.' < report.'.$i;
-#    print "$cmd 1>/dev/null";
-#    system("$cmd 1>/dev/null");
-#    $i++;
-#    next;
-#}
-#You must specify direct recipients with -s, -c, or -b.
+
 

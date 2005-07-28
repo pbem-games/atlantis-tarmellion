@@ -36,7 +36,7 @@ foreach $fact (@factions){
     next if ($fact eq "0");
     next if ($fact eq "1");
     next if ($fact eq "2");
-    next if ($fact < 13);
+    next if ($fact < 15);
     $end = 0;
     $report=$rep."report.".$fact;
     open(REP, "<$report");
@@ -48,7 +48,7 @@ foreach $fact (@factions){
 	    $end = 1;
 	    next;
 	}
-	if (/\*\s(\.)*/){
+	if ((/^\*\s(\.)*/) || (/^(\s)*\*s(\.)*/)){
 	    ($dummy, $unit, $faction) = split(/\(/,$_);
 	    ($unitnumber, $dummy) = split(/\)/,$unit);
 	    ($factionnumber, $dummy) = split(/\)/,$faction);

@@ -2,7 +2,7 @@
 # script to add rewards for times posts to players.in file
 
 #initializing variables
-$dir = "/home/tarmellion/code/tarmellion/testturn/";
+$dir = "/home/tarmellion/code/tarmellion/";
 $Faction = 0;
 push(@nextfactions, $Faction);
 $option = $ARGV[0];
@@ -86,7 +86,7 @@ if (open(POST, "<$posts")){
 #writing players.in.new
     open(NEW, ">$npin")|| trouble opening players.in.new file;
     foreach $Faction (@nextfactions){
-	if ($Faction ne "1") {
+	if ($Faction ne "0") {
 #  print "NextFaction: ".$Faction."\n";
 #  print "Timespunkte: ".$reward{$Faction}."\n" if ($reward{$Faction} > 0);
 	    print NEW "Timespunkte: ".$reward{$Faction}."\n";

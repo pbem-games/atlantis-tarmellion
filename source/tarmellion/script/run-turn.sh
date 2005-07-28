@@ -13,7 +13,7 @@ cp web-advance/$COUNT/orders.* .
 cp email/orders.* .
 cp web/orders.* .
     
-if [  $? -eq 0 ]; then
+if [ $? -eq 0 ]; then
 	
     echo Determining missed turns
     cp players.in players.in.before-missed-turns
@@ -23,7 +23,7 @@ if [  $? -eq 0 ]; then
     cp players.in players.in.before-times-rewards
     script/order-rewards.pl $COUNT real
 
-    if [  $? -eq 0 ]; then
+    if [ $? -eq 0 ]; then
 	echo adding new signups
 	cat newplayers.in >> players.in
 
@@ -37,7 +37,7 @@ if [  $? -eq 0 ]; then
 	echo Running turn
 	./tarmellion run
 
-	if [  $? -eq 0 ]; then
+	if [ $? -eq 0 ]; then
 	    echo Filing turn at turn$COUNT
 	    mkdir turn$COUNT
     
@@ -49,7 +49,7 @@ if [  $? -eq 0 ]; then
 	    cp players.in.before-missed-turns turn$COUNT/players.in
 	    cp newplayers.in turn$COUNT/
 		
-	    if [  $? -eq 0 ]; then
+	    if [ $? -eq 0 ]; then
 		echo Making ready for next game
 	    
 		mv game.out game.in
@@ -57,10 +57,16 @@ if [  $? -eq 0 ]; then
 		chgrp www-data players.in
 		chmod 664 players.in
 
-		if [  $? -eq 0 ]; then
+		if [ $? -eq 0 ]; then
 
-		    echo Checking number of heros
-		    ./script/herotester.pl 
+#		    echo Checking number of heros
+#		    ./script/herotester.pl 
+
+		    echo Checkinh for Battles for villages
+		    ./script/villagetester.pl
+
+		    echo Zipping reports
+		    ./script/zipping.pl
 
 		    echo Sending out mails
 		    ./script/email-out.pl $COUNT
@@ -69,7 +75,7 @@ if [  $? -eq 0 ]; then
 		    ./script/make_orders.pl
 
 		    echo Filing reports for download
-		    rm -f /home/tarmellion/www/report/report.*
+		    rm -f /home/tarmellion/html/report/report.*
 		    ./script/report2download.pl
 		    rm -f report.*
 
@@ -79,18 +85,32 @@ if [  $? -eq 0 ]; then
 		    rm -f web/orders.*
 		    cp -p aa newplayers.in
 		    cp orders.3 web/
+		    sleep 2
 		    cp orders.4 web/
+		    sleep 2
 		    cp orders.5 web/
+		    sleep 2
 		    cp orders.6 web/
+		    sleep 2
 		    cp orders.7 web/
+		    sleep 2
 		    cp orders.8 web/
+		    sleep 2
 		    cp orders.9 web/
+		    sleep 2
 		    cp orders.10 web/
+		    sleep 2
 		    cp orders.11 web/
+		    sleep 2
 		    cp orders.12 web/
+		    sleep 2
 		    cp orders.13 web/
+		    sleep 2
 		    cp orders.14 web/
 		    chmod 664 web/orders.*
+		    
+		    echo Doing weekly backup
+		    ./script/create-backup.sh weekly
 		fi
 	    fi
 	fi
