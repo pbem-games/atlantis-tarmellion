@@ -5709,7 +5709,7 @@ ItemType id[] =
 	  0,0,
 	  S_FORCE,3,1,1,{{I_WARSTAFF,1},{I_ACID,1},{-1,0},{-1,0}},
 	  -1,0,0,{{-1,0},{-1,0},{-1,0},{-1,0}},
-	  1, IT_MAGIC, 1500, 1, 0, BATTLE_STAFFOFACIDSHOWER,
+	  1, IT_MAGIC | IT_BATTLE, 1500, 1, 0, BATTLE_STAFFOFACIDSHOWER,
 	  0,0,0,0,
 	  -1,0,
 	  -1,0,-1,{-1,-1,-1},-1,0},
