@@ -154,6 +154,7 @@ AString *ShowSkill::Report(Faction *f) {
 					"than or equal to the stealthy unit's Stealth level";
 			}
 			*str += ".";
+			*str += " Knowledge of this skill excludes knowledge of scouting.";
 			break;
 		case S_OBSERVATION:
 			if (level > 1) break;
@@ -1447,6 +1448,7 @@ AString *ShowSkill::Report(Faction *f) {
 				"that may normally be hidden. "
 				"This skill will also decrease the amount of maintenance the unit "
 				"must pay by 2 silver per skill level per man.";
+		        *str += " Knowledge of this skill excludes knowledge of stealth.";
 			break;
 		case S_COOKING:
 			if (level > 1) break;
