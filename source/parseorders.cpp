@@ -1458,7 +1458,7 @@ void Game::ProcessBuildOrder(Unit *unit, AString *o, OrdersCheck *pCheck) {
 					return;
 				}
 			}
-			if (reg->buildingseq > 99) {
+			if (reg->buildingseq > 998) {
 				unit->Error("BUILD: The region is full.");
 				return;
 			}
