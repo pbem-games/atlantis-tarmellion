@@ -1740,9 +1740,14 @@ void Game::RunClearSkies(ARegion *r, Unit *u) {
 		temp += " on ";
 		temp += tar->ShortPrint(&regions);
 	}
-	temp += ".";
+	temp += ", ";
 	int level = u->GetSkill(S_CLEAR_SKIES);
 	if (level > r->clearskies) r->clearskies = level;
+	int amt = r->Wages() * level * 3 * u->GetMen();
+	u->items.SetNum(I_SILVER,u->items.GetNum(I_SILVER) + amt);
+	temp += "raising ";
+	temp += amt;
+	temp += " silver.";
 	u->Event(temp);
 	u->Practise(S_CLEAR_SKIES);
 	r->NotifySpell(u,S_WEATHER_LORE, &regions);

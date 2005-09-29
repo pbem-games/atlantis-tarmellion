@@ -593,10 +593,15 @@ void Game::RunBuildHelpers(ARegion *r) {
 void Game::RunMonthOrders() {
 	forlist(&regions) {
 		ARegion * r = (ARegion *) elem;
+		//cout << "Idling" << "\n";
 		RunIdleOrders(r);
+		//cout << "Settling" << "\n";
 		RunSettleOrders(r);
+		//cout << "Studying" << "\n";
 		RunStudyOrders(r);
+		//cout << "BuildHelping" << "\n";
 		RunBuildHelpers(r);
+		//cout << "Producing" << "\n";
 		RunProduceOrders(r);
 	}
 }
