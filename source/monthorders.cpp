@@ -1022,6 +1022,15 @@ void Game::Do1StudyOrder(Unit *u,Object *obj) {
 	//		return;
 	//	}
 
+
+	// Units with Stealth cannot study Scouting, and vice-versa
+	if( sk == S_STEALTH && u->GetSkill( S_SCOUTING ) ) {
+		u->Error( "STUDY: Units with knowledge of Scouting cannot study Stealth." );
+	}
+	if( sk == S_SCOUNTING && u->GetSkill( S_STEALTH ) ) {
+		u->Error( "STUDY: Units with knowledge of Stealth cannot study Scouting." );
+	}
+
 	if ((SkillDefs[sk].flags & SkillType::MAGIC) && u->type != U_MAGE) {
 		if (u->type == U_APPRENTICE) {
 			u->Error("STUDY: An apprentice cannot be made into an mage.");
