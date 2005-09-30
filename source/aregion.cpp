@@ -870,130 +870,76 @@ void ARegion::UpdateTown() {
 		}
 	}
 
-	if( Globals->CODE_TEST ) {
-		//
-		// Don't do pop stuff for nexus exits.
-		//
-		if (town->pop != 5000) {
+	//
+	// Don't do pop stuff for nexus exits.
+	//
+	if (town->pop != 5000) {
 
-			// First get market activity; count how much has been bought/sold 
-			//  and how much could have been bought/sold if pop was hight enough 
+		// First get market activity; count how much has been bought/sold 
+		//  and how much could have been bought/sold if pop was hight enough 
 
-			// Amounts are multiplied by their price, so hihger value items have
-			//  greater weighting
+		// Amounts are multiplied by their price, so hihger value items have
+		//  greater weighting
 
-			int totalActivity = 0;
-			int totalPossible = 0;
+		int totalActivity = 0;
+		int totalPossible = 0;
 
-			forlist( &markets ) {
-				Market * m = (Market *) elem;
+		forlist( &markets ) {
+			Market * m = (Market *) elem;
 
-				// Don't count pop markets
-				if( ItemDefs[m->item].type & IT_MAN ) continue;
+			// Don't count pop markets
+			if( ItemDefs[m->item].type & IT_MAN ) continue;
 
-				// Only count a market if population is currently large enough to
-				// support it
-				if( Population() > m->minpop ) {
-					totalActivity += m->activity * m->price;
-					totalPossible += m->maxamt   * m->price;
-				}
-			}
-
-			// Get the target population
-			int targetPop = 0;
-
-			if( totalPossible ) {
-				targetPop = (Globals->CITY_POP * totalActivity) / totalPossible;
-				targetPop = (targetPop * 3) / 2;
-
-				if( targetPop > Globals->CITY_POP ) targetPop = Globals->CITY_POP;
-			}
-
-			//  Get new town pop. Note that if there was little activity, new town
-			// population will actually be lower that current town population. This
-			// is good if pop was artificially high (eg from previous market activity).
-	
-			town->pop = town->pop + (targetPop - town->pop) / 5;
-
-
-			// Make sure town pop does not fall below base population
-			if( town->pop < town->basepop ) {
-
-				town->pop = town->basepop;
-
-				// New Rule: If we hade *some* activity, give pop a little bonus
-				if( totalActivity && totalPossible ) {
-					int bonus = ( 50 * totalActivity ) / totalPossible;
-					if( bonus == 0 ) bonus = 1;
-					town->pop += bonus;
-				}
-
-			}
-
-			// If town pop is high enough, increase the town's base population
-			if( (town->pop * 2) / 3 > town->basepop ) {
-
-				town->basepop = (town->pop * 2) / 3;
-
-				// New Rule: If town pop is higher at all, give base pop a 
-				//  very small increase
-				if( town->pop > town->basepop ) {
-					int bonus = ( 10 * town->pop ) / town->basepop;
-					if( bonus == 0 ) bonus = 1;
-					town->basepop += bonus;
-				}
+			// Only count a market if population is currently large enough to
+			// support it
+			if( Population() > m->minpop ) {
+				totalActivity += m->activity * m->price;
+				totalPossible += m->maxamt   * m->price;
 			}
 		}
-	} else {
 
-		//
-		// Don't do pop stuff for AC Exit.
-		//
-		if (town->pop != 5000) {
-			/* First, get the target population */
-			int amt = 0;
-			int tot = 0;
-			forlist(&markets) {
-				Market * m = (Market *) elem;
-				// Don't count pop markets
-				if( ItemDefs[m->item].type & IT_MAN ) continue;
+		// Get the target population
+		int targetPop = 0;
 
-				if (Population() > m->minpop) {
-				  tot += m->maxamt   * m->price;
-				  amt += m->activity * m->price;
-	//  				if (ItemDefs[m->item].type & IT_TRADE) {
-	//  					if (m->type == M_BUY) {
-	//  						amt += 5 * m->activity;
-	//  						tot += 5 * m->maxamt;
-	//  					}
-	//  				} else {
-	//  					if (m->type == M_SELL) {
-	//  						amt += m->activity;
-	//  						tot += m->maxamt;
-	//  					}
-	//  				}
-				}
+		if( totalPossible ) {
+			targetPop = (Globals->CITY_POP * totalActivity) / totalPossible;
+			targetPop = (targetPop * 3) / 2;
+
+			if( targetPop > Globals->CITY_POP ) targetPop = Globals->CITY_POP;
+		}
+
+		//  Get new town pop. Note that if there was little activity, new town
+		// population will actually be lower that current town population. This
+		// is good if pop was artificially high (eg from previous market activity).
+
+		town->pop = town->pop + (targetPop - town->pop) / 5;
+
+
+		// Make sure town pop does not fall below base population
+		if( town->pop < town->basepop ) {
+
+			town->pop = town->basepop;
+
+			// New Rule: If we hade *some* activity, give pop a little bonus
+			if( totalActivity && totalPossible ) {
+				int bonus = ( 50 * totalActivity ) / totalPossible;
+				if( bonus == 0 ) bonus = 1;
+				town->pop += bonus;
 			}
 
-			int tarpop;
-			if (tot) {
-				tarpop = (Globals->CITY_POP * amt) / tot;
-			} else {
-				tarpop = 0;
-			}
+		}
 
-			/* Let's bump tarpop up */
-			tarpop = (tarpop * 3) / 2;
-			if (tarpop > Globals->CITY_POP) tarpop = Globals->CITY_POP;
+		// If town pop is high enough, increase the town's base population
+		if( (town->pop * 2) / 3 > town->basepop ) {
 
-			town->pop = town->pop + (tarpop - town->pop) / 5;
+			town->basepop = (town->pop * 2) / 3;
 
-			/* Check base population */
-			if (town->pop < town->basepop) {
-				town->pop = town->basepop;
-			}
-			if ((town->pop * 2) / 3 > town->basepop) {
-				town->basepop = (town->pop * 2) / 3;
+			// New Rule: If town pop is higher at all, give base pop a 
+			//  very small increase
+			if( town->pop > town->basepop ) {
+				int bonus = ( 10 * town->pop ) / town->basepop;
+				if( bonus == 0 ) bonus = 1;
+				town->basepop += bonus;
 			}
 		}
 	}

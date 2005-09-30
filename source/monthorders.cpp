@@ -697,11 +697,7 @@ void Game::RunUnitProduce(ARegion *r, Object *obj, Unit *u) {
 		}
 		if (ItemDefs[o->item].requiredstructure == obj->type) {
 			//Bugfix: this is wrong, converting to int too early
-			if( Globals->CODE_TEST ) {
-				maxproduced = (int) ( maxproduced * obj->productionratio );
-			} else {
-		  maxproduced *= (int)obj->productionratio;
-			}
+			maxproduced = (int) ( maxproduced * obj->productionratio );
 		}
 		if (maxproduced > count)
 			maxproduced = count;
@@ -736,10 +732,8 @@ void Game::RunUnitProduce(ARegion *r, Object *obj, Unit *u) {
 		}
 
 		// Bugfix: was not checking object production ratio for overworked buildings
-		if( Globals->CODE_TEST ) {
-			if (ItemDefs[o->item].requiredstructure == obj->type) {
-				maxproduced = (int) ( maxproduced * obj->productionratio );
-			}
+		if (ItemDefs[o->item].requiredstructure == obj->type) {
+			maxproduced = (int) ( maxproduced * obj->productionratio );
 		}
 
 		// Deduct the items spent
@@ -873,7 +867,7 @@ int Game::ValidProd(Unit * u, ARegion * r, Object *obj, Production * p) {
 		po->productivity = u->GetMen() * level * p->productivity + bonus;
 
 		// Bugfix: was not taking into account production man-months
-		if( ItemDefs[p->itemtype].pMonths > 0 && Globals->CODE_TEST ) {
+		if( ItemDefs[p->itemtype].pMonths > 0 ) {
 			po->productivity /= ItemDefs[p->itemtype].pMonths;
 		}
 
@@ -1203,30 +1197,32 @@ void Game::DoMoveEnter(Unit * unit,ARegion * region,Object **obj) {
 				continue;
 			}
 
-			int done = 0;
+			if( forbid ) {
+				int done = 0;
 
-			AList targets;
-			forlist( &to->units ) {
-				Unit * u2 = (Unit * ) elem;
-				if( u2->Forbids( to->region, unit ) ) {
-					UnitPtr * p = new UnitPtr;
-					p->ptr = u2;
-					targets.Add( p );
+				AList targets;
+				forlist( &to->units ) {
+					Unit * u2 = (Unit * ) elem;
+					if( u2->Forbids( to->region, unit ) ) {
+						UnitPtr * p = new UnitPtr;
+						p->ptr = u2;
+						targets.Add( p );
+					}
 				}
+				if( targets.Num() ) {
+					int result = RunBattle(region, unit, &targets, 0, 0);
+					if (result == BATTLE_IMPOSSIBLE) {
+						unit->Error(AString("ENTER: Unable to attack guards."));
+						done = 1;
+						break;
+					}
+					if (!unit->IsAlive() || !unit->canattack) {
+					  done = 1;
+					  break;
+					}
+				}
+				if (done) continue;
 			}
-			if( targets.Num() ) {
-				int result = RunBattle(region, unit, &targets, 0, 0);
-				if (result == BATTLE_IMPOSSIBLE) {
-					unit->Error(AString("ENTER: Unable to attack guards."));
-					done = 1;
-					break;
-				}
-				if (!unit->IsAlive() || !unit->canattack) {
-				  done = 1;
-				  break;
-				}
-			}
-			if (done) continue;
 
 			unit->MoveUnit(to);
 			unit->Event(AString("Enters ") + *(to->name) + ".");
