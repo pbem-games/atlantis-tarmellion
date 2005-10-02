@@ -1656,7 +1656,8 @@ void Game::WriteReport() {
 				f.Close();
 			}
 		}
-	Adot();
+//	Adot();
+	cout << fac->num << " " << flush;
 	}
 }
 
