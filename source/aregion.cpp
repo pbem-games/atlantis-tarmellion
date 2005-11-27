@@ -1023,10 +1023,12 @@ void ARegion::PostTurn(ARegionList *pRegs) {
 		// Building bonus for max wages.
 		//
 		if (p->amount) {
-		  for (int i=0;i<sizeof(ObjectDefs)/sizeof(ObjectType);i++) {
+		  for (int i=0;i<NOBJECTS;i++) {
 		    int bonus = ObjectDefs[i].wagebonus;
 		    if (bonus == 0) continue;
 		    forlist(&objects) {
+			    Object * o = ( Object * ) elem;
+			    if( o->type != i ) continue;
 		      p->amount += bonus;
 		      bonus /= 2;
 		    }

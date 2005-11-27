@@ -1024,11 +1024,11 @@ void Game::Do1StudyOrder(Unit *u,Object *obj) {
 
 
 	// Units with Stealth cannot study Scouting, and vice-versa
-	if( sk == S_STEALTH && u->GetSkill( S_SCOUTING ) ) {
+	if( sk == S_STEALTH && u->GetRealSkill( S_SCOUTING ) ) {
 		u->Error( "STUDY: Units with knowledge of Scouting cannot study Stealth." );
 		return;
 	}
-	if( sk == S_SCOUTING && u->GetSkill( S_STEALTH ) ) {
+	if( sk == S_SCOUTING && u->GetRealSkill( S_STEALTH ) ) {
 		u->Error( "STUDY: Units with knowledge of Stealth cannot study Scouting." );
 		return;
 	}
