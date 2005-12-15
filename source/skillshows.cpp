@@ -1326,7 +1326,7 @@ AString *ShowSkill::Report(Faction *f) {
 			if (level > 1) break;
 			*str += "A mage with the Create Magic Carpet skill may create "
 				"Magic Carpets, which provide for flying transportation. A "
-				"Magic Carpet can carry up to 15 weight units in the air. "
+				"Magic Carpet can carry up to 50 weight units in the air. "
 				"Casting this spell allows the mage to create his skill "
 				"level in Magic Carpets. To cast the spell, CAST "
 				"Create_Magic_Carpet.";
