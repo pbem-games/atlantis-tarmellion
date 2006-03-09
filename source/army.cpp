@@ -945,7 +945,7 @@ void Army::DoHealLevel(Battle *b, int type, int useItems) {
 		if (s->healtype != type) continue;
 		if (!s->healing) continue;
 		int rate;
-		if (useItems == 0 || s->healitem == I_HEALINGPOTION) {
+		if (useItems == 0) {
 		  rate = HealDefs[type].rate;
 		} else {
 		  rate = ItemDefs[s->healitem].pValue;
