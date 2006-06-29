@@ -1425,9 +1425,9 @@ int Unit::CalcMovePoints() {
 		case M_RIDE:
 			return Globals->HORSE_SPEED;
 		case M_FLY:
-	//		if (GetSkill(S_SUMMON_WIND)) return Globals->FLY_SPEED + 2;
-			int swin_level = GetSkill(S_SUMMON_WIND);
-			if (swin_level) return Globals->FLY_SPEED + swin_level;
+			if (GetSkill(S_SUMMON_WIND)) return Globals->FLY_SPEED + 2;
+	//		int swin_level = GetSkill(S_SUMMON_WIND);
+	//		if (swin_level) return Globals->FLY_SPEED + swin_level;
 			return Globals->FLY_SPEED;
 	}
 	return 0;
