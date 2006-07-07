@@ -2351,6 +2351,8 @@ char Game::GetRChar(ARegion * r) {
 	char c;
 	switch (t) {
 		case R_OCEAN:
+			return 'x';
+		/* mostly obsolete terrains, line above instead
 		case R_T_OCEAN1:
 		case R_LAKE:
 		case R_T_LAKE3:
@@ -2560,8 +2562,10 @@ char Game::GetRChar(ARegion * r) {
 		case R_CE_BLACKCAVERN:
 		case R_CE_WHITECAVERN:
 			c = 'x'; break;
-
+		*/
+		
 		default: return '?';
+		
 	}
 	if (r->town) c = (c - 'a') + 'A';
 	return c;
