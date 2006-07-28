@@ -1298,6 +1298,8 @@ int Army::DoAnAttack(int special, int numAttacks, int attackType,
 		int attackLevel, int flags, int weaponClass, int effect,
 		int mountBonus, int attackbehind) {
 	int debug = 0;
+	//skill is three times as good as other combat modifiers to upgrade the worth of soldiers
+	attackLevel = attackLevel * 3;
 	/* 1. Check against Global effects (not sure how yet) */
 	/* 2. Attack shield */
 	Shield *hi;

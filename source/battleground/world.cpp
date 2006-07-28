@@ -2130,7 +2130,7 @@ void Game::CreateWorld() {
 	regions.CreateNexusLevel( 0, nx, ny, "nexus" );
 	//means (level, x-coordinate, y-coordinate, % of level is ocean, size of continent, name)
 	regions.CreateSurfaceLevel( 1, xx, yy, 50, 10, 0 );
-
+/*
 	// Create underworld levels
 	int i;
 	for (i = 2; i < Globals->UNDERWORLD_LEVELS+2; i++) {
@@ -2150,7 +2150,7 @@ void Game::CreateWorld() {
 		regions.CreateAbyssLevel(Globals->UNDERWORLD_LEVELS +
 				Globals->UNDERDEEP_LEVELS + 2, "abyss");
 	}
-
+*/
 	CountNames();
 
 	/* no underworld level, then no shafts	  
@@ -2221,7 +2221,7 @@ int ARegionList::GetRegType( ARegion *pReg, const int odd ) {
 	  if (r==18) newterrain=R_MOUNTAIN;
 	  if (r==19) newterrain=R_OCEAN;
 			
-	//  if ((odd==1) || (!(TerrainDefs[newterrain].flags&TerrainType::ODD))) return newterrain;
+	  if ((odd==1) || (!(TerrainDefs[newterrain].flags&TerrainType::ODD))) return newterrain;
 	}
 }
 

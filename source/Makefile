@@ -47,6 +47,9 @@ wyreth: FORCE
 tarmellion: FORCE
 	$(MAKE) GAME=tarmellion
 
+battleground: FORCE
+	$(MAKE) GAME=battleground
+
 $(GAME)/$(GAME): FORCE
 	$(MAKE) GAME=$(GAME)
 
