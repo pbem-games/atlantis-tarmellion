@@ -453,7 +453,7 @@ void Game::Do1Steal(ARegion * r,Object * o,Unit * u) {
 	int noNoTheft = tar->ItemsWithAttribute(ItemType::STOP_THEFT);
 	int noMen = tar->GetMen();
 	if (noNoTheft) {
-		if (getrandom(noMen) > noNoTheft) {
+		if (getrandom(noMen) < noNoTheft) {
 			tar->Event("Theft prevented by magic item.");
 			u->Event(AString("Attempts to steal from ") + *(tar->name) + ", but "
 				"is prevented by magic item.");
