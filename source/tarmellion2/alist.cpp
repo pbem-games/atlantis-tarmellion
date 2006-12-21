@@ -1,0 +1,149 @@
+// START A3HEADER
+//
+// This source file is part of the Atlantis PBM game program.
+// Copyright (C) 1995-1999 Geoff Dunbar
+//
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program, in the file license.txt. If not, write
+// to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+// Boston, MA 02111-1307, USA.
+//
+// See the Atlantis Project web page for details:
+// http://www.prankster.com/project
+//
+// END A3HEADER
+#include "alist.h"
+#include <string>
+
+AListElem::AListElem()
+{
+	sortString = 0;
+}
+
+AListElem::~AListElem()
+{
+	if (sortString)
+		delete sortString;
+}
+
+void AListElem::SetSortString(const char * str)
+{
+	if (sortString)
+		delete sortString;
+
+	int len = strlen(str);
+	sortString = new char[len+1];
+	strcpy(sortString, str);
+}
+
+AList::AList() {
+	list = 0;
+	lastelem = 0;
+	num = 0;
+}
+
+AList::~AList() {
+	DeleteAll();
+}
+
+void AList::DeleteAll() {
+	AListElem * temp;
+	while (list) {
+		temp = list->next;
+		delete list;
+		list = temp;
+	}
+	lastelem = 0;
+	num = 0;
+}
+
+void AList::Empty() {
+	AListElem * temp;
+	while (list) {
+		temp = list->next;
+		list->next = 0;
+		list = temp;
+	}
+	lastelem = 0;
+	num = 0;
+}
+
+void AList::Insert(AListElem * e) {
+	num ++;
+	e->prev = 0;
+	e->next = list;
+	list = e;
+	list->prev = e;
+	if (!lastelem) lastelem = list;
+}
+
+void AList::Add(AListElem * e) {
+	num ++;
+	if (list) {
+		e->prev = lastelem;
+		lastelem->next = e;
+		e->next = 0;
+		lastelem = e;
+	} else {
+		list = e;
+		e->next = 0;
+		e->prev = 0;
+		lastelem = list;
+	}
+}
+
+AListElem * AList::Next(AListElem * e) {
+	if (!e) return 0;
+	return e->next;
+}
+
+AListElem * AList::First() {
+	return list;
+}
+
+AListElem * AList::Get(AListElem * e) {
+	AListElem * temp = list;
+	while (temp) {
+		if (temp == e) return temp;
+		temp = temp->next;
+	}
+	return 0;
+}
+
+char AList::Remove(AListElem * e) {
+	if (!e) return 0;
+	if (!e->next) lastelem = 0;
+
+	for (AListElem **pp = &list; *pp; pp = &((*pp)->next)) {
+		if (*pp == e) {
+			*pp = e->next;
+			num--;
+			return 1;
+		}
+		if (!e->next) lastelem = *pp;
+	}
+	return 0;
+}
+
+int AList::Num() {
+	return num;
+}
+
+int AList::NextLive(AListElem **copy, int size, int pos) {
+	while (++pos < size) {
+		for (AListElem *elem = First(); elem; elem = elem->next) {
+			if (elem == copy[pos]) return pos;
+		}
+	}
+	return pos;
+}
