@@ -291,11 +291,10 @@ Soldier::Soldier(Unit * u,Object * o,int regtype,int r,int ass) {
 	// If we did not get a weapon, set attack and defense bonuses to
 	// combat skill (and riding bonus if applicable).
 	if (weapon == -1) {
- 		attackBonus = unit->GetSkill(S_COMBAT) + ridingBonus;
-		defenseBonus = attackBonus;
 		numAttacks = 1;
 	} else {
-		// Okay.  We got a weapon.  If this weapon also has a special
+		// Okay.  We got a weapon.
+		// If this weapon also has a special
 		// and we don't have a special set, use that special.
 		// Weapons (like Runeswords) which are both weapons and battle
 		// items will be skipped in the battle items setup and handled
@@ -314,8 +313,8 @@ Soldier::Soldier(Unit * u,Object * o,int regtype,int r,int ass) {
 
 	// Set the attack and defense skills
 	// These will include the riding bonus if they should be included.
-	askill += attackBonus;
-	dskill[ATTACK_COMBAT] += defenseBonus;
+	askill = unit->GetSkill(S_COMBAT) * 3 + ridingbonus + attackBonus;
+	dskill[ATTACK_COMBAT] = unit->GetSkill(S_COMBAT) * 3 + defenseBonus;
 	attacks = numAttacks;
 
 	// Does this race have monster stats?
@@ -1298,8 +1297,6 @@ int Army::DoAnAttack(int special, int numAttacks, int attackType,
 		int attackLevel, int flags, int weaponClass, int effect,
 		int mountBonus, int attackbehind) {
 	int debug = 0;
-	//skill is three times as good as other combat modifiers to upgrade the worth of soldiers
-	attackLevel = attackLevel * 3;
 	/* 1. Check against Global effects (not sure how yet) */
 	/* 2. Attack shield */
 	Shield *hi;
