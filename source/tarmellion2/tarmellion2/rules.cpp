@@ -33,43 +33,43 @@
 // the html file containing the rules to correctly reflect the changes!
 //
 
-static int am[] = { 0, 1, 5, 9, 13, 17, 21 };
+static int am[] = { 0, 6, 14, 24, 36, 60 };
 int *allowedMages = am;
 int allowedMagesSize = sizeof(am) / sizeof(am[0]);
 
-static int aa[] = { 0, 3, 5, 7, 11, 15, 20 };
+static int aa[] = { 0, 3, 5, 7, 11, 15 };
 int *allowedApprentices = aa;
 int allowedApprenticesSize = sizeof(aa) / sizeof(aa[0]);
 
-static int aw[] = { 0, 6, 12, 18, 24, 30, 36 };
+static int aw[] = { 0, 10, 24, 40, 60, 100 };
 int *allowedTaxes = aw;
 int allowedTaxesSize = sizeof(aw) / sizeof(aw[0]);
 
-static int at[] = { 0, 5, 10, 15, 20, 25, 30 };
+static int at[] = { 0, 12, 28, 48, 72, 120 };
 int *allowedTrades = at;
 int allowedTradesSize = sizeof(at) / sizeof(at[0]);
 
-static int uw[] = { 0, 0, 1 };
+static int uw[] = { 3, 0, 0 };
 int *UnderworldCities = uw;
 int UnderworldCityLevels = sizeof(uw) / sizeof(uw[0]);
 
-static int ud[] = { 0, 0, 1 };
+static int ud[] = { 3, 0, 0 };
 int *UnderdeepCities = ud;
 int UnderdeepCityLevels = sizeof(ud) / sizeof(ud[0]);
 
-static int su[] = { 4 };
+static int su[] = { 8 };
 int *SurfaceCities = su;
 int SurfaceCityLevels = sizeof(su) / sizeof(su[0]);
 
 static GameDefs g = {
 	"Tarmellion",				// RULESET_NAME
-	MAKE_ATL_VER( 2, 0, 0 ), // RULESET_VERSION
+	MAKE_ATL_VER( 1, 0, 0 ), // RULESET_VERSION
 
 	2, /* FOOT_SPEED */
 	4, /* HORSE_SPEED */
 	4, /* SHIP_SPEED */
-	4, /* FLY_SPEED */
-	6, /* MAX_SPEED */
+	8, /* FLY_SPEED */
+	8, /* MAX_SPEED */
 
 	10, /* STUDENTS_PER_TEACHER */
 	10, /* MAINTENANCE_COST */
@@ -81,14 +81,14 @@ static GameDefs g = {
 	33, /* STARVE_PERCENT */
 	GameDefs::STARVE_NONE, /* SKILL_STARVATION */
 
-	7500, /* START_MONEY */
+	5020, /* START_MONEY */
 	5, /* WORK_FRACTION */
 	15, /* ENTERTAIN_FRACTION */
 	20, /* ENTERTAIN_INCOME */
 
 	50, /* TAX_INCOME */
 
-	2, /* HEALS_PER_MAN */
+	5, /* HEALS_PER_MAN */
 
 	25, /* GUARD_REGEN */ /* percent */
 	100, /* CITY_GUARD */ /*number of guards in village*/
@@ -98,7 +98,7 @@ static GameDefs g = {
 	25, /* WMON_FREQUENCY */
 	25, /* LAIR_FREQUENCY */
 
-	6, /* FACTION_POINTS */
+	5, /* FACTION_POINTS */
 
 	60, /* TIMES_REWARD */
 
@@ -181,8 +181,8 @@ static GameDefs g = {
 	1,  // USE_WEAPON_ARMOR_COMMAND
 	6,  // MONSTER_NO_SPOILS
 	12,  // MONSTER_SPOILS_RECOVERY
-	0,   // ALLOW_ASSASSINATION
-	0,  // MAX_ASSASSIN_FREE_ATTACKS
+	1,   // ALLOW_ASSASSINATION
+	3,  // MAX_ASSASSIN_FREE_ATTACKS
 	0,  // RELEASE_MONSTERS
 	1,  // CHECK_MONSTER_CONTROL_MID_TURN
 	1,  // DETECT_GATE_NUMBERS

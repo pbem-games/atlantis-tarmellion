@@ -2155,18 +2155,18 @@ void Game::CreateWorld() {
 
 	  //option for MakeShaftLinks are (from-level, to-level, % chance of shaft)	
 	//shafts from surface to first underworld and underdeeps level
-	//regions.MakeShaftLinks( 1, 2, 8 );
-	//regions.MakeShaftLinks( 1, 5, 8 );
+	regions.MakeShaftLinks( 1, 2, 8 );
+	regions.MakeShaftLinks( 1, 5, 8 );
 	//shafts from underworld to deeper underworld
-	//regions.MakeShaftLinks( 2, 3, 6 );
-	//regions.MakeShaftLinks( 2, 4, 6 );
-	//regions.MakeShaftLinks( 3, 4, 6 );
+	regions.MakeShaftLinks( 2, 3, 6 );
+	regions.MakeShaftLinks( 2, 4, 6 );
+	regions.MakeShaftLinks( 3, 4, 6 );
 	//shafts from underdeeps to deeper underdeeps
-	//regions.MakeShaftLinks( 5, 6, 6 );
-	//regions.MakeShaftLinks( 5, 6, 6 );
-	//regions.MakeShaftLinks( 6, 7, 6 );
+	regions.MakeShaftLinks( 5, 6, 6 );
+	regions.MakeShaftLinks( 5, 6, 6 );
+	regions.MakeShaftLinks( 6, 7, 6 );
 	//shafts from deepest underworld to deepest underdeeps
-	//regions.MakeShaftLinks( 4, 7, 4 );
+	regions.MakeShaftLinks( 4, 7, 4 );
 
 	//option for MakeShaftLinks are (from-level, to-level, % chance of shaft)
 	//levels reachable from nexus
@@ -2493,9 +2493,6 @@ int ARegionList::GetRegType( ARegion *pReg, const int odd ) {
 			//
 			newterrain=R_NEXUS;
 		}
-		//create a world with only water hexes
-		newterrain=R_OCEAN;
-		
 		if ((odd==1) || (!(TerrainDefs[newterrain].flags&TerrainType::ODD))) return newterrain;
 	}
 }
@@ -2510,20 +2507,18 @@ int ARegionList::GetLevelXScale(int level)
 		return 2;
 	// We have multiple underworld levels
 	if(level >= 2 && level < Globals->UNDERWORLD_LEVELS+2) {
-		// Topmost underworld level is 1/3 size in the x direction
-		if(level == 2) return 3;
-		if(level == 3) return 6;
-		// All others are 1/8 size in the x direction
-		return 8;
+		// Topmost underworld level is half size in the x direction
+		if(level == 2) return 2;
+		// All others are 1/4 size in the x direction
+		return 4;
 	}
 
 	if(level >= Globals->UNDERWORLD_LEVELS+2 &&
 			level < (Globals->UNDERWORLD_LEVELS+Globals->UNDERDEEP_LEVELS+2)){
-		// Topmost underdeep level is 1/3 size in the x direction
-		if(level == Globals->UNDERWORLD_LEVELS+2) return 3;
-		if(level == Globals->UNDERWORLD_LEVELS+3) return 6;
-		// All others are 1/8 size in the x direction
-		return 8;
+		// Topmost underdeep level is half size in the x direction
+		if(level == Globals->UNDERWORLD_LEVELS+2) return 2;
+		// All others are 1/4 size in the x direction
+		return 4;
 	}
 	// We couldn't figure it out, assume not scaled.
 	return 1;
@@ -2540,19 +2535,21 @@ int ARegionList::GetLevelYScale(int level)
 
 	// We have multiple underworld levels
 	if(level >= 2 && level < Globals->UNDERWORLD_LEVELS+2) {
-		// Topmost level is 1/3 size in the y direction
-		if(level == 2) return 3;
-		if(level == 3) return 6;
-		// All others are 1/8 size in the y direction
-		return 8;
+		// Topmost level is 1/2 size in the y direction
+		if(level == 2) return 2;
+		// Bottommost is 1/4 size in the y direction
+		if(level == Globals->UNDERWORLD_LEVELS+1) return 4;
+		// All others are 1/2 size in the y direction
+		return 2;
 	}
 	if(level >= Globals->UNDERWORLD_LEVELS+2 &&
 			level < (Globals->UNDERWORLD_LEVELS+Globals->UNDERDEEP_LEVELS+2)){
-		// Topmost level is 1/3 size in the y direction
-		if(level == Globals->UNDERWORLD_LEVELS+2) return 3;
-		if(level == Globals->UNDERWORLD_LEVELS+3) return 6;
-		// All others are 1/8 size in the y direction
-		return 8;
+		// Topmost level is 1/2 size in the y direction
+		if(level == Globals->UNDERWORLD_LEVELS+2) return 2;
+		// Bottommost is 1/4 size in the y direction
+		if(level == Globals->UNDERWORLD_LEVELS+Globals->UNDERDEEP_LEVELS+1) return 4;
+		// All others are 1/2 size in the y direction
+		return 2;
 	}
 	// We couldn't figure it out, assume not scaled.
 	return 1;
@@ -2566,16 +2563,16 @@ int ARegionList::CheckRegionExit(ARegion *pFrom, ARegion *pTo )
 	}
 	//chance is % chance to leave the hex pTo or pFrom for each terrain type
 	int chance = 0;
-//	if(	 pFrom->type == R_T_CAVERN1 || pFrom->type == R_T_CAVERN2) {
-//	  chance = 75;
-//	}
-//	if(	 pFrom->type == R_T_CAVERN3  || pFrom->type == R_T_UNDERFOREST1 || pFrom->type == R_T_UNDERFOREST3 || pFrom->type == R_T_TUNNELS2 || pFrom->type == R_T_GROTTO1 || pFrom->type == R_T_OCEAN1) {
-//	  chance = 50;
-//	}
-//	if(	 pFrom->type == R_T_TUNNELS1   || pTo->type == R_T_TUNNELS3 ||
-//			pFrom->type == R_T_UNDERFOREST2) {
-//			chance = 35;
-//	}
+	if(	 pFrom->type == R_T_CAVERN1 || pFrom->type == R_T_CAVERN2) {
+	  chance = 75;
+	}
+	if(	 pFrom->type == R_T_CAVERN3  || pFrom->type == R_T_UNDERFOREST1 || pFrom->type == R_T_UNDERFOREST3 || pFrom->type == R_T_TUNNELS2 || pFrom->type == R_T_GROTTO1 || pFrom->type == R_T_OCEAN1) {
+	  chance = 50;
+	}
+	if(	 pFrom->type == R_T_TUNNELS1   || pTo->type == R_T_TUNNELS3 ||
+			pFrom->type == R_T_UNDERFOREST2) {
+			chance = 35;
+	}
 
 	if (getrandom(100) < chance) {
 		return( 0 );

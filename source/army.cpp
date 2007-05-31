@@ -291,10 +291,11 @@ Soldier::Soldier(Unit * u,Object * o,int regtype,int r,int ass) {
 	// If we did not get a weapon, set attack and defense bonuses to
 	// combat skill (and riding bonus if applicable).
 	if (weapon == -1) {
+ 		attackBonus = unit->GetSkill(S_COMBAT) + ridingBonus;
+		defenseBonus = attackBonus;
 		numAttacks = 1;
 	} else {
-		// Okay.  We got a weapon.
-		// If this weapon also has a special
+		// Okay.  We got a weapon.  If this weapon also has a special
 		// and we don't have a special set, use that special.
 		// Weapons (like Runeswords) which are both weapons and battle
 		// items will be skipped in the battle items setup and handled
@@ -313,8 +314,8 @@ Soldier::Soldier(Unit * u,Object * o,int regtype,int r,int ass) {
 
 	// Set the attack and defense skills
 	// These will include the riding bonus if they should be included.
-	askill = unit->GetSkill(S_COMBAT) * 3 + ridingbonus + attackBonus;
-	dskill[ATTACK_COMBAT] = unit->GetSkill(S_COMBAT) * 3 + defenseBonus;
+	askill += attackBonus;
+	dskill[ATTACK_COMBAT] += defenseBonus;
 	attacks = numAttacks;
 
 	// Does this race have monster stats?

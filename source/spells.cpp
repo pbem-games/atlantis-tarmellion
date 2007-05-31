@@ -2241,140 +2241,140 @@ int Game::GetAllowedMonsters(Unit *u, int creature )
 	int controlLevel = u->GetSkill(skill);
 
 	// Check how many of this creature we're allowed, and how many we can summon.
-	// Very creature dependant with ceran creatures disabled
+	// Very creature dependant
 	int num = 0;
 	int numAllowed = 0;
 	switch( creature ) {
 		case I_STEELDRAGON:
-		//case I_STEELDRAGON_S:
-		//case I_STEELDRAGON_O:
-		//case I_STEELDRAGON_A:
-		//case I_STEELDRAGON_B:
+		case I_STEELDRAGON_S:
+		case I_STEELDRAGON_O:
+		case I_STEELDRAGON_A:
+		case I_STEELDRAGON_B:
 			num += u->items.GetNum(I_STEELDRAGON);
-			//num += u->items.GetNum(I_STEELDRAGON_S);
-			//num += u->items.GetNum(I_STEELDRAGON_O);
-			//num += u->items.GetNum(I_STEELDRAGON_A);
-			//num += u->items.GetNum(I_STEELDRAGON_B);
+			num += u->items.GetNum(I_STEELDRAGON_S);
+			num += u->items.GetNum(I_STEELDRAGON_O);
+			num += u->items.GetNum(I_STEELDRAGON_A);
+			num += u->items.GetNum(I_STEELDRAGON_B);
 			numAllowed = controlLevel;
 			break;
 		case I_COPPERDRAGON:
-		//case I_COPPERDRAGON_S:
-		//case I_COPPERDRAGON_O:
-		//case I_COPPERDRAGON_A:
-		//case I_COPPERDRAGON_B:
+		case I_COPPERDRAGON_S:
+		case I_COPPERDRAGON_O:
+		case I_COPPERDRAGON_A:
+		case I_COPPERDRAGON_B:
 			num += u->items.GetNum(I_COPPERDRAGON);
-			//num += u->items.GetNum(I_COPPERDRAGON_S);
-			//num += u->items.GetNum(I_COPPERDRAGON_O);
-			//num += u->items.GetNum(I_COPPERDRAGON_A);
-			//num += u->items.GetNum(I_COPPERDRAGON_B);
+			num += u->items.GetNum(I_COPPERDRAGON_S);
+			num += u->items.GetNum(I_COPPERDRAGON_O);
+			num += u->items.GetNum(I_COPPERDRAGON_A);
+			num += u->items.GetNum(I_COPPERDRAGON_B);
 			numAllowed = (controlLevel + 1) / 2;
 			break;
 		case I_BRONZEDRAGON:
-		//case I_BRONZEDRAGON_S:
-		//case I_BRONZEDRAGON_O:
-		//case I_BRONZEDRAGON_A:
-		//case I_BRONZEDRAGON_B:
+		case I_BRONZEDRAGON_S:
+		case I_BRONZEDRAGON_O:
+		case I_BRONZEDRAGON_A:
+		case I_BRONZEDRAGON_B:
 			num += u->items.GetNum(I_BRONZEDRAGON);
-			//num += u->items.GetNum(I_BRONZEDRAGON_S);
-			//num += u->items.GetNum(I_BRONZEDRAGON_O);
-			//num += u->items.GetNum(I_BRONZEDRAGON_A);
-			//num += u->items.GetNum(I_BRONZEDRAGON_B);
+			num += u->items.GetNum(I_BRONZEDRAGON_S);
+			num += u->items.GetNum(I_BRONZEDRAGON_O);
+			num += u->items.GetNum(I_BRONZEDRAGON_A);
+			num += u->items.GetNum(I_BRONZEDRAGON_B);
 			numAllowed = controlLevel / 2;
 			break;
 		case I_SILVERDRAGON:
-		//case I_SILVERDRAGON_S:
-		//case I_SILVERDRAGON_O:
-		//case I_SILVERDRAGON_A:
-		//case I_SILVERDRAGON_B:
+		case I_SILVERDRAGON_S:
+		case I_SILVERDRAGON_O:
+		case I_SILVERDRAGON_A:
+		case I_SILVERDRAGON_B:
 			num += u->items.GetNum(I_SILVERDRAGON);
-			//num += u->items.GetNum(I_SILVERDRAGON_S);
-			//num += u->items.GetNum(I_SILVERDRAGON_O);
-			//num += u->items.GetNum(I_SILVERDRAGON_A);
-			//num += u->items.GetNum(I_SILVERDRAGON_B);
+			num += u->items.GetNum(I_SILVERDRAGON_S);
+			num += u->items.GetNum(I_SILVERDRAGON_O);
+			num += u->items.GetNum(I_SILVERDRAGON_A);
+			num += u->items.GetNum(I_SILVERDRAGON_B);
 			numAllowed = (controlLevel - 1) / 2;
 			break;
 		case I_GOLDENDRAGON:
-		//case I_GOLDENDRAGON_S:
-		//case I_GOLDENDRAGON_O:
-		//case I_GOLDENDRAGON_A:
-		//case I_GOLDENDRAGON_B:
+		case I_GOLDENDRAGON_S:
+		case I_GOLDENDRAGON_O:
+		case I_GOLDENDRAGON_A:
+		case I_GOLDENDRAGON_B:
 			num += u->items.GetNum(I_GOLDENDRAGON);
-			//num += u->items.GetNum(I_GOLDENDRAGON_S);
-			//num += u->items.GetNum(I_GOLDENDRAGON_O);
-			//num += u->items.GetNum(I_GOLDENDRAGON_A);
-			//num += u->items.GetNum(I_GOLDENDRAGON_B);
+			num += u->items.GetNum(I_GOLDENDRAGON_S);
+			num += u->items.GetNum(I_GOLDENDRAGON_O);
+			num += u->items.GetNum(I_GOLDENDRAGON_A);
+			num += u->items.GetNum(I_GOLDENDRAGON_B);
 			numAllowed = 1;
 			break;
 		case I_GREENDRAGON:
-		//case I_GREENDRAGON_S:
-		//case I_GREENDRAGON_O:
-		//case I_GREENDRAGON_A:
-		//case I_GREENDRAGON_B:
+		case I_GREENDRAGON_S:
+		case I_GREENDRAGON_O:
+		case I_GREENDRAGON_A:
+		case I_GREENDRAGON_B:
 			num += u->items.GetNum(I_GREENDRAGON);
-			//num += u->items.GetNum(I_GREENDRAGON_S);
-			//num += u->items.GetNum(I_GREENDRAGON_O);
-			//num += u->items.GetNum(I_GREENDRAGON_A);
-			//num += u->items.GetNum(I_GREENDRAGON_B);
+			num += u->items.GetNum(I_GREENDRAGON_S);
+			num += u->items.GetNum(I_GREENDRAGON_O);
+			num += u->items.GetNum(I_GREENDRAGON_A);
+			num += u->items.GetNum(I_GREENDRAGON_B);
 			numAllowed = controlLevel;
 			break;
 		case I_BROWNDRAGON:
-		//case I_BROWNDRAGON_S:
-		//case I_BROWNDRAGON_O:
-		//case I_BROWNDRAGON_A:
-		//case I_BROWNDRAGON_B:
+		case I_BROWNDRAGON_S:
+		case I_BROWNDRAGON_O:
+		case I_BROWNDRAGON_A:
+		case I_BROWNDRAGON_B:
 			num += u->items.GetNum(I_BROWNDRAGON);
-			//num += u->items.GetNum(I_BROWNDRAGON_S);
-			//num += u->items.GetNum(I_BROWNDRAGON_O);
-			//num += u->items.GetNum(I_BROWNDRAGON_A);
-			//num += u->items.GetNum(I_BROWNDRAGON_B);
+			num += u->items.GetNum(I_BROWNDRAGON_S);
+			num += u->items.GetNum(I_BROWNDRAGON_O);
+			num += u->items.GetNum(I_BROWNDRAGON_A);
+			num += u->items.GetNum(I_BROWNDRAGON_B);
 			numAllowed = (controlLevel + 1) / 2;
 			break;
 		case I_BLUEDRAGON:
-		//case I_BLUEDRAGON_S:
-		//case I_BLUEDRAGON_O:
-		//case I_BLUEDRAGON_A:
-		//case I_BLUEDRAGON_B:
+		case I_BLUEDRAGON_S:
+		case I_BLUEDRAGON_O:
+		case I_BLUEDRAGON_A:
+		case I_BLUEDRAGON_B:
 			num += u->items.GetNum(I_BLUEDRAGON);
-			//num += u->items.GetNum(I_BLUEDRAGON_S);
-			//num += u->items.GetNum(I_BLUEDRAGON_O);
-			//num += u->items.GetNum(I_BLUEDRAGON_A);
-			//num += u->items.GetNum(I_BLUEDRAGON_B);
+			num += u->items.GetNum(I_BLUEDRAGON_S);
+			num += u->items.GetNum(I_BLUEDRAGON_O);
+			num += u->items.GetNum(I_BLUEDRAGON_A);
+			num += u->items.GetNum(I_BLUEDRAGON_B);
 			numAllowed = (controlLevel - 1) / 2;
 			break;
 		case I_REDDRAGON:
-		//case I_REDDRAGON_S:
-		//case I_REDDRAGON_O:
-		//case I_REDDRAGON_A:
-		//case I_REDDRAGON_B:
+		case I_REDDRAGON_S:
+		case I_REDDRAGON_O:
+		case I_REDDRAGON_A:
+		case I_REDDRAGON_B:
 			num += u->items.GetNum(I_REDDRAGON);
-			//num += u->items.GetNum(I_REDDRAGON_S);
-			//num += u->items.GetNum(I_REDDRAGON_O);
-			//num += u->items.GetNum(I_REDDRAGON_A);
-			//num += u->items.GetNum(I_REDDRAGON_B);
+			num += u->items.GetNum(I_REDDRAGON_S);
+			num += u->items.GetNum(I_REDDRAGON_O);
+			num += u->items.GetNum(I_REDDRAGON_A);
+			num += u->items.GetNum(I_REDDRAGON_B);
 			numAllowed = 1;
 			break;
 		case I_WHITEDRAGON:
-		//case I_WHITEDRAGON_S:
-		//case I_WHITEDRAGON_O:
-		//case I_WHITEDRAGON_A:
-		//case I_WHITEDRAGON_B:
+		case I_WHITEDRAGON_S:
+		case I_WHITEDRAGON_O:
+		case I_WHITEDRAGON_A:
+		case I_WHITEDRAGON_B:
 			num += u->items.GetNum(I_WHITEDRAGON);
-			//num += u->items.GetNum(I_WHITEDRAGON_S);
-			//num += u->items.GetNum(I_WHITEDRAGON_O);
-			//num += u->items.GetNum(I_WHITEDRAGON_A);
-			//num += u->items.GetNum(I_WHITEDRAGON_B);
+			num += u->items.GetNum(I_WHITEDRAGON_S);
+			num += u->items.GetNum(I_WHITEDRAGON_O);
+			num += u->items.GetNum(I_WHITEDRAGON_A);
+			num += u->items.GetNum(I_WHITEDRAGON_B);
 			numAllowed = 1;
 			break;
 		case I_BLACKDRAGON:
-		//case I_BLACKDRAGON_S:
-		//case I_BLACKDRAGON_O:
-		//case I_BLACKDRAGON_A:
-		//case I_BLACKDRAGON_B:
+		case I_BLACKDRAGON_S:
+		case I_BLACKDRAGON_O:
+		case I_BLACKDRAGON_A:
+		case I_BLACKDRAGON_B:
 			num += u->items.GetNum(I_BLACKDRAGON);
-			//num += u->items.GetNum(I_BLACKDRAGON_S);
-			//num += u->items.GetNum(I_BLACKDRAGON_O);
-			//num += u->items.GetNum(I_BLACKDRAGON_A);
-			//num += u->items.GetNum(I_BLACKDRAGON_B);
+			num += u->items.GetNum(I_BLACKDRAGON_S);
+			num += u->items.GetNum(I_BLACKDRAGON_O);
+			num += u->items.GetNum(I_BLACKDRAGON_A);
+			num += u->items.GetNum(I_BLACKDRAGON_B);
 			numAllowed = 1;
 			break;
 		case I_WOLF:

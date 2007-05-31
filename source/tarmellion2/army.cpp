@@ -308,12 +308,12 @@ Soldier::Soldier(Unit * u,Object * o,int regtype,int r,int ass) {
 	}
 
 	unit->Practise(S_COMBAT);
-	if (ridingBonus)
+	if (ridingBonus) 
 		unit->Practise(S_RIDING);
-
+		
 	// Set the attack and defense skills
 	// These will include the riding bonus if they should be included.
-	askill = unit->GetSkill(S_COMBAT) * 3 + ridingbonus + attackBonus;
+	askill = unit->GetSkill(S_COMBAT) * 3 + ridingBonus + attackBonus;
 	dskill[ATTACK_COMBAT] = unit->GetSkill(S_COMBAT) * 3 + defenseBonus;
 	attacks = numAttacks;
 

@@ -30,7 +30,7 @@
 
 int Game::SetupFaction( Faction *pFac )
 {
-    pFac->unclaimed = Globals->START_MONEY + TurnNumber() * 50;
+    pFac->unclaimed = Globals->START_MONEY + TurnNumber() * 150;
 
     if(pFac->noStartLeader)
       return 1;
